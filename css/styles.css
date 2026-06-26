@@ -72,7 +72,7 @@ body {
 
 .enter-button {
   position: fixed;
-  left: 64.8%;
+  left: calc(64.8% - 9px);
   top: 76%;
   transform: translate(-50%, -50%);
   min-width: 210px;
