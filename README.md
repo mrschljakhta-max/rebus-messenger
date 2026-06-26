@@ -32,3 +32,12 @@ REBUS Messenger — responsive web messenger for secure communication inside REB
 ## v0.3.8
 
 - Перероблено сторінку контурів: пошук, кнопка “Додати контур”, плашки-рядки списку.
+
+
+## v0.4.1
+
+- Google OAuth через Supabase Auth.
+- Підключення до `messenger_messages`.
+- Надсилання повідомлень у Supabase.
+- Завантаження повідомлень по каналах.
+- Realtime-підписка на нові повідомлення.

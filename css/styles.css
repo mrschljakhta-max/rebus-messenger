@@ -1092,3 +1092,27 @@ input { font: inherit; }
     gap: 9px;
   }
 }
+
+
+/* v0.4.1: Supabase auth/chat states */
+.messages-list {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding-right: 6px;
+}
+.message small {
+  color: rgba(244,251,255,.48);
+  font-size: 11px;
+  justify-self: end;
+}
+.system-message {
+  opacity: .88;
+}
+.send-btn:disabled {
+  opacity: .55;
+  cursor: wait;
+}

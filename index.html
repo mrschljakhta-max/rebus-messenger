@@ -58,7 +58,7 @@
         <span class="nav-label">Вихід</span>
       </button>
 
-      <div class="version-note">REBUS Messenger <b>v0.3.8</b></div>
+      <div class="version-note">REBUS Messenger <b>v0.4.1</b></div>
     </aside>
 
     <main class="workspace" aria-live="polite">
@@ -86,16 +86,11 @@
             <button class="channel" type="button" data-channel="service">Службові повідомлення</button>
           </aside>
           <section class="chat-panel glass-card">
-            <div class="messages-stream" id="messagesStream" aria-live="polite">
-              <div class="message incoming system-message">
-                <b>Система</b>
-                <span>Підключення до Supabase активне. Оберіть канал і починайте роботу.</span>
-              </div>
-            </div>
+            <div class="messages-list" id="messagesList" aria-live="polite"></div>
             <div class="compose-box">
-              <button type="button" aria-label="Додати вкладення">📎</button>
-              <input id="messageInput" type="text" placeholder="Напишіть повідомлення…" autocomplete="off" />
-              <button type="button" class="send-btn" id="sendMessageBtn">Надіслати</button>
+              <button type="button" aria-label="Додати файл">📎</button>
+              <input type="text" id="messageInput" placeholder="Напишіть повідомлення…" autocomplete="off" />
+              <button type="button" class="send-btn" id="sendMessageButton">Надіслати</button>
             </div>
           </section>
         </div>
