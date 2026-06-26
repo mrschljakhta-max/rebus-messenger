@@ -1118,19 +1118,16 @@ input { font: inherit; }
 }
 
 
-/* v0.4.2 — Messenger internal 2FA gate */
+/* v0.4.3 — Messenger 2FA uses the same visual language as the login page */
 .mfa-page {
   position: relative;
   min-height: 100svh;
   display: grid;
   place-items: center;
-  padding: 24px;
+  padding: clamp(18px, 4vw, 44px);
   overflow: hidden;
   isolation: isolate;
-  background:
-    radial-gradient(circle at 18% 24%, rgba(255,36,56,.18), transparent 30%),
-    radial-gradient(circle at 78% 20%, rgba(0,216,255,.14), transparent 28%),
-    linear-gradient(135deg, #020711 0%, #061424 55%, #020711 100%);
+  background: #020711;
 }
 
 .mfa-page[hidden] { display: none; }
@@ -1138,25 +1135,58 @@ input { font: inherit; }
 .mfa-bg {
   position: fixed;
   inset: 0;
-  z-index: -2;
+  z-index: -4;
   background-image: image-set(
     url("../assets/images/desktop/login-bg-1920.webp") 1x,
-    url("../assets/images/desktop/login-bg-2560.webp") 2x
+    url("../assets/images/desktop/login-bg-2560.webp") 2x,
+    url("../assets/images/desktop/login-bg-3840.webp") 3x
   );
   background-size: cover;
   background-position: center;
-  opacity: .22;
-  filter: blur(2px) brightness(.72);
-  transform: scale(1.02);
+  background-repeat: no-repeat;
+  transform: scale(1.01);
+  opacity: 1;
+  filter: none;
+}
+
+.mfa-vignette {
+  position: fixed;
+  inset: 0;
+  z-index: -3;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 66% 58%, rgba(0, 216, 255, .08), transparent 30%),
+    radial-gradient(circle at 62% 73%, rgba(255, 36, 56, .14), transparent 20%),
+    linear-gradient(90deg, rgba(0,0,0,.00), rgba(0,0,0,.10) 42%, rgba(0,0,0,.46));
+}
+
+.mfa-page::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  pointer-events: none;
+  opacity: .20;
+  background-image:
+    linear-gradient(rgba(255,255,255,.024) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.018) 1px, transparent 1px);
+  background-size: 36px 36px;
+  mask-image: radial-gradient(circle at center, black, transparent 72%);
 }
 
 .mfa-card {
-  width: min(520px, 100%);
-  padding: 34px;
-  border: 1px solid rgba(255,255,255,.13);
+  width: min(520px, 92vw);
+  margin-left: clamp(280px, 38vw, 720px);
+  padding: clamp(26px, 3vw, 38px);
+  border: 1px solid rgba(255,255,255,.14);
   border-radius: 34px;
-  background: linear-gradient(145deg, rgba(5,15,29,.92), rgba(13,22,36,.76));
-  box-shadow: 0 28px 100px rgba(0,0,0,.42), 0 0 52px rgba(255,36,56,.12);
+  background:
+    radial-gradient(circle at 18% 0%, rgba(255,36,56,.18), transparent 34%),
+    linear-gradient(145deg, rgba(5,15,29,.84), rgba(13,22,36,.68));
+  box-shadow:
+    0 28px 100px rgba(0,0,0,.44),
+    0 0 52px rgba(255,36,56,.13),
+    inset 0 1px rgba(255,255,255,.08);
   backdrop-filter: blur(22px);
 }
 
@@ -1212,7 +1242,7 @@ input { font: inherit; }
   border: 1px solid rgba(255,255,255,.12);
   border-radius: 20px;
   color: white;
-  background: rgba(0,0,0,.24);
+  background: rgba(0,0,0,.26);
   outline: none;
   text-align: center;
   font-size: 30px;
@@ -1221,8 +1251,8 @@ input { font: inherit; }
 }
 
 .mfa-form input:focus {
-  border-color: rgba(0,216,255,.42);
-  box-shadow: 0 0 0 4px rgba(0,216,255,.08);
+  border-color: rgba(255,36,56,.56);
+  box-shadow: 0 0 0 4px rgba(255,36,56,.10), 0 0 28px rgba(255,36,56,.16);
 }
 
 .mfa-form button,
@@ -1250,4 +1280,25 @@ input { font: inherit; }
   margin-top: 12px;
   background: rgba(255,255,255,.07);
   border: 1px solid rgba(255,255,255,.10);
+}
+
+@media (max-width: 768px) {
+  .mfa-bg {
+    background-image: image-set(
+      url("../assets/images/mobile/login-bg-mobile-1080.webp") 1x,
+      url("../assets/images/mobile/login-bg-mobile-1440.webp") 2x
+    );
+    background-position: center;
+  }
+
+  .mfa-vignette {
+    background:
+      linear-gradient(180deg, rgba(0,0,0,.02), rgba(0,0,0,.40) 52%, rgba(0,0,0,.72));
+  }
+
+  .mfa-card {
+    margin: auto 0 9vh;
+    width: min(420px, 92vw);
+    border-radius: 28px;
+  }
 }
