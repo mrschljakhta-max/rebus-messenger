@@ -167,7 +167,8 @@ body {
   .enter-button {
     left: 50%;
     top: auto;
-    bottom: max(34px, env(safe-area-inset-bottom));
+    /* Mobile: піднято приблизно на три висоти кнопки вище від нижнього краю */
+    bottom: max(202px, calc(env(safe-area-inset-bottom) + 202px));
     transform: translateX(-50%);
     width: min(74vw, 360px);
     min-height: 56px;

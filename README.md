@@ -8,3 +8,7 @@ REBUS Messenger — responsive web messenger for secure communication inside REB
 - Desktop and mobile background assets
 - Minimal login entry button
 - Ready for GitHub Pages
+
+## UI update
+
+- Mobile login button raised above the lower logo area for better composition.
