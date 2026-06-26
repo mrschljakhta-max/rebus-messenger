@@ -803,3 +803,125 @@ input { font: inherit; }
     padding-right: 16px;
   }
 }
+
+/* v0.3.7 — full-width workspace + stable centered collapsed navbar */
+:root {
+  --nav-collapsed: 104px;
+}
+
+/* Left navbar: collapsed icons stay exactly centered in a square hit-area. */
+.left-nav:not(:hover):not(:focus-within) {
+  width: var(--nav-collapsed) !important;
+  padding: 24px 0 !important;
+  align-items: center !important;
+}
+
+.left-nav:not(:hover):not(:focus-within) .main-menu {
+  width: 100% !important;
+  display: grid !important;
+  justify-items: center !important;
+  gap: 12px !important;
+}
+
+.left-nav:not(:hover):not(:focus-within) .account-card,
+.left-nav:not(:hover):not(:focus-within) .nav-item,
+.left-nav:not(:hover):not(:focus-within) .logout-item {
+  width: 64px !important;
+  min-width: 64px !important;
+  max-width: 64px !important;
+  height: 64px !important;
+  min-height: 64px !important;
+  padding: 0 !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  display: grid !important;
+  place-items: center !important;
+  justify-content: center !important;
+  align-items: center !important;
+  gap: 0 !important;
+  overflow: visible !important;
+}
+
+.left-nav:not(:hover):not(:focus-within) .account-logo {
+  width: 54px !important;
+  height: 54px !important;
+  margin: 0 !important;
+  flex: none !important;
+}
+
+.left-nav:not(:hover):not(:focus-within) .nav-icon {
+  width: 32px !important;
+  height: 32px !important;
+  flex: none !important;
+  margin: 0 !important;
+  display: grid !important;
+  place-items: center !important;
+}
+
+.left-nav:not(:hover):not(:focus-within) .nav-icon img {
+  width: 28px !important;
+  height: 28px !important;
+  display: block !important;
+  margin: 0 !important;
+  object-fit: contain !important;
+}
+
+.left-nav:not(:hover):not(:focus-within) .nav-label,
+.left-nav:not(:hover):not(:focus-within) .account-info,
+.left-nav:not(:hover):not(:focus-within) .version-note {
+  display: none !important;
+}
+
+/* Workspace: use almost the whole available page, with only safe breathing room. */
+.workspace {
+  padding: 40px 86px 40px 32px !important;
+}
+
+.page-view {
+  width: 100% !important;
+  max-width: none !important;
+  margin: 0 !important;
+}
+
+/* Chat page: small channels block on the left, main chat fills the rest. */
+.chat-layout {
+  width: 100% !important;
+  grid-template-columns: clamp(292px, 22vw, 360px) minmax(0, 1fr) !important;
+  gap: 28px !important;
+  min-height: calc(100svh - 80px) !important;
+}
+
+.chat-list,
+.chat-panel {
+  min-width: 0 !important;
+}
+
+.chat-panel {
+  min-height: calc(100svh - 80px) !important;
+}
+
+@media (max-width: 1200px) {
+  .workspace {
+    padding: 30px 56px 30px 26px !important;
+  }
+
+  .chat-layout {
+    grid-template-columns: 292px minmax(0, 1fr) !important;
+    gap: 22px !important;
+  }
+}
+
+@media (max-width: 900px) {
+  .workspace {
+    padding: 24px 18px 104px !important;
+  }
+
+  .chat-layout {
+    grid-template-columns: 1fr !important;
+    min-height: auto !important;
+  }
+
+  .chat-panel {
+    min-height: 62svh !important;
+  }
+}
