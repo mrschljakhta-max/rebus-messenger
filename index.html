@@ -21,6 +21,26 @@
     </button>
   </main>
 
+  <section class="mfa-page" id="mfaPage" aria-label="REBUS Messenger двофакторна перевірка" hidden>
+    <div class="mfa-bg" aria-hidden="true"></div>
+    <div class="mfa-card">
+      <div class="mfa-mark">R</div>
+      <p class="mfa-kicker">REBUS Messenger</p>
+      <h1>Двофакторна перевірка</h1>
+      <p class="mfa-text" id="mfaText">Підтвердіть доступ до робочої зони месенджера.</p>
+
+      <form class="mfa-form" id="mfaForm">
+        <label for="mfaCode">Код підтвердження</label>
+        <input id="mfaCode" name="mfaCode" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="000000" />
+        <button type="submit" id="mfaSubmitButton">Підтвердити</button>
+      </form>
+
+      <p class="mfa-status" id="mfaStatus">Очікується код 2FA.</p>
+      <button class="mfa-secondary" type="button" id="mfaBackButton">Вийти з акаунта</button>
+    </div>
+  </section>
+
+
   <section class="app-shell" id="appShell" aria-label="REBUS Messenger робоча зона" hidden>
     <aside class="left-nav" aria-label="Основна навігація">
       <div class="account-card" data-route="account" tabindex="0" role="button" aria-label="Відкрити акаунт">
@@ -58,7 +78,7 @@
         <span class="nav-label">Вихід</span>
       </button>
 
-      <div class="version-note">REBUS Messenger <b>v0.4.1</b></div>
+      <div class="version-note">REBUS Messenger <b>v0.4.2</b></div>
     </aside>
 
     <main class="workspace" aria-live="polite">

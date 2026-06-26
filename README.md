@@ -41,3 +41,9 @@ REBUS Messenger — responsive web messenger for secure communication inside REB
 - Надсилання повідомлень у Supabase.
 - Завантаження повідомлень по каналах.
 - Realtime-підписка на нові повідомлення.
+
+
+## v0.4.2
+- Додано внутрішній екран Messenger 2FA після Google OAuth.
+- OAuth redirect зафіксовано на поточний URL GitHub Pages.
+- Підготовлено підтримку Supabase TOTP MFA; якщо фактор ще не налаштований, показується тимчасовий внутрішній gate для тестування UI.

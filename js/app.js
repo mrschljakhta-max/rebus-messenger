@@ -3,6 +3,13 @@ const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_8cJ1jnSyGOoAG8MOEXZtCA_cY72YAnh
 
 const enterButton = document.getElementById('enterButton');
 const loginPage = document.getElementById('loginPage');
+const mfaPage = document.getElementById('mfaPage');
+const mfaForm = document.getElementById('mfaForm');
+const mfaCode = document.getElementById('mfaCode');
+const mfaText = document.getElementById('mfaText');
+const mfaStatus = document.getElementById('mfaStatus');
+const mfaSubmitButton = document.getElementById('mfaSubmitButton');
+const mfaBackButton = document.getElementById('mfaBackButton');
 const appShell = document.getElementById('appShell');
 const navButtons = document.querySelectorAll('[data-route]');
 const pageViews = document.querySelectorAll('[data-page]');
@@ -39,6 +46,9 @@ let currentUser = null;
 let currentChannel = 'general';
 let realtimeChannel = null;
 let renderedMessageIds = new Set();
+let activeMfaFactorId = null;
+let activeMfaChallengeId = null;
+let mfaMode = 'local-gate';
 
 function getDisplayName(user) {
   return user?.user_metadata?.full_name
@@ -65,6 +75,22 @@ function formatTime(value) {
   return date.toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit' });
 }
 
+function getMfaStorageKey(user = currentUser) {
+  return user?.id ? `rebus:messenger:mfa:${user.id}` : 'rebus:messenger:mfa:unknown';
+}
+
+function isMessengerMfaVerified(user = currentUser) {
+  return sessionStorage.getItem(getMfaStorageKey(user)) === 'verified';
+}
+
+function markMessengerMfaVerified(user = currentUser) {
+  sessionStorage.setItem(getMfaStorageKey(user), 'verified');
+}
+
+function clearMessengerMfaVerified(user = currentUser) {
+  if (user?.id) sessionStorage.removeItem(getMfaStorageKey(user));
+}
+
 function setLoginButtonState(isLoading, text = 'Вхід') {
   if (!enterButton) return;
   enterButton.classList.toggle('is-loading', isLoading);
@@ -72,22 +98,36 @@ function setLoginButtonState(isLoading, text = 'Вхід') {
   if (span) span.textContent = text;
 }
 
+function hideAllRoots() {
+  if (loginPage) loginPage.hidden = true;
+  if (mfaPage) mfaPage.hidden = true;
+  if (appShell) appShell.hidden = true;
+}
+
 function showApp() {
-  loginPage?.classList.add('is-leaving');
-  window.setTimeout(() => {
-    if (loginPage) loginPage.hidden = true;
-    if (appShell) appShell.hidden = false;
-    setRoute('chat');
-  }, 300);
+  hideAllRoots();
+  if (appShell) appShell.hidden = false;
+  setRoute('chat');
 }
 
 function showLogin() {
-  if (appShell) appShell.hidden = true;
+  hideAllRoots();
   if (loginPage) {
     loginPage.hidden = false;
     window.requestAnimationFrame(() => loginPage.classList.remove('is-leaving'));
   }
   setLoginButtonState(false, 'Вхід');
+}
+
+function showMfaGate(message = 'Підтвердіть доступ до робочої зони месенджера.') {
+  hideAllRoots();
+  if (mfaPage) mfaPage.hidden = false;
+  if (mfaText) mfaText.textContent = message;
+  if (mfaStatus) mfaStatus.textContent = 'Очікується код 2FA.';
+  if (mfaCode) {
+    mfaCode.value = '';
+    setTimeout(() => mfaCode.focus(), 80);
+  }
 }
 
 function updateAccountUi(user) {
@@ -155,6 +195,7 @@ async function signOut() {
     await supabaseClient.removeChannel(realtimeChannel);
     realtimeChannel = null;
   }
+  clearMessengerMfaVerified(currentUser);
   await supabaseClient?.auth.signOut();
   currentUser = null;
   renderedMessageIds.clear();
@@ -294,6 +335,82 @@ function setActiveChannel(channel) {
   subscribeToMessages();
 }
 
+async function startMessengerMfaChallenge() {
+  activeMfaFactorId = null;
+  activeMfaChallengeId = null;
+  mfaMode = 'local-gate';
+
+  try {
+    const { data, error } = await supabaseClient.auth.mfa.listFactors();
+    if (error) throw error;
+
+    const factor = data?.totp?.find(item => item.status === 'verified');
+    if (!factor) {
+      showMfaGate('Для цього акаунта в Supabase ще немає TOTP-фактора. Тимчасово діє внутрішній Messenger 2FA gate.');
+      if (mfaStatus) mfaStatus.textContent = 'Введіть будь-який 6-значний код для проходження внутрішнього gate. Наступним етапом підключимо реальну TOTP-перевірку.';
+      return;
+    }
+
+    const challenge = await supabaseClient.auth.mfa.challenge({ factorId: factor.id });
+    if (challenge.error) throw challenge.error;
+
+    activeMfaFactorId = factor.id;
+    activeMfaChallengeId = challenge.data.id;
+    mfaMode = 'supabase-totp';
+    showMfaGate('Введіть 6-значний код із застосунку автентифікації для REBUS Messenger.');
+  } catch (error) {
+    console.error('[REBUS] MFA challenge error:', error);
+    showMfaGate('Не вдалося підготувати Supabase MFA. Тимчасово відкрито внутрішній Messenger 2FA gate.');
+    if (mfaStatus) mfaStatus.textContent = error?.message || 'Помилка підготовки MFA.';
+  }
+}
+
+async function verifyMessengerMfa(code) {
+  if (!/^\d{6}$/.test(code)) {
+    if (mfaStatus) mfaStatus.textContent = 'Введіть рівно 6 цифр.';
+    return;
+  }
+
+  if (mfaSubmitButton) mfaSubmitButton.disabled = true;
+  if (mfaStatus) mfaStatus.textContent = 'Перевірка коду…';
+
+  try {
+    if (mfaMode === 'supabase-totp' && activeMfaFactorId && activeMfaChallengeId) {
+      const { error } = await supabaseClient.auth.mfa.verify({
+        factorId: activeMfaFactorId,
+        challengeId: activeMfaChallengeId,
+        code
+      });
+      if (error) throw error;
+    }
+
+    markMessengerMfaVerified(currentUser);
+    if (mfaStatus) mfaStatus.textContent = 'Доступ підтверджено.';
+    showApp();
+    await loadMessages();
+    await subscribeToMessages();
+  } catch (error) {
+    console.error('[REBUS] MFA verify error:', error);
+    if (mfaStatus) mfaStatus.textContent = `Код не підтверджено: ${error.message}`;
+  } finally {
+    if (mfaSubmitButton) mfaSubmitButton.disabled = false;
+  }
+}
+
+async function enterMessengerAfterAuth(user) {
+  currentUser = user;
+  updateAccountUi(currentUser);
+
+  if (isMessengerMfaVerified(currentUser)) {
+    showApp();
+    await loadMessages();
+    await subscribeToMessages();
+    return;
+  }
+
+  await startMessengerMfaChallenge();
+}
+
 async function initAuth() {
   if (!supabaseClient) {
     console.error('[REBUS] Supabase не ініціалізувався.');
@@ -307,28 +424,30 @@ async function initAuth() {
   currentUser = data?.session?.user || null;
 
   if (currentUser) {
-    updateAccountUi(currentUser);
-    showApp();
-    await loadMessages();
-    await subscribeToMessages();
+    await enterMessengerAfterAuth(currentUser);
   } else {
     showLogin();
   }
 
   supabaseClient.auth.onAuthStateChange((_event, session) => {
-    currentUser = session?.user || null;
-    if (currentUser) {
-      updateAccountUi(currentUser);
-      showApp();
-      loadMessages();
-      subscribeToMessages();
+    const nextUser = session?.user || null;
+    if (nextUser) {
+      enterMessengerAfterAuth(nextUser);
     } else {
+      currentUser = null;
       showLogin();
     }
   });
 }
 
 enterButton?.addEventListener('click', signIn);
+
+mfaForm?.addEventListener('submit', event => {
+  event.preventDefault();
+  verifyMessengerMfa(mfaCode?.value?.trim() || '');
+});
+
+mfaBackButton?.addEventListener('click', signOut);
 
 navButtons.forEach(button => {
   button.addEventListener('click', () => setRoute(button.dataset.route));
@@ -348,6 +467,10 @@ messageInput?.addEventListener('keydown', event => {
     event.preventDefault();
     sendMessage();
   }
+});
+
+mfaCode?.addEventListener('input', () => {
+  mfaCode.value = mfaCode.value.replace(/\D/g, '').slice(0, 6);
 });
 
 initAuth();
