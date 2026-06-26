@@ -10,6 +10,6 @@ REBUS Messenger — responsive web messenger for secure communication inside REB
 - Ready for GitHub Pages
 
 
-## v0.3.3
+## v0.3.4
 - Added custom navbar icons.
 - Left navbar is compact by default and expands on hover/focus.
