@@ -47,3 +47,9 @@ REBUS Messenger — responsive web messenger for secure communication inside REB
 - Додано внутрішній екран Messenger 2FA після Google OAuth.
 - OAuth redirect зафіксовано на поточний URL GitHub Pages.
 - Підготовлено підтримку Supabase TOTP MFA; якщо фактор ще не налаштований, показується тимчасовий внутрішній gate для тестування UI.
+
+
+## v0.4.4
+- Fixed OAuth redirect so Messenger never falls back to rebus-secure.com/verify-2fa.html.
+- Messenger 2FA now uses the same background styling as the login page.
+- Fixed duplicated Supabase call in message loading.

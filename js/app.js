@@ -1,5 +1,6 @@
 const SUPABASE_URL = 'https://aehedmvxpqxsmzxemkix.supabase.co';
 const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_8cJ1jnSyGOoAG8MOEXZtCA_cY72YAnh';
+const MESSENGER_APP_URL = 'https://mrschljakhta-max.github.io/rebus-messenger/';
 
 const enterButton = document.getElementById('enterButton');
 const loginPage = document.getElementById('loginPage');
@@ -163,6 +164,25 @@ function setRoute(route) {
   }
 }
 
+
+function getMessengerRedirectUrl() {
+  const { origin, pathname, hostname } = window.location;
+
+  // GitHub Pages production URL for REBUS Messenger.
+  if (hostname === 'mrschljakhta-max.github.io') {
+    return `${origin}/rebus-messenger/`;
+  }
+
+  // Local development remains possible.
+  if (hostname === 'localhost' || hostname === '127.0.0.1') {
+    return `${origin}${pathname}`;
+  }
+
+  // Safety fallback: never return old REBUS Secure pages such as
+  // rebus-secure.com/verify-2fa.html for Messenger OAuth.
+  return MESSENGER_APP_URL;
+}
+
 async function signIn() {
   if (!supabaseClient) {
     alert('Supabase client не завантажився. Перевір підключення CDN.');
@@ -171,7 +191,7 @@ async function signIn() {
 
   setLoginButtonState(true, 'Вхід…');
 
-  const redirectTo = `${window.location.origin}${window.location.pathname}`;
+  const redirectTo = getMessengerRedirectUrl();
   const { error } = await supabaseClient.auth.signInWithOAuth({
     provider: 'google',
     options: {
