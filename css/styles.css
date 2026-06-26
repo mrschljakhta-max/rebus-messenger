@@ -12,6 +12,7 @@
   --shadow-red: 0 0 36px rgba(255, 36, 56, .46);
   --shadow-cyan: 0 0 30px rgba(0, 216, 255, .22);
   --nav-width: 306px;
+  --nav-collapsed: 74px;
   --right-width: 318px;
 }
 
@@ -151,7 +152,7 @@ input { font: inherit; }
   position: relative;
   min-height: 100svh;
   display: grid;
-  grid-template-columns: var(--nav-width) minmax(0, 1fr) 0;
+  grid-template-columns: var(--nav-collapsed) minmax(0, 1fr) 0;
   overflow: hidden;
   isolation: isolate;
   background:
@@ -171,19 +172,31 @@ input { font: inherit; }
 
 .left-nav {
   min-height: 100svh;
-  padding: 22px 18px;
+  width: var(--nav-collapsed);
+  padding: 22px 14px;
   display: flex;
   flex-direction: column;
   gap: 18px;
+  overflow: hidden;
   border-right: 1px solid rgba(255,255,255,.09);
-  background: linear-gradient(180deg, rgba(5,15,29,.92), rgba(3,8,18,.96));
+  background: linear-gradient(180deg, rgba(5,15,29,.95), rgba(3,8,18,.98));
   box-shadow: 20px 0 60px rgba(0,0,0,.30);
+  transition: width .28s ease, padding .28s ease, box-shadow .28s ease;
+  z-index: 30;
+}
+
+.left-nav:hover,
+.left-nav:focus-within {
+  width: var(--nav-width);
+  padding-inline: 18px;
+  box-shadow: 30px 0 90px rgba(0,0,0,.42), 0 0 42px rgba(255,36,56,.08);
 }
 
 .account-card {
   display: flex;
   gap: 14px;
   align-items: center;
+  min-width: 270px;
   padding: 14px;
   border: 1px solid var(--stroke);
   border-radius: 24px;
@@ -214,7 +227,9 @@ input { font: inherit; }
   box-shadow: 0 0 24px rgba(255,36,56,.26);
 }
 
-.account-info { min-width: 0; display: grid; gap: 3px; }
+.account-info { min-width: 0; display: grid; gap: 3px; opacity: 0; transform: translateX(-8px); transition: opacity .22s ease, transform .22s ease; }
+.left-nav:hover .account-info,
+.left-nav:focus-within .account-info { opacity: 1; transform: translateX(0); }
 .account-info strong { font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .account-info span { color: var(--muted); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .account-info em { color: var(--cyan); font-style: normal; font-size: 11px; font-weight: 800; letter-spacing: .08em; }
@@ -222,10 +237,11 @@ input { font: inherit; }
 .main-menu { display: grid; gap: 10px; }
 .nav-item {
   width: 100%;
-  min-height: 50px;
+  min-width: 258px;
+  min-height: 54px;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 16px;
   padding: 0 16px;
   border: 1px solid transparent;
   border-radius: 18px;
@@ -251,10 +267,70 @@ input { font: inherit; }
   box-shadow: inset 3px 0 0 var(--red), 0 10px 34px rgba(255,36,56,.08);
 }
 
-.nav-icon { width: 24px; text-align: center; }
+.nav-icon {
+  width: 28px;
+  height: 28px;
+  flex: 0 0 28px;
+  display: grid;
+  place-items: center;
+}
+.nav-icon img {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  filter: invert(1) drop-shadow(0 0 10px rgba(255,255,255,.16));
+  opacity: .86;
+  transition: filter .2s ease, opacity .2s ease, transform .2s ease;
+}
+.nav-item:hover .nav-icon img,
+.nav-item.is-active .nav-icon img {
+  opacity: 1;
+  transform: scale(1.04);
+  filter: invert(1) drop-shadow(0 0 12px rgba(255,36,56,.42));
+}
+.nav-label {
+  opacity: 0;
+  transform: translateX(-8px);
+  transition: opacity .22s ease, transform .22s ease;
+  white-space: nowrap;
+}
+.left-nav:hover .nav-label,
+.left-nav:focus-within .nav-label {
+  opacity: 1;
+  transform: translateX(0);
+}
 .nav-spacer { flex: 1; }
 .logout-item { color: rgba(255,180,188,.88); }
-.version-note { color: rgba(244,251,255,.36); font-size: 11px; text-align: center; letter-spacing: .04em; }
+.version-note { min-width: 258px; color: rgba(244,251,255,.36); font-size: 11px; text-align: center; letter-spacing: .04em; opacity: 0; transition: opacity .22s ease; }
+.left-nav:hover .version-note,
+.left-nav:focus-within .version-note { opacity: 1; }
+
+
+/* v0.3.2: compact left navbar by default, expanded only on hover/focus */
+.left-nav:not(:hover):not(:focus-within) .account-card {
+  min-width: 46px;
+  width: 46px;
+  height: 54px;
+  padding: 0;
+  justify-content: center;
+  border-radius: 18px;
+}
+.left-nav:not(:hover):not(:focus-within) .account-logo {
+  width: 44px;
+  height: 44px;
+  border-radius: 16px;
+}
+.left-nav:not(:hover):not(:focus-within) .nav-item {
+  min-width: 46px;
+  width: 46px;
+  padding: 0;
+  justify-content: center;
+  gap: 0;
+}
+.left-nav:not(:hover):not(:focus-within) .logout-item {
+  min-width: 46px;
+  width: 46px;
+}
 
 .workspace {
   min-width: 0;
@@ -373,19 +449,46 @@ input { font: inherit; }
 
 @media (max-width: 1200px) {
   .enter-button { left: 65%; top: 77%; }
-  :root { --nav-width: 278px; --right-width: 298px; }
+  :root { --nav-width: 278px; --nav-collapsed: 74px; --right-width: 298px; }
   .library-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
 @media (max-width: 900px) {
   .enter-button { left: 66%; top: 78%; min-width: 190px; }
-  .app-shell { grid-template-columns: 94px minmax(0, 1fr); }
+  .app-shell { grid-template-columns: var(--nav-collapsed) minmax(0, 1fr); }
   .left-nav { padding: 14px 10px; align-items: stretch; }
-  .account-card { justify-content: center; padding: 12px 8px; }
-  .account-info, .nav-item span:not(.nav-icon), .version-note { display: none; }
-  .nav-item { justify-content: center; padding: 0; }
-  .nav-icon { width: auto; }
-  .workspace { padding: 24px 18px; }
+  .left-nav:hover, .left-nav:focus-within { padding-inline: 14px; }
+  .account-card { justify-content: flex-start; padding: 12px 8px; min-width: 248px; }
+  .nav-item { min-width: 238px; padding: 0 15px; }
+  .version-note { min-width: 238px; }
+  
+/* v0.3.2: compact left navbar by default, expanded only on hover/focus */
+.left-nav:not(:hover):not(:focus-within) .account-card {
+  min-width: 46px;
+  width: 46px;
+  height: 54px;
+  padding: 0;
+  justify-content: center;
+  border-radius: 18px;
+}
+.left-nav:not(:hover):not(:focus-within) .account-logo {
+  width: 44px;
+  height: 44px;
+  border-radius: 16px;
+}
+.left-nav:not(:hover):not(:focus-within) .nav-item {
+  min-width: 46px;
+  width: 46px;
+  padding: 0;
+  justify-content: center;
+  gap: 0;
+}
+.left-nav:not(:hover):not(:focus-within) .logout-item {
+  min-width: 46px;
+  width: 46px;
+}
+
+.workspace { padding: 24px 18px; }
   .chat-layout, .account-layout { grid-template-columns: 1fr; }
 }
 
@@ -426,23 +529,61 @@ input { font: inherit; }
     right: 0;
     bottom: 0;
     top: auto;
+    width: auto;
     min-height: auto;
     height: 74px;
     padding: 8px 10px calc(8px + env(safe-area-inset-bottom));
     flex-direction: row;
     align-items: center;
     gap: 8px;
+    overflow: visible;
     border-right: 0;
     border-top: 1px solid rgba(255,255,255,.10);
     z-index: 20;
   }
-  .account-card { width: 54px; height: 54px; flex: 0 0 auto; border-radius: 18px; }
+  .left-nav:hover,
+  .left-nav:focus-within {
+    width: auto;
+    padding: 8px 10px calc(8px + env(safe-area-inset-bottom));
+    box-shadow: 0 -18px 48px rgba(0,0,0,.36);
+  }
+  .account-card { width: 54px; min-width: 54px; height: 54px; flex: 0 0 auto; border-radius: 18px; }
   .account-logo { width: 34px; height: 34px; border-radius: 12px; }
   .main-menu { flex: 1; grid-template-columns: repeat(4, 1fr); gap: 6px; }
-  .nav-item { min-height: 54px; border-radius: 16px; font-size: 22px; }
+  .account-info, .nav-label, .version-note { display: none; }
+  .nav-item { min-width: 0; min-height: 54px; justify-content: center; padding: 0; border-radius: 16px; font-size: 22px; }
+  .nav-icon { width: 28px; height: 28px; flex-basis: 28px; }
+  .nav-icon img { width: 24px; height: 24px; }
   .logout-item { width: 54px; flex: 0 0 auto; }
   .nav-spacer, .version-note { display: none; }
-  .workspace { min-height: 100svh; padding: 22px 16px 104px; }
+  
+/* v0.3.2: compact left navbar by default, expanded only on hover/focus */
+.left-nav:not(:hover):not(:focus-within) .account-card {
+  min-width: 46px;
+  width: 46px;
+  height: 54px;
+  padding: 0;
+  justify-content: center;
+  border-radius: 18px;
+}
+.left-nav:not(:hover):not(:focus-within) .account-logo {
+  width: 44px;
+  height: 44px;
+  border-radius: 16px;
+}
+.left-nav:not(:hover):not(:focus-within) .nav-item {
+  min-width: 46px;
+  width: 46px;
+  padding: 0;
+  justify-content: center;
+  gap: 0;
+}
+.left-nav:not(:hover):not(:focus-within) .logout-item {
+  min-width: 46px;
+  width: 46px;
+}
+
+.workspace { min-height: 100svh; padding: 22px 16px 104px; }
   .page-header h1 { font-size: 34px; }
   .content-grid, .library-grid { grid-template-columns: 1fr; }
   .chat-layout { min-height: auto; }
