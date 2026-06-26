@@ -58,7 +58,7 @@
         <span class="nav-label">Вихід</span>
       </button>
 
-      <div class="version-note">REBUS Messenger <b>v0.3.7</b></div>
+      <div class="version-note">REBUS Messenger <b>v0.3.8</b></div>
     </aside>
 
     <main class="workspace" aria-live="polite">
@@ -98,17 +98,35 @@
       </section>
 
       <section class="page-view" id="page-contours" data-page="contours" hidden>
-        <div class="content-grid">
-          <article class="glass-card contour-card is-current">
-            <span>Активний</span>
-            <h3>Загальний контур</h3>
-            <p class="muted">Основний простір взаємодії користувача.</p>
-          </article>
-          <article class="glass-card contour-card">
-            <span>Очікує підключення</span>
-            <h3>Контур підрозділу</h3>
-            <p class="muted">Буде підтягуватись із Supabase після авторизації.</p>
-          </article>
+        <div class="contours-workspace glass-card">
+          <div class="contours-toolbar">
+            <div class="contour-search">
+              <span aria-hidden="true">⌕</span>
+              <input type="search" placeholder="Пошук контуру…" aria-label="Пошук контуру" />
+            </div>
+            <button class="add-contour-btn" type="button">Додати контур</button>
+          </div>
+
+          <div class="contours-list" aria-label="Список контурів">
+            <button class="contour-row is-current" type="button">
+              <span class="contour-status active">Активний</span>
+              <strong>Загальний контур</strong>
+              <em>Основний простір взаємодії користувача</em>
+              <span class="contour-meta">12 учасників · 24 файли</span>
+            </button>
+            <button class="contour-row" type="button">
+              <span class="contour-status pending">Очікує підключення</span>
+              <strong>Контур підрозділу</strong>
+              <em>Буде підтягуватись із Supabase після авторизації</em>
+              <span class="contour-meta">0 учасників · 0 файлів</span>
+            </button>
+            <button class="contour-row" type="button">
+              <span class="contour-status draft">Шаблон</span>
+              <strong>Новий контур</strong>
+              <em>Підготовлена плашка для майбутнього створення контуру</em>
+              <span class="contour-meta">Не налаштовано</span>
+            </button>
+          </div>
         </div>
       </section>
 
