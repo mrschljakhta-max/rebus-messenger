@@ -18,3 +18,8 @@ REBUS Messenger — responsive web messenger for secure communication inside REB
 ## v0.3.5
 - Removed duplicated page headings from workspace pages.
 - Kept left navigation labels as the primary section indicator.
+
+
+## v0.3.6
+- Центрування іконок у згорнутому лівому навбарі.
+- Чат розтягнуто на всю доступну ширину: менший блок зліва, більший справа.

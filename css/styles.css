@@ -676,3 +676,130 @@ input { font: inherit; }
     padding-top: 22px;
   }
 }
+
+
+/* v0.3.6 — centered collapsed navbar icons + full-width chat workspace */
+:root {
+  --nav-collapsed: 94px;
+}
+
+/* Make the workspace use the available screen width instead of a narrow centered page. */
+.page-view {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+}
+
+.workspace {
+  padding-left: clamp(28px, 6vw, 150px);
+  padding-right: clamp(28px, 6vw, 150px);
+}
+
+/* Chat: small block on the left, large working area on the right. */
+.chat-layout {
+  width: 100%;
+  grid-template-columns: minmax(260px, 22%) minmax(0, 1fr);
+  gap: clamp(18px, 2vw, 28px);
+  min-height: calc(100svh - 110px);
+}
+
+.chat-list {
+  min-width: 0;
+}
+
+.chat-panel {
+  min-width: 0;
+}
+
+/* Stable collapsed sidebar: every icon is centered in its own square. */
+.left-nav:not(:hover):not(:focus-within) {
+  width: var(--nav-collapsed) !important;
+  padding: 22px 18px !important;
+  align-items: center !important;
+}
+
+.left-nav:not(:hover):not(:focus-within) .main-menu {
+  width: 100%;
+  justify-items: center;
+}
+
+.left-nav:not(:hover):not(:focus-within) .account-card,
+.left-nav:not(:hover):not(:focus-within) .nav-item,
+.left-nav:not(:hover):not(:focus-within) .logout-item {
+  width: 58px !important;
+  min-width: 58px !important;
+  max-width: 58px !important;
+  height: 58px !important;
+  min-height: 58px !important;
+  padding: 0 !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 0 !important;
+  overflow: visible !important;
+  transform: none !important;
+}
+
+.left-nav:not(:hover):not(:focus-within) .nav-item:hover {
+  transform: none !important;
+}
+
+.left-nav:not(:hover):not(:focus-within) .nav-icon {
+  width: 32px !important;
+  height: 32px !important;
+  flex: 0 0 32px !important;
+  margin: 0 !important;
+  display: grid !important;
+  place-items: center !important;
+}
+
+.left-nav:not(:hover):not(:focus-within) .nav-icon img {
+  display: block !important;
+  width: 26px !important;
+  height: 26px !important;
+  margin: 0 !important;
+  object-fit: contain !important;
+}
+
+.left-nav:not(:hover):not(:focus-within) .account-logo {
+  width: 48px !important;
+  height: 48px !important;
+  flex: 0 0 48px !important;
+  margin: 0 !important;
+}
+
+.left-nav:not(:hover):not(:focus-within) .nav-label,
+.left-nav:not(:hover):not(:focus-within) .account-info,
+.left-nav:not(:hover):not(:focus-within) .version-note {
+  display: none !important;
+}
+
+.left-nav:hover .nav-label,
+.left-nav:focus-within .nav-label {
+  display: inline !important;
+}
+
+@media (max-width: 1200px) {
+  .workspace {
+    padding-left: clamp(24px, 4vw, 54px);
+    padding-right: clamp(24px, 4vw, 54px);
+  }
+  .chat-layout {
+    grid-template-columns: 260px minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 900px) {
+  .chat-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .workspace {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+}
