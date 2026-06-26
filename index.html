@@ -12,28 +12,155 @@
   <link rel="stylesheet" href="css/styles.css" />
 </head>
 <body>
-  <main class="login-page" aria-label="REBUS Messenger стартова сторінка">
+  <main class="login-page" id="loginPage" aria-label="REBUS Messenger стартова сторінка">
     <div class="login-bg" aria-hidden="true"></div>
     <div class="login-vignette" aria-hidden="true"></div>
 
     <button class="enter-button" type="button" id="enterButton" aria-label="Увійти до REBUS Messenger">
       <span>Вхід</span>
     </button>
+  </main>
 
-    <section class="connect-layer" id="connectLayer" aria-live="polite" aria-hidden="true">
-      <div class="connect-panel">
-        <div class="connect-mark" aria-hidden="true">
-          <span></span>
-        </div>
-        <p class="connect-kicker">REBUS Messenger</p>
-        <h1>Підключення до REBUS…</h1>
-        <p class="connect-text" id="connectText">Перевірка доступу</p>
-        <div class="connect-progress" aria-hidden="true">
-          <span></span>
+  <section class="app-shell" id="appShell" aria-label="REBUS Messenger робоча зона" hidden>
+    <aside class="left-nav" aria-label="Основна навігація">
+      <div class="account-card" data-route="account" tabindex="0" role="button" aria-label="Відкрити акаунт">
+        <div class="account-logo" aria-hidden="true">R</div>
+        <div class="account-info">
+          <strong>Olexandr Shliakhta</strong>
+          <span>mr.schljakhta@gmail.com</span>
+          <em>SUPER-ADMIN</em>
         </div>
       </div>
-    </section>
-  </main>
+
+      <nav class="main-menu" aria-label="Розділи месенджера">
+        <button class="nav-item is-active" type="button" data-route="chat">
+          <span class="nav-icon">💬</span>
+          <span>Чат</span>
+        </button>
+        <button class="nav-item" type="button" data-route="contours">
+          <span class="nav-icon">🌐</span>
+          <span>Контур</span>
+        </button>
+        <button class="nav-item" type="button" data-route="library">
+          <span class="nav-icon">📚</span>
+          <span>Бібліотека</span>
+        </button>
+        <button class="nav-item" type="button" data-route="contacts">
+          <span class="nav-icon">👥</span>
+          <span>Контакти</span>
+        </button>
+      </nav>
+
+      <div class="nav-spacer"></div>
+
+      <button class="nav-item logout-item" type="button" data-route="logout">
+        <span class="nav-icon">🚪</span>
+        <span>Вихід</span>
+      </button>
+
+      <div class="version-note">REBUS Messenger <b>v0.3.0</b></div>
+    </aside>
+
+    <main class="workspace" aria-live="polite">
+      <section class="page-view" id="page-account" data-page="account" hidden>
+        <header class="page-header">
+          <p>Акаунт</p>
+          <h1>Профіль користувача</h1>
+        </header>
+        <div class="content-grid account-layout">
+          <article class="glass-card profile-card">
+            <div class="profile-avatar">R</div>
+            <h2>Olexandr Shliakhta</h2>
+            <p>mr.schljakhta@gmail.com</p>
+            <span class="role-pill">SUPER-ADMIN</span>
+          </article>
+          <article class="glass-card">
+            <h3>Статус доступу</h3>
+            <p class="muted">Доступ активний. Профіль буде підтягуватись із Supabase після підключення авторизації.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="page-view is-active" id="page-chat" data-page="chat">
+        <header class="page-header">
+          <p>Чат</p>
+          <h1>Оперативний канал контуру</h1>
+        </header>
+        <div class="chat-layout">
+          <aside class="chat-list glass-card">
+            <h3>Канали</h3>
+            <button class="channel is-selected" type="button">Загальний чат</button>
+            <button class="channel" type="button">Оператори</button>
+            <button class="channel" type="button">Службові повідомлення</button>
+          </aside>
+          <section class="chat-panel glass-card">
+            <div class="message incoming"><b>Система</b><span>Виберіть контур і почніть захищену взаємодію.</span></div>
+            <div class="message outgoing"><b>Ви</b><span>REBUS Messenger готовий до підключення логіки чатів.</span></div>
+            <div class="compose-box">
+              <button type="button">📎</button>
+              <input type="text" placeholder="Напишіть повідомлення…" />
+              <button type="button" class="send-btn">Надіслати</button>
+            </div>
+          </section>
+        </div>
+      </section>
+
+      <section class="page-view" id="page-contours" data-page="contours" hidden>
+        <header class="page-header">
+          <p>Контур</p>
+          <h1>Доступні контури</h1>
+        </header>
+        <div class="content-grid">
+          <article class="glass-card contour-card is-current">
+            <span>Активний</span>
+            <h3>Загальний контур</h3>
+            <p class="muted">Основний простір взаємодії користувача.</p>
+          </article>
+          <article class="glass-card contour-card">
+            <span>Очікує підключення</span>
+            <h3>Контур підрозділу</h3>
+            <p class="muted">Буде підтягуватись із Supabase після авторизації.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="page-view" id="page-library" data-page="library" hidden>
+        <header class="page-header">
+          <p>Бібліотека</p>
+          <h1>Файли контуру</h1>
+        </header>
+        <div class="content-grid library-grid">
+          <article class="glass-card library-tile"><strong>Документи</strong><span>0 файлів</span></article>
+          <article class="glass-card library-tile"><strong>Зображення</strong><span>0 файлів</span></article>
+          <article class="glass-card library-tile"><strong>Архіви</strong><span>0 файлів</span></article>
+          <article class="glass-card library-tile"><strong>Посилання</strong><span>0 записів</span></article>
+        </div>
+      </section>
+
+      <section class="page-view" id="page-contacts" data-page="contacts" hidden>
+        <header class="page-header">
+          <p>Контакти</p>
+          <h1>Учасники системи</h1>
+        </header>
+        <div class="contacts-list glass-card">
+          <div class="contact-row"><span class="status online"></span><b>Олександр</b><em>SUPER-ADMIN</em></div>
+          <div class="contact-row"><span class="status idle"></span><b>Користувач REBUS</b><em>USER</em></div>
+          <div class="contact-row"><span class="status offline"></span><b>Оператор контуру</b><em>OPERATOR</em></div>
+        </div>
+      </section>
+    </main>
+
+    <aside class="right-panel is-collapsed" id="rightPanel" aria-label="Контекстна панель">
+      <button class="right-tab" type="button" id="rightPanelToggle" aria-label="Відкрити праву панель">‹</button>
+      <div class="right-panel-content">
+        <h3>Панель контуру</h3>
+        <p class="muted">Тут будуть учасники, файли, журнал і деталі активного розділу.</p>
+        <div class="side-stat"><span>Учасники</span><b>3</b></div>
+        <div class="side-stat"><span>Файли</span><b>0</b></div>
+        <div class="side-stat"><span>Події</span><b>0</b></div>
+      </div>
+    </aside>
+  </section>
 
   <script src="js/app.js"></script>
 </body>

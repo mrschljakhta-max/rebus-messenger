@@ -1,36 +1,68 @@
 const enterButton = document.getElementById('enterButton');
-const loginPage = document.querySelector('.login-page');
-const connectLayer = document.getElementById('connectLayer');
-const connectText = document.getElementById('connectText');
+const loginPage = document.getElementById('loginPage');
+const appShell = document.getElementById('appShell');
+const navButtons = document.querySelectorAll('[data-route]');
+const pageViews = document.querySelectorAll('[data-page]');
+const rightPanel = document.getElementById('rightPanel');
+const rightPanelToggle = document.getElementById('rightPanelToggle');
 
-const connectSteps = [
-  'Перевірка доступу',
-  'Підготовка захищеного контуру',
-  'Підключення до REBUS Messenger'
-];
+const labels = {
+  account: 'Акаунт',
+  chat: 'Чат',
+  contours: 'Контур',
+  library: 'Бібліотека',
+  contacts: 'Контакти'
+};
 
-let isConnecting = false;
-
-enterButton?.addEventListener('click', () => {
-  if (isConnecting) return;
-  isConnecting = true;
-
-  enterButton.classList.add('is-loading');
+function showApp() {
+  loginPage?.classList.add('is-leaving');
+  enterButton?.classList.add('is-loading');
   enterButton.querySelector('span').textContent = 'Вхід…';
-  loginPage?.classList.add('is-connecting');
-  connectLayer?.classList.add('is-visible');
-  connectLayer?.setAttribute('aria-hidden', 'false');
 
-  let stepIndex = 0;
-  connectText.textContent = connectSteps[stepIndex];
+  window.setTimeout(() => {
+    if (loginPage) loginPage.hidden = true;
+    if (appShell) appShell.hidden = false;
+    setRoute('chat');
+  }, 520);
+}
 
-  const stepTimer = window.setInterval(() => {
-    stepIndex += 1;
-    if (stepIndex < connectSteps.length) {
-      connectText.textContent = connectSteps[stepIndex];
-    } else {
-      window.clearInterval(stepTimer);
-      connectText.textContent = 'Наступний етап — авторизація REBUS';
-    }
-  }, 720);
+function showLogin() {
+  if (appShell) appShell.hidden = true;
+  if (loginPage) {
+    loginPage.hidden = false;
+    window.requestAnimationFrame(() => loginPage.classList.remove('is-leaving'));
+  }
+  if (enterButton) {
+    enterButton.classList.remove('is-loading');
+    enterButton.querySelector('span').textContent = 'Вхід';
+  }
+}
+
+function setRoute(route) {
+  if (route === 'logout') {
+    showLogin();
+    return;
+  }
+
+  pageViews.forEach(page => {
+    const isTarget = page.dataset.page === route;
+    page.hidden = !isTarget;
+    page.classList.toggle('is-active', isTarget);
+  });
+
+  navButtons.forEach(button => {
+    button.classList.toggle('is-active', button.dataset.route === route);
+  });
+
+  document.title = `${labels[route] || 'REBUS'} — REBUS Messenger`;
+}
+
+enterButton?.addEventListener('click', showApp);
+
+navButtons.forEach(button => {
+  button.addEventListener('click', () => setRoute(button.dataset.route));
+});
+
+rightPanelToggle?.addEventListener('click', () => {
+  rightPanel?.classList.toggle('is-collapsed');
 });

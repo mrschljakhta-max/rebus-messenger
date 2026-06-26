@@ -1,14 +1,24 @@
-# rebus-messenger
+# REBUS Messenger
 
-REBUS Messenger — responsive web messenger for secure communication inside REBUS contours.
+Стартова вебверсія REBUS Messenger.
 
-## Current stage
+## v0.3.0
 
-- Responsive start page
-- Desktop and mobile background assets
-- Minimal login entry button
-- Ready for GitHub Pages
+- Додано робочу зону після входу.
+- Ліва навігація у порядку: акаунт, чат, контур, бібліотека, контакти, вихід.
+- Для кожної кнопки створено окрему сторінку/секцію в коді.
+- Додано праву контекстну панель у згорнутому стані з язичком.
+- Збережено адаптивність для desktop та mobile.
 
-## UI update
+## Структура
 
-- Mobile login button raised above the lower logo area for better composition.
+```text
+assets/
+  icons/
+  images/
+css/
+  styles.css
+js/
+  app.js
+index.html
+```
