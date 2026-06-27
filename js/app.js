@@ -485,12 +485,11 @@ async function loadMessages() {
   setComposeEnabled(true);
   renderSystemMessage('Завантаження повідомлень…');
 
-  const conversationKey = makeConversationKey(currentUser.id, selectedPeer.id);
   const { data, error } = await supabaseClient
     .from('messenger_messages')
     .select('id, contour_id, recipient_id, conversation_key, channel, user_id, user_email, user_name, body, created_at')
     .eq('channel', 'direct')
-    .eq('conversation_key', conversationKey)
+    .or(`and(user_id.eq.${currentUser.id},recipient_id.eq.${selectedPeer.id}),and(user_id.eq.${selectedPeer.id},recipient_id.eq.${currentUser.id})`)
     .order('created_at', { ascending: true })
     .limit(100);
 
@@ -593,12 +592,29 @@ async function subscribeToMessages() {
       {
         event: 'INSERT',
         schema: 'public',
-        table: 'messenger_messages',
-        filter: `conversation_key=eq.${conversationKey}`
+        table: 'messenger_messages'
       },
       async payload => {
-        appendMessage(payload.new);
-        await markIncomingMessagesRead([payload.new]);
+        const message = payload.new;
+        const isCurrentDialog = message.channel === 'direct' && (
+          (message.user_id === currentUser.id && message.recipient_id === selectedPeer.id) ||
+          (message.user_id === selectedPeer.id && message.recipient_id === currentUser.id) ||
+          (message.conversation_key && message.conversation_key === conversationKey)
+        );
+        if (!isCurrentDialog) return;
+        appendMessage(message);
+        await markIncomingMessagesRead([message]);
+      }
+    )
+    .on(
+      'postgres_changes',
+      {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'message_receipts'
+      },
+      async () => {
+        if (selectedPeer) await loadMessages();
       }
     )
     .subscribe(status => {
