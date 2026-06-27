@@ -1587,3 +1587,48 @@ input { font: inherit; }
     max-height: 62svh !important;
   }
 }
+
+
+/* v0.5.0 — clean direct chat workspace + read-status tooltip */
+.chat-panel .direct-chat-head {
+  display: none !important;
+}
+
+.chat-panel .messages-list {
+  padding-top: 0 !important;
+}
+
+.message-status {
+  position: relative;
+  cursor: help;
+  user-select: none;
+}
+
+.message-status::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 8px);
+  z-index: 20;
+  width: max-content;
+  max-width: 260px;
+  padding: 8px 10px;
+  border: 1px solid rgba(255, 47, 88, .42);
+  border-radius: 12px;
+  background: rgba(8, 13, 22, .94);
+  box-shadow: 0 16px 38px rgba(0, 0, 0, .42), 0 0 22px rgba(255, 47, 88, .18);
+  color: rgba(244, 251, 255, .92);
+  font-size: 11px;
+  line-height: 1.35;
+  white-space: normal;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(4px);
+  transition: opacity .16s ease, transform .16s ease;
+}
+
+.message-status:hover::after,
+.message-status.is-tooltip-open::after {
+  opacity: 1;
+  transform: translateY(0);
+}

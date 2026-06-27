@@ -76,3 +76,9 @@ REBUS Messenger — responsive web messenger for secure communication inside REB
 ## v0.4.9
 - Fixed direct chat layout: message history now scrolls inside the chat panel.
 - Chat and users panels no longer stretch when many messages are loaded.
+
+
+## v0.5.0
+
+- Прибрано верхній блок реципієнта з правої області чату.
+- Додано tooltip для статусу «Прочитано» з часом прочитання повідомлення.

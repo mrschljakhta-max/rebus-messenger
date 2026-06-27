@@ -81,6 +81,18 @@ function formatTime(value) {
   return date.toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit' });
 }
 
+function formatDateTime(value) {
+  if (!value) return '';
+  const date = new Date(value);
+  return date.toLocaleString('uk-UA', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+}
+
 function makeConversationKey(userA, userB) {
   return [userA, userB].filter(Boolean).sort().join('_');
 }
@@ -298,6 +310,14 @@ function getMessageStatusClass(message, isOwn) {
   return 'is-sent';
 }
 
+function getMessageReadTooltip(message, statusLabel) {
+  if (!statusLabel || !statusLabel.includes('Прочитано')) return statusLabel || '';
+  if (message.__readAt) {
+    return `Прочитано: ${formatDateTime(message.__readAt)}`;
+  }
+  return 'Прочитано отримувачем';
+}
+
 function appendMessage(message, options = {}) {
   if (!messagesList || !message) return null;
   if (!options.replace && message.id && renderedMessageIds.has(message.id)) return null;
@@ -313,6 +333,7 @@ function appendMessage(message, options = {}) {
   const isOwn = currentUser && message.user_id === currentUser.id;
   const statusLabel = getMessageStatusLabel(message, isOwn);
   const statusClass = getMessageStatusClass(message, isOwn);
+  const statusTooltip = getMessageReadTooltip(message, statusLabel);
   const el = document.createElement('div');
   el.className = `message ${isOwn ? 'outgoing' : 'incoming'} ${statusClass}`.trim();
   if (message.id) el.dataset.messageId = message.id;
@@ -321,9 +342,25 @@ function appendMessage(message, options = {}) {
     <span>${escapeHtml(message.body)}</span>
     <small class="message-meta">
       <span>${formatTime(message.created_at)}</span>
-      ${statusLabel ? `<em class="message-status" title="${escapeHtml(statusLabel)}">${escapeHtml(statusLabel)}</em>` : ''}
+      ${statusLabel ? `<em class="message-status" title="${escapeHtml(statusTooltip)}" data-tooltip="${escapeHtml(statusTooltip)}">${escapeHtml(statusLabel)}</em>` : ''}
     </small>
   `;
+
+  const statusEl = el.querySelector('.message-status');
+  if (statusEl) {
+    statusEl.addEventListener('click', event => {
+      event.stopPropagation();
+      document.querySelectorAll('.message-status.is-tooltip-open').forEach(item => {
+        if (item !== statusEl) item.classList.remove('is-tooltip-open');
+      });
+      statusEl.classList.toggle('is-tooltip-open');
+      window.clearTimeout(statusEl._tooltipTimer);
+      statusEl._tooltipTimer = window.setTimeout(() => {
+        statusEl.classList.remove('is-tooltip-open');
+      }, 3500);
+    });
+  }
+
   messagesList.appendChild(el);
   messagesList.scrollTop = messagesList.scrollHeight;
   return el;
@@ -351,9 +388,14 @@ async function loadReceiptsForOwnMessages(messages = []) {
 
   const summary = new Map();
   data?.forEach(receipt => {
-    const item = summary.get(receipt.message_id) || { received: 0, read: 0 };
+    const item = summary.get(receipt.message_id) || { received: 0, read: 0, readAt: null };
     if (receipt.received_at) item.received += 1;
-    if (receipt.read_at) item.read += 1;
+    if (receipt.read_at) {
+      item.read += 1;
+      if (!item.readAt || new Date(receipt.read_at) > new Date(item.readAt)) {
+        item.readAt = receipt.read_at;
+      }
+    }
     summary.set(receipt.message_id, item);
   });
 
@@ -363,7 +405,8 @@ async function loadReceiptsForOwnMessages(messages = []) {
     return {
       ...message,
       __receivedCount: item.received,
-      __readCount: item.read
+      __readCount: item.read,
+      __readAt: item.readAt
     };
   });
 }
