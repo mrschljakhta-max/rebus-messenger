@@ -93,11 +93,27 @@ function getInitials(name = '') {
 }
 
 function normalizeProfile(row = {}) {
-  const id = row.user_id || row.id || row.uid;
+  const id = row.user_id || row.auth_user_id || row.uid || row.id;
+  const profileId = row.id || null;
   const email = row.email || '';
   const name = row.full_name || row.display_name || row.name || email?.split('@')?.[0] || 'Користувач REBUS';
   const role = row.role || row.user_role || 'USER';
-  return { id, email, name, role };
+  return { id, profileId, email, name, role };
+}
+
+function isSameDirectConversation(message, peer = selectedPeer) {
+  if (!message || !currentUser || !peer) return false;
+  const me = currentUser.id;
+  const other = peer.id;
+
+  return (
+    message.channel === 'direct'
+    && (
+      (message.user_id === me && message.recipient_id === other)
+      || (message.user_id === other && message.recipient_id === me)
+      || message.conversation_key === makeConversationKey(me, other)
+    )
+  );
 }
 
 function getMfaStorageKey(user = currentUser) {
@@ -442,8 +458,7 @@ async function loadDirectUsers() {
 
   const { data, error } = await supabaseClient
     .from('rebus_profiles')
-    .select('user_id,email,full_name,role')
-    .order('full_name', { ascending: true });
+    .select('id,user_id,email,full_name,role');
 
   if (error) {
     console.error('[REBUS] Load users error:', error);
@@ -452,9 +467,17 @@ async function loadDirectUsers() {
     return;
   }
 
+  const seen = new Set();
   directUsers = (data || [])
     .map(normalizeProfile)
-    .filter(user => user.id && user.id !== currentUser.id);
+    .filter(user => user.id && user.id !== currentUser.id)
+    .filter(user => {
+      const key = user.id || user.email;
+      if (!key || seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    })
+    .sort((a, b) => a.name.localeCompare(b.name, 'uk'));
 
   renderDirectUsers(userSearchInput?.value || '');
 }
@@ -485,11 +508,14 @@ async function loadMessages() {
   setComposeEnabled(true);
   renderSystemMessage('Завантаження повідомлень…');
 
+  const me = currentUser.id;
+  const peer = selectedPeer.id;
+  const pairFilter = `and(user_id.eq.${me},recipient_id.eq.${peer}),and(user_id.eq.${peer},recipient_id.eq.${me})`;
   const { data, error } = await supabaseClient
     .from('messenger_messages')
     .select('id, contour_id, recipient_id, conversation_key, channel, user_id, user_email, user_name, body, created_at')
     .eq('channel', 'direct')
-    .or(`and(user_id.eq.${currentUser.id},recipient_id.eq.${selectedPeer.id}),and(user_id.eq.${selectedPeer.id},recipient_id.eq.${currentUser.id})`)
+    .or(pairFilter)
     .order('created_at', { ascending: true })
     .limit(100);
 
@@ -595,15 +621,9 @@ async function subscribeToMessages() {
         table: 'messenger_messages'
       },
       async payload => {
-        const message = payload.new;
-        const isCurrentDialog = message.channel === 'direct' && (
-          (message.user_id === currentUser.id && message.recipient_id === selectedPeer.id) ||
-          (message.user_id === selectedPeer.id && message.recipient_id === currentUser.id) ||
-          (message.conversation_key && message.conversation_key === conversationKey)
-        );
-        if (!isCurrentDialog) return;
-        appendMessage(message);
-        await markIncomingMessagesRead([message]);
+        if (!isSameDirectConversation(payload.new)) return;
+        appendMessage(payload.new);
+        await markIncomingMessagesRead([payload.new]);
       }
     )
     .on(
@@ -611,10 +631,11 @@ async function subscribeToMessages() {
       {
         event: 'UPDATE',
         schema: 'public',
-        table: 'message_receipts'
+        table: 'messenger_messages'
       },
-      async () => {
-        if (selectedPeer) await loadMessages();
+      async payload => {
+        if (!isSameDirectConversation(payload.new)) return;
+        appendMessage(payload.new, { replace: true, replaceId: payload.new.id });
       }
     )
     .subscribe(status => {
