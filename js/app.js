@@ -20,6 +20,9 @@ const messagesList = document.getElementById('messagesList');
 const messageInput = document.getElementById('messageInput');
 const sendMessageButton = document.getElementById('sendMessageButton');
 const channelButtons = document.querySelectorAll('[data-channel]');
+const userSearchInput = document.getElementById('userSearchInput');
+const directUsersList = document.getElementById('directUsersList');
+const directChatHead = document.getElementById('directChatHead');
 
 const supabaseClient = window.supabase?.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
   auth: {
@@ -44,7 +47,9 @@ const channelLabels = {
 };
 
 let currentUser = null;
-let currentChannel = 'general';
+let currentChannel = 'direct';
+let selectedPeer = null;
+let directUsers = [];
 let realtimeChannel = null;
 let renderedMessageIds = new Set();
 let activeMfaFactorId = null;
@@ -74,6 +79,25 @@ function escapeHtml(value = '') {
 function formatTime(value) {
   const date = value ? new Date(value) : new Date();
   return date.toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit' });
+}
+
+function makeConversationKey(userA, userB) {
+  return [userA, userB].filter(Boolean).sort().join('_');
+}
+
+function getInitials(name = '') {
+  const clean = String(name || '').trim();
+  if (!clean) return 'R';
+  const parts = clean.split(/\s+/).slice(0, 2);
+  return parts.map(part => part[0]).join('').toUpperCase();
+}
+
+function normalizeProfile(row = {}) {
+  const id = row.user_id || row.id || row.uid;
+  const email = row.email || '';
+  const name = row.full_name || row.display_name || row.name || email?.split('@')?.[0] || 'Користувач REBUS';
+  const role = row.role || row.user_role || 'USER';
+  return { id, email, name, role };
 }
 
 function getMfaStorageKey(user = currentUser) {
@@ -160,7 +184,13 @@ function setRoute(route) {
   document.title = `${labels[route] || 'REBUS'} — REBUS Messenger`;
 
   if (route === 'chat' && currentUser) {
-    loadMessages();
+    loadDirectUsers();
+    if (selectedPeer) {
+      loadMessages();
+      subscribeToMessages();
+    } else {
+      renderSystemMessage('Оберіть користувача зліва, щоб почати індивідуальне листування.');
+    }
   }
 }
 
@@ -343,31 +373,137 @@ async function markIncomingMessagesRead(messages = []) {
   if (error) console.warn('[REBUS] Read receipts skipped:', error.message);
 }
 
+function updateDirectChatHead(peer) {
+  if (!directChatHead) return;
+
+  if (!peer) {
+    directChatHead.innerHTML = `
+      <div class="direct-chat-avatar">R</div>
+      <div>
+        <strong>Оберіть користувача</strong>
+        <span>Індивідуальне листування REBUS</span>
+      </div>
+    `;
+    return;
+  }
+
+  directChatHead.innerHTML = `
+    <div class="direct-chat-avatar">${escapeHtml(getInitials(peer.name))}</div>
+    <div>
+      <strong>${escapeHtml(peer.name)}</strong>
+      <span>${escapeHtml(peer.email || peer.role || 'Користувач REBUS')}</span>
+    </div>
+  `;
+}
+
+function setComposeEnabled(enabled) {
+  if (messageInput) {
+    messageInput.disabled = !enabled;
+    messageInput.placeholder = enabled ? 'Напишіть повідомлення…' : 'Оберіть користувача для листування…';
+  }
+  if (sendMessageButton) sendMessageButton.disabled = !enabled;
+}
+
+function renderDirectUsers(filter = '') {
+  if (!directUsersList) return;
+  const q = filter.trim().toLowerCase();
+  const users = directUsers.filter(user => {
+    const haystack = `${user.name} ${user.email} ${user.role}`.toLowerCase();
+    return !q || haystack.includes(q);
+  });
+
+  if (!users.length) {
+    directUsersList.innerHTML = '<div class="direct-empty">Користувачів не знайдено.</div>';
+    return;
+  }
+
+  directUsersList.innerHTML = '';
+  users.forEach(user => {
+    const item = document.createElement('button');
+    item.type = 'button';
+    item.className = `direct-user ${selectedPeer?.id === user.id ? 'is-selected' : ''}`;
+    item.dataset.userId = user.id;
+    item.innerHTML = `
+      <span class="direct-user-avatar">${escapeHtml(getInitials(user.name))}</span>
+      <span class="direct-user-main">
+        <strong>${escapeHtml(user.name)}</strong>
+        <em>${escapeHtml(user.email || user.role || 'Користувач REBUS')}</em>
+      </span>
+    `;
+    item.addEventListener('click', () => selectDirectUser(user));
+    directUsersList.appendChild(item);
+  });
+}
+
+async function loadDirectUsers() {
+  if (!supabaseClient || !currentUser || !directUsersList) return;
+
+  directUsersList.innerHTML = '<div class="direct-empty">Завантаження користувачів…</div>';
+
+  const { data, error } = await supabaseClient
+    .from('rebus_profiles')
+    .select('user_id,email,full_name,role')
+    .order('full_name', { ascending: true });
+
+  if (error) {
+    console.error('[REBUS] Load users error:', error);
+    directUsers = [];
+    directUsersList.innerHTML = `<div class="direct-empty">Не вдалося завантажити користувачів: ${escapeHtml(error.message)}</div>`;
+    return;
+  }
+
+  directUsers = (data || [])
+    .map(normalizeProfile)
+    .filter(user => user.id && user.id !== currentUser.id);
+
+  renderDirectUsers(userSearchInput?.value || '');
+}
+
+async function selectDirectUser(user) {
+  selectedPeer = user;
+  updateDirectChatHead(user);
+  setComposeEnabled(true);
+  renderDirectUsers(userSearchInput?.value || '');
+  await loadMessages();
+  await subscribeToMessages();
+  messageInput?.focus();
+}
+
 async function loadMessages() {
   if (!supabaseClient || !currentUser || !messagesList) return;
 
   messagesList.innerHTML = '';
   renderedMessageIds.clear();
+
+  if (!selectedPeer) {
+    updateDirectChatHead(null);
+    setComposeEnabled(false);
+    renderSystemMessage('Оберіть користувача зліва, щоб почати індивідуальне листування.');
+    return;
+  }
+
+  setComposeEnabled(true);
   renderSystemMessage('Завантаження повідомлень…');
 
+  const conversationKey = makeConversationKey(currentUser.id, selectedPeer.id);
   const { data, error } = await supabaseClient
     .from('messenger_messages')
-    .select('id, contour_id, channel, user_id, user_email, user_name, body, created_at')
-    .eq('channel', currentChannel)
-    .is('contour_id', null)
+    .select('id, contour_id, recipient_id, conversation_key, channel, user_id, user_email, user_name, body, created_at')
+    .eq('channel', 'direct')
+    .eq('conversation_key', conversationKey)
     .order('created_at', { ascending: true })
     .limit(100);
 
   messagesList.innerHTML = '';
 
   if (error) {
-    console.error('[REBUS] Load messages error:', error);
+    console.error('[REBUS] Load direct messages error:', error);
     renderSystemMessage(`Не вдалося завантажити повідомлення: ${error.message}`);
     return;
   }
 
   if (!data?.length) {
-    renderSystemMessage(`Канал «${channelLabels[currentChannel]}» готовий. Напишіть перше повідомлення.`);
+    renderSystemMessage(`Почніть індивідуальне листування з ${selectedPeer.name}.`);
     return;
   }
 
@@ -382,16 +518,24 @@ async function sendMessage() {
     return;
   }
 
+  if (!selectedPeer) {
+    renderSystemMessage('Оберіть користувача зліва, щоб почати індивідуальне листування.');
+    return;
+  }
+
   const body = messageInput?.value?.trim();
   if (!body) return;
 
   const tempId = `local-${Date.now()}`;
   const createdAt = new Date().toISOString();
+  const conversationKey = makeConversationKey(currentUser.id, selectedPeer.id);
 
   const optimisticMessage = {
     id: tempId,
     contour_id: null,
-    channel: currentChannel,
+    recipient_id: selectedPeer.id,
+    conversation_key: conversationKey,
+    channel: 'direct',
     user_id: currentUser.id,
     user_email: currentUser.email,
     user_name: getDisplayName(currentUser),
@@ -406,7 +550,9 @@ async function sendMessage() {
 
   const payload = {
     contour_id: null,
-    channel: currentChannel,
+    recipient_id: selectedPeer.id,
+    conversation_key: conversationKey,
+    channel: 'direct',
     user_id: currentUser.id,
     user_email: currentUser.email,
     user_name: getDisplayName(currentUser),
@@ -416,13 +562,13 @@ async function sendMessage() {
   const { data, error } = await supabaseClient
     .from('messenger_messages')
     .insert(payload)
-    .select('id, contour_id, channel, user_id, user_email, user_name, body, created_at')
+    .select('id, contour_id, recipient_id, conversation_key, channel, user_id, user_email, user_name, body, created_at')
     .single();
 
   sendMessageButton.disabled = false;
 
   if (error) {
-    console.error('[REBUS] Send message error:', error);
+    console.error('[REBUS] Send direct message error:', error);
     appendMessage({ ...optimisticMessage, __status: 'failed' }, { replace: true, replaceId: tempId });
     alert(`Не вдалося надіслати повідомлення: ${error.message}`);
     return;
@@ -432,22 +578,23 @@ async function sendMessage() {
 }
 
 async function subscribeToMessages() {
-  if (!supabaseClient || !currentUser) return;
+  if (!supabaseClient || !currentUser || !selectedPeer) return;
 
   if (realtimeChannel) {
     await supabaseClient.removeChannel(realtimeChannel);
     realtimeChannel = null;
   }
 
+  const conversationKey = makeConversationKey(currentUser.id, selectedPeer.id);
   realtimeChannel = supabaseClient
-    .channel(`rebus-messages-${currentChannel}`)
+    .channel(`rebus-direct-${conversationKey}`)
     .on(
       'postgres_changes',
       {
         event: 'INSERT',
         schema: 'public',
         table: 'messenger_messages',
-        filter: `channel=eq.${currentChannel}`
+        filter: `conversation_key=eq.${conversationKey}`
       },
       async payload => {
         appendMessage(payload.new);
@@ -455,7 +602,7 @@ async function subscribeToMessages() {
       }
     )
     .subscribe(status => {
-      console.log('[REBUS] Realtime status:', status);
+      console.log('[REBUS] Direct realtime status:', status);
     });
 }
 
@@ -464,8 +611,6 @@ function setActiveChannel(channel) {
   channelButtons.forEach(button => {
     button.classList.toggle('is-selected', button.dataset.channel === channel);
   });
-  loadMessages();
-  subscribeToMessages();
 }
 
 async function startMessengerMfaChallenge() {
@@ -520,8 +665,11 @@ async function verifyMessengerMfa(code) {
     markMessengerMfaVerified(currentUser);
     if (mfaStatus) mfaStatus.textContent = 'Доступ підтверджено.';
     showApp();
-    await loadMessages();
-    await subscribeToMessages();
+    await loadDirectUsers();
+    if (selectedPeer) {
+      await loadMessages();
+      await subscribeToMessages();
+    }
   } catch (error) {
     console.error('[REBUS] MFA verify error:', error);
     if (mfaStatus) mfaStatus.textContent = `Код не підтверджено: ${error.message}`;
@@ -536,8 +684,11 @@ async function enterMessengerAfterAuth(user) {
 
   if (isMessengerMfaVerified(currentUser)) {
     showApp();
-    await loadMessages();
-    await subscribeToMessages();
+    await loadDirectUsers();
+    if (selectedPeer) {
+      await loadMessages();
+      await subscribeToMessages();
+    }
     return;
   }
 
@@ -588,6 +739,10 @@ navButtons.forEach(button => {
 
 rightPanelToggle?.addEventListener('click', () => {
   rightPanel?.classList.toggle('is-collapsed');
+});
+
+userSearchInput?.addEventListener('input', () => {
+  renderDirectUsers(userSearchInput.value || '');
 });
 
 channelButtons.forEach(button => {

@@ -78,7 +78,7 @@
         <span class="nav-label">Вихід</span>
       </button>
 
-      <div class="version-note">REBUS Messenger <b>v0.4.4</b></div>
+      <div class="version-note">REBUS Messenger <b>v0.4.6</b></div>
     </aside>
 
     <main class="workspace" aria-live="polite">
@@ -98,19 +98,30 @@
       </section>
 
       <section class="page-view is-active" id="page-chat" data-page="chat">
-        <div class="chat-layout">
-          <aside class="chat-list glass-card">
-            <h3>Канали</h3>
-            <button class="channel is-selected" type="button" data-channel="general">Загальний чат</button>
-            <button class="channel" type="button" data-channel="operators">Оператори</button>
-            <button class="channel" type="button" data-channel="service">Службові повідомлення</button>
+        <div class="chat-layout direct-chat-layout">
+          <aside class="chat-list direct-users-panel glass-card">
+            <h3>Користувачі</h3>
+            <div class="direct-user-search">
+              <span aria-hidden="true">⌕</span>
+              <input type="search" id="userSearchInput" placeholder="Пошук користувача…" autocomplete="off" aria-label="Пошук користувача" />
+            </div>
+            <div class="direct-users-list" id="directUsersList" aria-label="Список користувачів">
+              <div class="direct-empty">Завантаження користувачів…</div>
+            </div>
           </aside>
           <section class="chat-panel glass-card">
+            <div class="direct-chat-head" id="directChatHead">
+              <div class="direct-chat-avatar">R</div>
+              <div>
+                <strong>Оберіть користувача</strong>
+                <span>Індивідуальне листування REBUS</span>
+              </div>
+            </div>
             <div class="messages-list" id="messagesList" aria-live="polite"></div>
             <div class="compose-box">
               <button type="button" aria-label="Додати файл">📎</button>
-              <input type="text" id="messageInput" placeholder="Напишіть повідомлення…" autocomplete="off" />
-              <button type="button" class="send-btn" id="sendMessageButton">Надіслати</button>
+              <input type="text" id="messageInput" placeholder="Оберіть користувача для листування…" autocomplete="off" disabled />
+              <button type="button" class="send-btn" id="sendMessageButton" disabled>Надіслати</button>
             </div>
           </section>
         </div>
