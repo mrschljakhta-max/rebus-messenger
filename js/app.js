@@ -490,6 +490,7 @@ async function toggleReaction(messageId, reaction = '👍') {
 
     if (error) {
       console.warn('[REBUS] Reaction remove failed:', error.message);
+      alert(`Не вдалося прибрати реакцію: ${error.message}`);
       return;
     }
   } else {
@@ -503,6 +504,7 @@ async function toggleReaction(messageId, reaction = '👍') {
 
     if (error) {
       console.warn('[REBUS] Reaction add failed:', error.message);
+      alert(`Не вдалося додати реакцію: ${error.message}`);
       return;
     }
   }
