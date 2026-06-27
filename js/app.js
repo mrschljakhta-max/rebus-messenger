@@ -52,6 +52,7 @@ let selectedPeer = null;
 let directUsers = [];
 let realtimeChannel = null;
 let renderedMessageIds = new Set();
+let reactionSummary = new Map();
 let activeMfaFactorId = null;
 let activeMfaChallengeId = null;
 let mfaMode = 'local-gate';
@@ -318,6 +319,160 @@ function getMessageReadTooltip(message, statusLabel) {
   return 'Прочитано отримувачем';
 }
 
+
+function getMessageReactionState(message) {
+  if (!message?.id || String(message.id).startsWith('local-')) {
+    return {
+      count: Number(message?.__likesCount || 0),
+      likedByMe: Boolean(message?.__likedByMe)
+    };
+  }
+
+  const fromMap = reactionSummary.get(message.id);
+  return {
+    count: Number(message.__likesCount ?? fromMap?.count ?? 0),
+    likedByMe: Boolean(message.__likedByMe ?? fromMap?.likedByMe)
+  };
+}
+
+function getLikeTooltip(state) {
+  if (!state.count) return 'Поставити лайк';
+  if (state.likedByMe && state.count === 1) return 'Вам подобається це повідомлення';
+  if (state.likedByMe) return `Вам і ще ${state.count - 1} користувачам подобається`;
+  return `Подобається: ${state.count}`;
+}
+
+function renderMessageReactionButton(message) {
+  if (!message?.id || String(message.id).startsWith('local-')) return '';
+  const state = getMessageReactionState(message);
+  const likedClass = state.likedByMe ? ' is-liked' : '';
+  const countText = state.count > 0 ? `<span>${state.count}</span>` : '';
+  return `
+    <button class="message-reaction${likedClass}" type="button" data-message-id="${escapeHtml(message.id)}" aria-label="Лайк" title="${escapeHtml(getLikeTooltip(state))}">
+      <span aria-hidden="true">${state.likedByMe ? '👍' : '♡'}</span>
+      ${countText}
+    </button>
+  `;
+}
+
+function updateReactionButton(messageId) {
+  if (!messagesList || !messageId) return;
+  const node = messagesList.querySelector(`[data-message-id="${CSS.escape(messageId)}"]`);
+  const button = node?.querySelector('.message-reaction');
+  if (!button) return;
+  const state = reactionSummary.get(messageId) || { count: 0, likedByMe: false };
+  button.classList.toggle('is-liked', state.likedByMe);
+  button.title = getLikeTooltip(state);
+  button.innerHTML = `
+    <span aria-hidden="true">${state.likedByMe ? '👍' : '♡'}</span>
+    ${state.count > 0 ? `<span>${state.count}</span>` : ''}
+  `;
+}
+
+async function loadReactionsForMessages(messages = []) {
+  if (!supabaseClient || !currentUser || !messages?.length) return messages;
+
+  const ids = messages
+    .filter(message => message.id && !String(message.id).startsWith('local-'))
+    .map(message => message.id);
+
+  if (!ids.length) return messages;
+
+  const { data, error } = await supabaseClient
+    .from('message_reactions')
+    .select('message_id, user_id, reaction')
+    .in('message_id', ids)
+    .eq('reaction', 'like');
+
+  if (error) {
+    console.warn('[REBUS] Reactions skipped:', error.message);
+    return messages;
+  }
+
+  const summary = new Map();
+  data?.forEach(item => {
+    const value = summary.get(item.message_id) || { count: 0, likedByMe: false };
+    value.count += 1;
+    if (item.user_id === currentUser.id) value.likedByMe = true;
+    summary.set(item.message_id, value);
+  });
+
+  ids.forEach(id => reactionSummary.set(id, summary.get(id) || { count: 0, likedByMe: false }));
+
+  return messages.map(message => {
+    const item = reactionSummary.get(message.id);
+    if (!item) return message;
+    return {
+      ...message,
+      __likesCount: item.count,
+      __likedByMe: item.likedByMe
+    };
+  });
+}
+
+async function refreshReactionForMessage(messageId) {
+  if (!supabaseClient || !currentUser || !messageId) return;
+
+  const { data, error } = await supabaseClient
+    .from('message_reactions')
+    .select('message_id, user_id, reaction')
+    .eq('message_id', messageId)
+    .eq('reaction', 'like');
+
+  if (error) {
+    console.warn('[REBUS] Refresh reaction skipped:', error.message);
+    return;
+  }
+
+  const state = {
+    count: data?.length || 0,
+    likedByMe: Boolean(data?.some(item => item.user_id === currentUser.id))
+  };
+  reactionSummary.set(messageId, state);
+  updateReactionButton(messageId);
+}
+
+async function toggleLike(messageId) {
+  if (!supabaseClient || !currentUser || !messageId) return;
+
+  const current = reactionSummary.get(messageId) || { count: 0, likedByMe: false };
+  if (current.likedByMe) {
+    reactionSummary.set(messageId, { count: Math.max(0, current.count - 1), likedByMe: false });
+    updateReactionButton(messageId);
+
+    const { error } = await supabaseClient
+      .from('message_reactions')
+      .delete()
+      .eq('message_id', messageId)
+      .eq('user_id', currentUser.id)
+      .eq('reaction', 'like');
+
+    if (error) {
+      console.warn('[REBUS] Unlike failed:', error.message);
+      reactionSummary.set(messageId, current);
+      updateReactionButton(messageId);
+    }
+    return;
+  }
+
+  reactionSummary.set(messageId, { count: current.count + 1, likedByMe: true });
+  updateReactionButton(messageId);
+
+  const { error } = await supabaseClient
+    .from('message_reactions')
+    .upsert({
+      message_id: messageId,
+      user_id: currentUser.id,
+      reaction: 'like'
+    }, { onConflict: 'message_id,user_id,reaction' });
+
+  if (error) {
+    console.warn('[REBUS] Like failed:', error.message);
+    reactionSummary.set(messageId, current);
+    updateReactionButton(messageId);
+  }
+}
+
 function appendMessage(message, options = {}) {
   if (!messagesList || !message) return null;
   if (!options.replace && message.id && renderedMessageIds.has(message.id)) return null;
@@ -344,6 +499,9 @@ function appendMessage(message, options = {}) {
       <span>${formatTime(message.created_at)}</span>
       ${statusLabel ? `<em class="message-status" title="${escapeHtml(statusTooltip)}" data-tooltip="${escapeHtml(statusTooltip)}">${escapeHtml(statusLabel)}</em>` : ''}
     </small>
+    <div class="message-actions">
+      ${renderMessageReactionButton(message)}
+    </div>
   `;
 
   const statusEl = el.querySelector('.message-status');
@@ -358,6 +516,15 @@ function appendMessage(message, options = {}) {
       statusEl._tooltipTimer = window.setTimeout(() => {
         statusEl.classList.remove('is-tooltip-open');
       }, 3500);
+    });
+  }
+
+  const reactionButton = el.querySelector('.message-reaction');
+  if (reactionButton) {
+    reactionButton.addEventListener('click', event => {
+      event.preventDefault();
+      event.stopPropagation();
+      toggleLike(reactionButton.dataset.messageId);
     });
   }
 
@@ -540,6 +707,7 @@ async function loadMessages() {
 
   messagesList.innerHTML = '';
   renderedMessageIds.clear();
+  reactionSummary.clear();
 
   if (!selectedPeer) {
     updateDirectChatHead(null);
@@ -576,7 +744,8 @@ async function loadMessages() {
   }
 
   const messagesWithReceipts = await loadReceiptsForOwnMessages(data);
-  messagesWithReceipts.forEach(appendMessage);
+  const messagesWithReactions = await loadReactionsForMessages(messagesWithReceipts);
+  messagesWithReactions.forEach(appendMessage);
   await markIncomingMessagesRead(data);
 }
 
@@ -642,6 +811,7 @@ async function sendMessage() {
     return;
   }
 
+  reactionSummary.set(data.id, { count: 0, likedByMe: false });
   appendMessage(data, { replace: true, replaceId: tempId });
 }
 
@@ -679,6 +849,19 @@ async function subscribeToMessages() {
       async payload => {
         if (!isSameDirectConversation(payload.new)) return;
         appendMessage(payload.new, { replace: true, replaceId: payload.new.id });
+      }
+    )
+    .on(
+      'postgres_changes',
+      {
+        event: '*',
+        schema: 'public',
+        table: 'message_reactions'
+      },
+      async payload => {
+        const messageId = payload.new?.message_id || payload.old?.message_id;
+        if (!messageId || !renderedMessageIds.has(messageId)) return;
+        await refreshReactionForMessage(messageId);
       }
     )
     .subscribe(status => {
