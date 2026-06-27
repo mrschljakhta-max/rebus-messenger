@@ -120,3 +120,8 @@ REBUS Messenger — responsive web messenger for secure communication inside REB
 ## v0.5.6
 - Прибрано кружечок/фон під значком емодзі.
 - Значок реакції тепер мінімалістичний, без обводки, з легким hover-світінням.
+
+## v0.5.8
+- Іконка реакції розміщена по вертикальному центру повідомлення.
+- Панель реакцій відкривається від іконки, не зникаючи при наведенні.
+- Додано SQL `supabase-message-reactions-policy-v058.sql`, який виправляє `permission denied for table message_reactions` і дозволяє emoji-реакції.

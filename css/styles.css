@@ -2075,3 +2075,73 @@ input { font: inherit; }
     left: auto !important;
   }
 }
+
+/* v0.5.8 — center emoji trigger vertically and keep palette stable */
+.message-tools {
+  top: 50% !important;
+  bottom: auto !important;
+  transform: translateY(-50%) !important;
+  min-height: 28px !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+.message:hover .message-tools,
+.message:focus-within .message-tools,
+.message-tools:hover,
+.message-tools.is-hovered,
+.message-tools.is-pinned,
+.message.has-menu-open .message-tools,
+.message.has-reaction-open .message-tools,
+.message-tools.is-reaction-open {
+  opacity: 1 !important;
+  pointer-events: auto !important;
+  transform: translateY(-50%) !important;
+}
+
+.message.outgoing .message-tools {
+  left: -36px !important;
+  right: auto !important;
+}
+
+.message.incoming .message-tools {
+  right: -36px !important;
+  left: auto !important;
+}
+
+.message-emoji-trigger:hover,
+.message-tools.is-reaction-open .message-emoji-trigger {
+  transform: scale(1.16) !important;
+}
+
+.quick-reactions-bar {
+  top: 50% !important;
+  bottom: auto !important;
+  transform: translateY(-50%) translateY(6px) scale(.98) !important;
+}
+
+.quick-reactions-bar.is-open,
+.message-tools.is-reaction-open .quick-reactions-bar {
+  transform: translateY(-50%) scale(1) !important;
+}
+
+.message.outgoing .quick-reactions-bar {
+  right: 30px !important;
+  left: auto !important;
+}
+
+.message.incoming .quick-reactions-bar {
+  left: 30px !important;
+  right: auto !important;
+}
+
+@media (max-width: 900px) {
+  .message.incoming .message-tools,
+  .message.outgoing .message-tools {
+    top: 50% !important;
+    bottom: auto !important;
+    transform: translateY(-50%) !important;
+    right: 8px !important;
+    left: auto !important;
+  }
+}
