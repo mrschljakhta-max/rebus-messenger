@@ -1719,3 +1719,208 @@ input { font: inherit; }
     max-width: 92% !important;
   }
 }
+
+/* v0.5.2 — WhatsApp-like reactions + message context menu */
+.message {
+  position: relative !important;
+  overflow: visible !important;
+  padding-bottom: 22px !important;
+}
+
+.message-body {
+  display: block;
+}
+
+.message-reactions-row {
+  position: absolute;
+  bottom: -15px;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 3px 5px;
+  border-radius: 999px;
+  background: rgba(8, 13, 22, .92);
+  border: 1px solid rgba(255,255,255,.12);
+  box-shadow: 0 10px 24px rgba(0,0,0,.35), 0 0 16px rgba(255,47,88,.12);
+  z-index: 8;
+}
+
+.message.incoming .message-reactions-row {
+  left: 14px;
+}
+
+.message.outgoing .message-reactions-row {
+  right: 14px;
+}
+
+.reaction-chip {
+  min-width: 24px;
+  height: 24px;
+  padding: 0 5px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: #fff;
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+  transition: transform .14s ease, background .14s ease;
+}
+
+.reaction-chip:hover {
+  transform: translateY(-1px) scale(1.04);
+  background: rgba(255,255,255,.08);
+}
+
+.reaction-chip em {
+  font-style: normal;
+  font-size: 11px;
+  font-weight: 900;
+  color: rgba(244,251,255,.82);
+}
+
+.reaction-chip.is-own-reaction {
+  background: rgba(0,216,255,.12);
+}
+
+.message-tools {
+  position: absolute;
+  top: -48px;
+  z-index: 30;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(6px);
+  transition: opacity .14s ease, transform .14s ease;
+}
+
+.message:hover .message-tools,
+.message:focus-within .message-tools,
+.message-tools:has(.message-context-menu.is-open) {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+
+.message.incoming .message-tools {
+  left: 0;
+}
+
+.message.outgoing .message-tools {
+  right: 0;
+}
+
+.quick-reactions-bar {
+  height: 40px;
+  padding: 4px 7px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border-radius: 999px;
+  background: rgba(8, 13, 22, .96);
+  border: 1px solid rgba(255,255,255,.12);
+  box-shadow: 0 18px 44px rgba(0,0,0,.42), 0 0 28px rgba(255,47,88,.12);
+}
+
+.quick-reaction,
+.message-menu-toggle {
+  width: 31px;
+  height: 31px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: #fff;
+  font-size: 19px;
+  line-height: 1;
+  cursor: pointer;
+  transition: transform .14s ease, background .14s ease;
+}
+
+.quick-reaction:hover,
+.message-menu-toggle:hover {
+  transform: translateY(-2px) scale(1.08);
+  background: rgba(255,255,255,.09);
+}
+
+.message-menu-toggle {
+  font-size: 24px;
+  font-weight: 600;
+  color: rgba(244,251,255,.86);
+}
+
+.message-context-menu {
+  position: absolute;
+  top: 44px;
+  min-width: 205px;
+  display: none;
+  padding: 8px;
+  border-radius: 16px;
+  background: rgba(8, 13, 22, .98);
+  border: 1px solid rgba(255,255,255,.12);
+  box-shadow: 0 24px 62px rgba(0,0,0,.52), 0 0 32px rgba(0,216,255,.08);
+}
+
+.message.outgoing .message-context-menu {
+  right: 0;
+}
+
+.message.incoming .message-context-menu {
+  left: 0;
+}
+
+.message-context-menu.is-open {
+  display: grid;
+  gap: 2px;
+}
+
+.message-menu-item {
+  height: 36px;
+  padding: 0 10px;
+  display: grid;
+  grid-template-columns: 24px 1fr;
+  align-items: center;
+  gap: 8px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: rgba(244,251,255,.9);
+  font-size: 14px;
+  font-weight: 800;
+  text-align: left;
+  cursor: pointer;
+}
+
+.message-menu-item em {
+  font-style: normal;
+}
+
+.message-menu-item:hover:not(:disabled) {
+  background: rgba(0,216,255,.1);
+  color: #fff;
+}
+
+.message-menu-item:disabled {
+  opacity: .42;
+  cursor: not-allowed;
+}
+
+@media (max-width: 900px) {
+  .message-tools {
+    top: -44px;
+  }
+  .quick-reactions-bar {
+    max-width: calc(100vw - 56px);
+  }
+  .quick-reaction,
+  .message-menu-toggle {
+    width: 29px;
+    height: 29px;
+    font-size: 17px;
+  }
+}

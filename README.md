@@ -49,13 +49,13 @@ REBUS Messenger — responsive web messenger for secure communication inside REB
 - Підготовлено підтримку Supabase TOTP MFA; якщо фактор ще не налаштований, показується тимчасовий внутрішній gate для тестування UI.
 
 
-## v0.5.1
+## v0.5.2
 - Fixed OAuth redirect so Messenger never falls back to rebus-secure.com/verify-2fa.html.
 - Messenger 2FA now uses the same background styling as the login page.
 - Fixed duplicated Supabase call in message loading.
 
 
-## v0.5.1 — Message statuses
+## v0.5.2 — Message statuses
 
 Додано відображення статусів повідомлень у чаті:
 
@@ -78,13 +78,13 @@ REBUS Messenger — responsive web messenger for secure communication inside REB
 - Chat and users panels no longer stretch when many messages are loaded.
 
 
-## v0.5.1
+## v0.5.2
 
 - Прибрано верхній блок реципієнта з правої області чату.
 - Додано tooltip для статусу «Прочитано» з часом прочитання повідомлення.
 
 
-## v0.5.1 — ширші блоки та лайки
+## v0.5.2 — ширші блоки та лайки
 
 - Робоча зона чату розтягнута майже на всю ширину екрана.
 - Ліва панель користувачів стала ширшою, чат займає весь доступний простір.
@@ -92,3 +92,9 @@ REBUS Messenger — responsive web messenger for secure communication inside REB
 - Реакції оновлюються через Supabase Realtime.
 
 Перед перевіркою виконай SQL: `supabase-message-reactions-v051.sql`.
+
+
+## v0.5.2
+- Додано швидкі реакції над повідомленням у стилі WhatsApp.
+- Реакції відображаються маленькою плашкою під повідомленням.
+- Додано контекстне меню повідомлення: копіювання, видалення власного повідомлення та підготовлені пункти для наступних функцій.
