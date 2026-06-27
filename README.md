@@ -71,3 +71,8 @@ REBUS Messenger — responsive web messenger for secure communication inside REB
 - Fixed direct chat visibility for both users.
 - Added SQL to sync rebus_profiles.user_id with auth.users.id by email.
 - Direct messages now load by user_id/recipient_id pair, not only conversation_key.
+
+
+## v0.4.9
+- Fixed direct chat layout: message history now scrolls inside the chat panel.
+- Chat and users panels no longer stretch when many messages are loaded.
