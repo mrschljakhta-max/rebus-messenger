@@ -233,21 +233,114 @@ function renderSystemMessage(text) {
   `;
 }
 
-function appendMessage(message) {
-  if (!messagesList || !message) return;
-  if (message.id && renderedMessageIds.has(message.id)) return;
+function getMessageStatusLabel(message, isOwn) {
+  if (!isOwn) return '';
+
+  if (message.__status === 'sending') return '○ Відправляється';
+  if (message.__status === 'failed') return '! Помилка';
+  if (message.__readCount > 0) return '✓✓ Прочитано';
+  if (message.__receivedCount > 0) return '✓✓ Отримано';
+  return '✓ Надіслано';
+}
+
+function getMessageStatusClass(message, isOwn) {
+  if (!isOwn) return '';
+  if (message.__status === 'sending') return 'is-sending';
+  if (message.__status === 'failed') return 'is-failed';
+  if (message.__readCount > 0) return 'is-read';
+  if (message.__receivedCount > 0) return 'is-received';
+  return 'is-sent';
+}
+
+function appendMessage(message, options = {}) {
+  if (!messagesList || !message) return null;
+  if (!options.replace && message.id && renderedMessageIds.has(message.id)) return null;
+
+  if (options.replace && options.replaceId) {
+    const oldNode = messagesList.querySelector(`[data-message-id="${CSS.escape(options.replaceId)}"]`);
+    if (oldNode) oldNode.remove();
+    renderedMessageIds.delete(options.replaceId);
+  }
+
   if (message.id) renderedMessageIds.add(message.id);
 
   const isOwn = currentUser && message.user_id === currentUser.id;
+  const statusLabel = getMessageStatusLabel(message, isOwn);
+  const statusClass = getMessageStatusClass(message, isOwn);
   const el = document.createElement('div');
-  el.className = `message ${isOwn ? 'outgoing' : 'incoming'}`;
+  el.className = `message ${isOwn ? 'outgoing' : 'incoming'} ${statusClass}`.trim();
+  if (message.id) el.dataset.messageId = message.id;
   el.innerHTML = `
     <b>${escapeHtml(isOwn ? 'Ви' : (message.user_name || message.user_email || 'Користувач'))}</b>
     <span>${escapeHtml(message.body)}</span>
-    <small>${formatTime(message.created_at)}</small>
+    <small class="message-meta">
+      <span>${formatTime(message.created_at)}</span>
+      ${statusLabel ? `<em class="message-status" title="${escapeHtml(statusLabel)}">${escapeHtml(statusLabel)}</em>` : ''}
+    </small>
   `;
   messagesList.appendChild(el);
   messagesList.scrollTop = messagesList.scrollHeight;
+  return el;
+}
+
+async function loadReceiptsForOwnMessages(messages = []) {
+  if (!supabaseClient || !currentUser || !messages?.length) return messages;
+
+  const ownIds = messages
+    .filter(message => message.user_id === currentUser.id && message.id)
+    .map(message => message.id);
+
+  if (!ownIds.length) return messages;
+
+  const { data, error } = await supabaseClient
+    .from('message_receipts')
+    .select('message_id, user_id, received_at, read_at')
+    .in('message_id', ownIds)
+    .neq('user_id', currentUser.id);
+
+  if (error) {
+    console.warn('[REBUS] Receipt summary skipped:', error.message);
+    return messages;
+  }
+
+  const summary = new Map();
+  data?.forEach(receipt => {
+    const item = summary.get(receipt.message_id) || { received: 0, read: 0 };
+    if (receipt.received_at) item.received += 1;
+    if (receipt.read_at) item.read += 1;
+    summary.set(receipt.message_id, item);
+  });
+
+  return messages.map(message => {
+    const item = summary.get(message.id);
+    if (!item) return message;
+    return {
+      ...message,
+      __receivedCount: item.received,
+      __readCount: item.read
+    };
+  });
+}
+
+async function markIncomingMessagesRead(messages = []) {
+  if (!supabaseClient || !currentUser || !messages?.length) return;
+
+  const incoming = messages.filter(message => message.id && message.user_id !== currentUser.id);
+  if (!incoming.length) return;
+
+  const now = new Date().toISOString();
+  const rows = incoming.map(message => ({
+    message_id: message.id,
+    user_id: currentUser.id,
+    received_at: now,
+    read_at: now
+  }));
+
+  const { error } = await supabaseClient
+    .from('message_receipts')
+    .upsert(rows, { onConflict: 'message_id,user_id' });
+
+  if (error) console.warn('[REBUS] Read receipts skipped:', error.message);
 }
 
 async function loadMessages() {
@@ -278,7 +371,9 @@ async function loadMessages() {
     return;
   }
 
-  data.forEach(appendMessage);
+  const messagesWithReceipts = await loadReceiptsForOwnMessages(data);
+  messagesWithReceipts.forEach(appendMessage);
+  await markIncomingMessagesRead(data);
 }
 
 async function sendMessage() {
@@ -290,6 +385,23 @@ async function sendMessage() {
   const body = messageInput?.value?.trim();
   if (!body) return;
 
+  const tempId = `local-${Date.now()}`;
+  const createdAt = new Date().toISOString();
+
+  const optimisticMessage = {
+    id: tempId,
+    contour_id: null,
+    channel: currentChannel,
+    user_id: currentUser.id,
+    user_email: currentUser.email,
+    user_name: getDisplayName(currentUser),
+    body,
+    created_at: createdAt,
+    __status: 'sending'
+  };
+
+  if (messageInput) messageInput.value = '';
+  appendMessage(optimisticMessage);
   sendMessageButton.disabled = true;
 
   const payload = {
@@ -311,12 +423,12 @@ async function sendMessage() {
 
   if (error) {
     console.error('[REBUS] Send message error:', error);
+    appendMessage({ ...optimisticMessage, __status: 'failed' }, { replace: true, replaceId: tempId });
     alert(`Не вдалося надіслати повідомлення: ${error.message}`);
     return;
   }
 
-  if (messageInput) messageInput.value = '';
-  appendMessage(data);
+  appendMessage(data, { replace: true, replaceId: tempId });
 }
 
 async function subscribeToMessages() {
@@ -337,8 +449,9 @@ async function subscribeToMessages() {
         table: 'messenger_messages',
         filter: `channel=eq.${currentChannel}`
       },
-      payload => {
+      async payload => {
         appendMessage(payload.new);
+        await markIncomingMessagesRead([payload.new]);
       }
     )
     .subscribe(status => {

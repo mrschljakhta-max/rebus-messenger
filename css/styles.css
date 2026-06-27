@@ -1292,3 +1292,46 @@ input { font: inherit; }
     background-position: center;
   }
 }
+
+
+/* v0.4.5 — message delivery/read statuses */
+.message-meta {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.message-status {
+  font-style: normal;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .03em;
+  color: rgba(244,251,255,.54);
+  white-space: nowrap;
+}
+
+.message.is-sending .message-status {
+  color: rgba(244,251,255,.44);
+}
+
+.message.is-sent .message-status {
+  color: rgba(244,251,255,.64);
+}
+
+.message.is-received .message-status {
+  color: rgba(0,216,255,.78);
+}
+
+.message.is-read .message-status {
+  color: var(--cyan);
+  text-shadow: 0 0 12px rgba(0,216,255,.35);
+}
+
+.message.is-failed {
+  border-color: rgba(255,36,56,.72);
+}
+
+.message.is-failed .message-status {
+  color: #ff6b7a;
+}

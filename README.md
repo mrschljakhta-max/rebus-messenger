@@ -53,3 +53,15 @@ REBUS Messenger — responsive web messenger for secure communication inside REB
 - Fixed OAuth redirect so Messenger never falls back to rebus-secure.com/verify-2fa.html.
 - Messenger 2FA now uses the same background styling as the login page.
 - Fixed duplicated Supabase call in message loading.
+
+
+## v0.4.5 — Message statuses
+
+Додано відображення статусів повідомлень у чаті:
+
+- `○ Відправляється` — локальне повідомлення ще записується в Supabase.
+- `✓ Надіслано` — повідомлення успішно записане в `messenger_messages`.
+- `✓✓ Отримано` — є запис у `message_receipts.received_at` від іншого користувача.
+- `✓✓ Прочитано` — є запис у `message_receipts.read_at` від іншого користувача.
+
+Перед повною роботою отримання/прочитання потрібно виконати SQL з файлу `supabase-message-receipts-v045.sql`.
