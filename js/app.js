@@ -54,6 +54,7 @@ let realtimeChannel = null;
 let renderedMessageIds = new Set();
 let reactionSummary = new Map();
 let openMessageMenuId = null;
+let openReactionPaletteId = null;
 
 const QUICK_REACTIONS = ['👍', '❤️', '😂', '😮', '😢', '🙏'];
 const MESSAGE_MENU_ITEMS = [
@@ -399,9 +400,10 @@ function renderMessageTools(message, isOwn) {
 
   return `
     <div class="message-tools" aria-hidden="false">
-      <div class="quick-reactions-bar">
+      <button type="button" class="message-emoji-trigger" data-message-id="${escapeHtml(message.id)}" title="Реакція">☺</button>
+      <div class="quick-reactions-bar" data-palette-for="${escapeHtml(message.id)}">
         ${reactions}
-        <button type="button" class="message-menu-toggle" data-message-id="${escapeHtml(message.id)}" title="Більше">+</button>
+        <button type="button" class="message-menu-toggle" data-message-id="${escapeHtml(message.id)}" title="Більше реакцій і дії">+</button>
       </div>
       <div class="message-context-menu" data-menu-for="${escapeHtml(message.id)}">
         ${menuItems}
@@ -545,11 +547,30 @@ async function deleteOwnMessage(messageId) {
   renderedMessageIds.delete(messageId);
 }
 
+function closeReactionPalettes() {
+  openReactionPaletteId = null;
+  document.querySelectorAll('.quick-reactions-bar.is-open').forEach(bar => bar.classList.remove('is-open'));
+  document.querySelectorAll('.message-tools.is-reaction-open').forEach(tool => tool.classList.remove('is-reaction-open'));
+  document.querySelectorAll('.message.has-reaction-open').forEach(message => message.classList.remove('has-reaction-open'));
+}
+
 function closeMessageMenus() {
   openMessageMenuId = null;
   document.querySelectorAll('.message-context-menu.is-open').forEach(menu => menu.classList.remove('is-open'));
   document.querySelectorAll('.message-tools.is-pinned').forEach(tool => tool.classList.remove('is-pinned'));
   document.querySelectorAll('.message.has-menu-open').forEach(message => message.classList.remove('has-menu-open'));
+  closeReactionPalettes();
+}
+
+function openReactionPalette(messageId, scope = messagesList) {
+  if (!messageId || !scope) return;
+  const bar = scope.querySelector(`[data-palette-for="${CSS.escape(messageId)}"]`);
+  if (!bar) return;
+  closeReactionPalettes();
+  openReactionPaletteId = messageId;
+  bar.classList.add('is-open');
+  bar.closest('.message-tools')?.classList.add('is-reaction-open');
+  bar.closest('.message')?.classList.add('has-reaction-open');
 }
 
 
@@ -588,6 +609,20 @@ function bindMessageReactionEvents(scope) {
       }
     });
   }
+
+  scope.querySelectorAll('.message-emoji-trigger').forEach(button => {
+    if (button.dataset.bound === '1') return;
+    button.dataset.bound = '1';
+    button.addEventListener('click', event => {
+      event.preventDefault();
+      event.stopPropagation();
+      const messageId = button.dataset.messageId;
+      const shouldOpen = openReactionPaletteId !== messageId;
+      closeReactionPalettes();
+      closeMessageMenus();
+      if (shouldOpen) openReactionPalette(messageId, scope);
+    });
+  });
 
   scope.querySelectorAll('.quick-reaction, .reaction-chip').forEach(button => {
     if (button.dataset.bound === '1') return;
@@ -1190,3 +1225,6 @@ initAuth();
 
 
 document.addEventListener('click', closeMessageMenus);
+document.addEventListener('keydown', event => {
+  if (event.key === 'Escape') closeMessageMenus();
+});
