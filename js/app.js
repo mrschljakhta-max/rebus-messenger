@@ -546,9 +546,47 @@ async function deleteOwnMessage(messageId) {
 function closeMessageMenus() {
   openMessageMenuId = null;
   document.querySelectorAll('.message-context-menu.is-open').forEach(menu => menu.classList.remove('is-open'));
+  document.querySelectorAll('.message-tools.is-pinned').forEach(tool => tool.classList.remove('is-pinned'));
+  document.querySelectorAll('.message.has-menu-open').forEach(message => message.classList.remove('has-menu-open'));
+}
+
+
+function openMessageContextMenu(messageId, scope = messagesList) {
+  if (!messageId || !scope) return;
+  const menu = scope.querySelector(`[data-menu-for="${CSS.escape(messageId)}"]`);
+  if (!menu) return;
+  closeMessageMenus();
+  openMessageMenuId = messageId;
+  menu.classList.add('is-open');
+  menu.closest('.message-tools')?.classList.add('is-pinned');
+  menu.closest('.message')?.classList.add('has-menu-open');
 }
 
 function bindMessageReactionEvents(scope) {
+  const messageNode = scope.classList?.contains('message') ? scope : scope.closest?.('.message');
+  if (messageNode && messageNode.dataset.messageId && messageNode.dataset.menuBound !== '1') {
+    messageNode.dataset.menuBound = '1';
+    messageNode.addEventListener('contextmenu', event => {
+      event.preventDefault();
+      event.stopPropagation();
+      openMessageContextMenu(messageNode.dataset.messageId, messageNode);
+    });
+    messageNode.addEventListener('mouseleave', () => {
+      if (!messageNode.classList.contains('has-menu-open')) {
+        const tool = messageNode.querySelector('.message-tools');
+        window.clearTimeout(tool?._hideTimer);
+        if (tool) tool._hideTimer = window.setTimeout(() => tool.classList.remove('is-hovered'), 260);
+      }
+    });
+    messageNode.addEventListener('mouseenter', () => {
+      const tool = messageNode.querySelector('.message-tools');
+      if (tool) {
+        window.clearTimeout(tool._hideTimer);
+        tool.classList.add('is-hovered');
+      }
+    });
+  }
+
   scope.querySelectorAll('.quick-reaction, .reaction-chip').forEach(button => {
     if (button.dataset.bound === '1') return;
     button.dataset.bound = '1';
@@ -567,13 +605,9 @@ function bindMessageReactionEvents(scope) {
       event.preventDefault();
       event.stopPropagation();
       const messageId = button.dataset.messageId;
-      const menu = scope.querySelector(`[data-menu-for="${CSS.escape(messageId)}"]`);
       const shouldOpen = openMessageMenuId !== messageId;
       closeMessageMenus();
-      if (menu && shouldOpen) {
-        openMessageMenuId = messageId;
-        menu.classList.add('is-open');
-      }
+      if (shouldOpen) openMessageContextMenu(messageId, scope);
     });
   });
 
