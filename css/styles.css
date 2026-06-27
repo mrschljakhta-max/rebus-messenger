@@ -1964,48 +1964,49 @@ input { font: inherit; }
   color: #fff !important;
 }
 
-/* v0.5.5 — emoji trigger first, palette opens only on click */
+/* v0.5.6 — minimal emoji trigger without circle */
 .message-tools {
   top: auto !important;
-  bottom: -6px !important;
+  bottom: 2px !important;
   padding: 0 !important;
   margin: 0 !important;
-  min-height: 36px;
+  min-height: 26px;
 }
 
 .message.incoming .message-tools {
   left: auto !important;
-  right: -42px !important;
+  right: -34px !important;
 }
 
 .message.outgoing .message-tools {
   right: auto !important;
-  left: -42px !important;
+  left: -34px !important;
 }
 
 .message-emoji-trigger {
-  width: 32px;
-  height: 32px;
+  width: 24px;
+  height: 24px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid rgba(255,255,255,.14);
-  border-radius: 50%;
-  background: rgba(8,13,22,.88);
-  color: rgba(244,251,255,.82);
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  color: rgba(244,251,255,.62);
   font-size: 18px;
   line-height: 1;
   cursor: pointer;
-  box-shadow: 0 14px 34px rgba(0,0,0,.34);
-  transition: transform .14s ease, background .14s ease, color .14s ease, border-color .14s ease;
+  box-shadow: none !important;
+  opacity: .72;
+  transition: transform .14s ease, color .14s ease, opacity .14s ease, filter .14s ease;
 }
 
 .message-emoji-trigger:hover,
 .message-tools.is-reaction-open .message-emoji-trigger {
-  transform: translateY(-1px) scale(1.04);
-  background: rgba(255,255,255,.08);
-  color: #fff;
-  border-color: rgba(0,216,255,.42);
+  transform: translateY(-1px) scale(1.14);
+  color: #00d8ff;
+  opacity: 1;
+  filter: drop-shadow(0 0 10px rgba(0,216,255,.32));
 }
 
 .quick-reactions-bar {
