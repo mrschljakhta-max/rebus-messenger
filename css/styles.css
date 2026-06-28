@@ -1609,8 +1609,9 @@ input { font: inherit; }
 .message-status::after {
   content: attr(data-tooltip);
   position: absolute;
-  right: 0;
-  bottom: calc(100% + 8px);
+  right: 8px;
+  top: calc(100% + 8px);
+  bottom: auto;
   z-index: 20;
   width: max-content;
   max-width: 260px;
