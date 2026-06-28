@@ -9,7 +9,7 @@
   <link rel="icon" href="assets/icons/rebus-mark.svg" type="image/svg+xml" />
   <link rel="preload" href="assets/images/desktop/login-bg-1920.webp" as="image" media="(min-width: 769px)" />
   <link rel="preload" href="assets/images/mobile/login-bg-mobile-1080.webp" as="image" media="(max-width: 768px)" />
-  <link rel="stylesheet" href="css/styles.css?v=0.6.9" />
+  <link rel="stylesheet" href="css/styles.css?v=0.7.0" />
 </head>
 <body>
   <main class="login-page" id="loginPage" aria-label="REBUS Messenger стартова сторінка">
@@ -46,9 +46,9 @@
       <div class="account-card" data-route="account" tabindex="0" role="button" aria-label="Відкрити акаунт">
         <div class="account-logo" aria-hidden="true">R</div>
         <div class="account-info">
-          <strong>Olexandr Shliakhta</strong>
-          <span>mr.schljakhta@gmail.com</span>
-          <em>SUPER-ADMIN</em>
+          <strong>REBUS</strong>
+          <span>account@rebus</span>
+          <em>USER</em>
         </div>
       </div>
 
@@ -77,22 +77,16 @@
         <span class="nav-icon"><img src="assets/icons/nav/logout.png" alt="" /></span>
         <span class="nav-label">Вихід</span>
       </button>
-      <div class="version-note">REBUS Messenger <b>v0.6.9</b></div>
+      <div class="version-note">REBUS Messenger <b>v0.7.0</b></div>
     </aside>
 
     <main class="workspace" aria-live="polite">
       <section class="page-view" id="page-account" data-page="account" hidden>
-        <div class="content-grid account-layout">
-          <article class="glass-card profile-card">
-            <div class="profile-avatar">R</div>
-            <h2>Olexandr Shliakhta</h2>
-            <p>mr.schljakhta@gmail.com</p>
-            <span class="role-pill">SUPER-ADMIN</span>
-          </article>
-          <article class="glass-card">
-            <h3>Статус доступу</h3>
-            <p class="muted">Доступ активний. Профіль буде підтягуватись із Supabase після підключення авторизації.</p>
-          </article>
+        <div class="account-dashboard">
+          <section class="account-section">
+            <h3>Завантаження профілю…</h3>
+            <p class="muted">REBUS готує дані акаунта.</p>
+          </section>
         </div>
       </section>
 
@@ -187,7 +181,8 @@
 </section>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="js/app.js?v=0.6.9"></script>
-  <script src="js/side-hover.js?v=0.6.9"></script>
+  <script src="js/app.js?v=0.7.0"></script>
+  <script src="js/side-hover.js?v=0.7.0"></script>
+  <script src="js/account-page.js?v=0.7.0"></script>
 </body>
 </html>
