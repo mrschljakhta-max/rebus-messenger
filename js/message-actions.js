@@ -58,23 +58,40 @@
 
   function hideMenu() {
     const menu = document.getElementById(MENU_ID);
-    if (menu) menu.classList.remove('is-open');
+    if (menu) menu.classList.remove('is-open', 'opens-up');
     document.querySelectorAll('.message.has-menu-open').forEach(item => item.classList.remove('has-menu-open'));
     menuMessage = null;
   }
 
+  function getComposerSafeTop() {
+    const composer = document.querySelector('#page-chat .compose-box');
+    const preview = document.querySelector(`.${REPLY_CLASS}.is-visible`);
+    const composerTop = composer?.getBoundingClientRect?.().top || window.innerHeight;
+    const previewTop = preview?.getBoundingClientRect?.().top || composerTop;
+    return Math.min(composerTop, previewTop, window.innerHeight);
+  }
+
   function positionMenu(menu, x, y) {
+    const gap = 12;
+    const composerTop = getComposerSafeTop();
+    const safeBottom = Math.min(window.innerHeight - gap, composerTop - gap);
+
     menu.style.left = '0px';
     menu.style.top = '0px';
+    menu.style.maxHeight = `${Math.max(160, safeBottom - gap)}px`;
+    menu.classList.remove('opens-up');
     menu.classList.add('is-open');
 
     const rect = menu.getBoundingClientRect();
-    const gap = 10;
     const left = Math.min(Math.max(gap, x), window.innerWidth - rect.width - gap);
-    const top = Math.min(Math.max(gap, y), window.innerHeight - rect.height - gap);
+    const spaceBelow = safeBottom - y;
+    const shouldOpenUp = spaceBelow < rect.height + gap;
+    const preferredTop = shouldOpenUp ? y - rect.height - gap : y + gap;
+    const top = Math.min(Math.max(gap, preferredTop), safeBottom - rect.height);
 
+    menu.classList.toggle('opens-up', shouldOpenUp);
     menu.style.left = `${left}px`;
-    menu.style.top = `${top}px`;
+    menu.style.top = `${Math.max(gap, top)}px`;
   }
 
   function openMenu(message, event) {
@@ -292,6 +309,9 @@
   document.addEventListener('keydown', event => {
     if (event.key === 'Escape') hideMenu();
   });
+
+  window.addEventListener('resize', hideMenu);
+  document.addEventListener('scroll', hideMenu, true);
 
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', observeMessagesAndUsers, { once: true });
