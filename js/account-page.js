@@ -10,7 +10,7 @@
     const link = document.createElement('link');
     link.id = ACCOUNT_STYLE_ID;
     link.rel = 'stylesheet';
-    link.href = 'css/account.css?v=0.7.3';
+    link.href = 'css/account.css?v=0.7.4';
     document.head.appendChild(link);
   }
 
@@ -20,12 +20,7 @@
   }
 
   function escapeAttr(value = '') {
-    return String(value)
-      .replaceAll('&', '&amp;')
-      .replaceAll('<', '&lt;')
-      .replaceAll('>', '&gt;')
-      .replaceAll('"', '&quot;')
-      .replaceAll("'", '&#039;');
+    return String(value).replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;').replaceAll("'", '&#039;');
   }
 
   function getName(user) {
@@ -118,10 +113,7 @@
     if (editMode) {
       return `
         <section class="account-section account-editor" id="userDataSection">
-          <div class="account-section-head">
-            <h3>Дані користувача</h3>
-            <button type="button" class="mini-edit-btn" id="cancelEditProfileButton">Скасувати</button>
-          </div>
+          <div class="account-section-head"><h3>Дані користувача</h3><button type="button" class="mini-edit-btn" id="cancelEditProfileButton">Скасувати</button></div>
           <form id="accountEditForm" class="account-edit-form inline-editor-form">
             ${editableInput('Імʼя', 'full_name', data.name, 'Olexandr Shliakhta')}
             ${editableInput('Позивний', 'callsign', data.raw.callsign, 'Lavash')}
@@ -172,27 +164,34 @@
     const securityScore = mfaOk ? 98 : 82;
 
     return `
-      <div class="account-dashboard ${editMode ? 'is-editing' : ''}">
-        <aside class="account-hero">
-          <div class="account-avatar-wrap"><div class="account-avatar-xl" id="accountAvatarXL">${initials}</div><button class="avatar-edit-btn" type="button" id="quickAvatarButton">Змінити фото</button></div>
-          <h2 id="accountDisplayName">${safeText(data.name)}</h2>
-          <p id="accountEmailMain">${data.email}</p>
-          <p class="account-callsign">${data.callsign !== 'Не вказано' ? `Позивний: ${data.callsign}` : 'Позивний не вказано'}</p>
-          <div class="account-badges"><span class="account-badge is-role">${data.role}</span><span class="account-badge is-ok">Online</span><span class="account-badge ${mfaOk ? 'is-ok' : 'is-warn'}">2FA: ${data.mfa}</span></div>
-          <div class="account-actions"><button class="account-action-btn" type="button" id="editProfileButton">Редагувати профіль</button><button class="account-action-btn secondary" type="button" id="connectAccountButton">Підключити акаунт</button><button class="account-action-btn secondary" type="button" id="switchAccountButton">Змінити акаунт</button><button class="account-action-btn secondary" type="button" id="accountLogoutButton">Вийти</button></div>
-        </aside>
+      <div class="account-page-shell ${editMode ? 'is-editing' : ''}">
+        <header class="account-chat-header">
+          <div class="account-header-avatar" id="accountHeaderAvatar">${initials}</div>
+          <div class="account-header-text"><strong>Профіль користувача</strong><span>${data.email}</span></div>
+          <div class="account-header-actions"><button type="button" class="account-header-icon" id="editProfileButtonHeader" title="Редагувати профіль">✎</button></div>
+        </header>
+        <div class="account-dashboard">
+          <aside class="account-hero">
+            <div class="account-avatar-wrap"><div class="account-avatar-xl" id="accountAvatarXL">${initials}</div><button class="avatar-edit-btn" type="button" id="quickAvatarButton">Змінити фото</button></div>
+            <h2 id="accountDisplayName">${safeText(data.name)}</h2>
+            <p id="accountEmailMain">${data.email}</p>
+            <p class="account-callsign">${data.callsign !== 'Не вказано' ? `Позивний: ${data.callsign}` : 'Позивний не вказано'}</p>
+            <div class="account-badges"><span class="account-badge is-role">${data.role}</span><span class="account-badge is-ok">Online</span><span class="account-badge ${mfaOk ? 'is-ok' : 'is-warn'}">2FA: ${data.mfa}</span></div>
+            <div class="account-actions"><button class="account-action-btn" type="button" id="editProfileButton">Редагувати профіль</button><button class="account-action-btn secondary" type="button" id="connectAccountButton">Підключити акаунт</button><button class="account-action-btn secondary" type="button" id="switchAccountButton">Змінити акаунт</button><button class="account-action-btn secondary" type="button" id="accountLogoutButton">Вийти</button></div>
+          </aside>
 
-        <div class="account-scroll-panel">
-          <div class="account-main">
-            ${buildUserDataSection(data)}
-            <section class="account-section"><h3>Картка безпеки</h3><div class="security-list">
-              <div class="security-row"><i>G</i><div><b>${data.provider} акаунт</b><em>${data.email}</em></div><span class="security-status">Підключено</span></div>
-              <div class="security-row"><i>2F</i><div><b>Двофакторна перевірка</b><em>Захист входу до робочої зони</em></div><span class="security-status ${mfaOk ? '' : 'warn'}">${data.mfa}</span></div>
-              <div class="security-row"><i>✉</i><div><b>Email</b><em>Підтвердження поштової адреси</em></div><span class="security-status ${data.emailConfirmed === 'Підтверджено' ? '' : 'warn'}">${data.emailConfirmed}</span></div>
-              <div class="security-row"><i>🔐</i><div><b>AES-256-GCM</b><em>Підготовлено для захищених повідомлень і файлів</em></div><span class="security-status">${securityScore}%</span></div>
-            </div></section>
-            <section class="account-section"><div class="account-section-head"><h3>Підключені акаунти</h3><button type="button" class="mini-edit-btn" id="connectAccountButtonInline">Додати</button></div><div class="connected-account-card"><div class="provider-icon">G</div><div><strong>${data.provider}</strong><span>${data.email}</span></div><span class="security-status">Активний</span></div></section>
-            ${buildFutureSections()}
+          <div class="account-scroll-panel">
+            <div class="account-main">
+              ${buildUserDataSection(data)}
+              <section class="account-section"><h3>Картка безпеки</h3><div class="security-list">
+                <div class="security-row"><i>G</i><div><b>${data.provider} акаунт</b><em>${data.email}</em></div><span class="security-status">Підключено</span></div>
+                <div class="security-row"><i>2F</i><div><b>Двофакторна перевірка</b><em>Захист входу до робочої зони</em></div><span class="security-status ${mfaOk ? '' : 'warn'}">${data.mfa}</span></div>
+                <div class="security-row"><i>✉</i><div><b>Email</b><em>Підтвердження поштової адреси</em></div><span class="security-status ${data.emailConfirmed === 'Підтверджено' ? '' : 'warn'}">${data.emailConfirmed}</span></div>
+                <div class="security-row"><i>🔐</i><div><b>AES-256-GCM</b><em>Підготовлено для захищених повідомлень і файлів</em></div><span class="security-status">${securityScore}%</span></div>
+              </div></section>
+              <section class="account-section"><div class="account-section-head"><h3>Підключені акаунти</h3><button type="button" class="mini-edit-btn" id="connectAccountButtonInline">Додати</button></div><div class="connected-account-card"><div class="provider-icon">G</div><div><strong>${data.provider}</strong><span>${data.email}</span></div><span class="security-status">Активний</span></div></section>
+              ${buildFutureSections()}
+            </div>
           </div>
         </div>
       </div>`;
@@ -248,9 +247,7 @@
     } catch (error) {
       console.warn('[REBUS] Profile save failed:', error);
       setSaveStatus(error.message || 'Не вдалося зберегти профіль.', true);
-    } finally {
-      if (button) button.disabled = false;
-    }
+    } finally { if (button) button.disabled = false; }
   }
 
   function bindAvatarPreview() {
@@ -262,6 +259,7 @@
         pendingAvatarDataUrl = dataUrl;
         const name = document.querySelector('[name="full_name"]')?.value || getName(currentUser);
         setAvatarVisual(document.getElementById('accountAvatarXL'), dataUrl, getInitialsLocal(name));
+        setAvatarVisual(document.getElementById('accountHeaderAvatar'), dataUrl, getInitialsLocal(name));
         const avatarUrlInput = document.querySelector('[name="avatar_url"]');
         if (avatarUrlInput) avatarUrlInput.value = dataUrl;
         setSaveStatus('Аватарка готова. Натисніть “Зберегти”.');
@@ -279,6 +277,7 @@
     document.getElementById('accountLogoutButton')?.addEventListener('click', () => { if (typeof signOut === 'function') signOut(); });
     document.getElementById('editProfileButton')?.addEventListener('click', openEditor);
     document.getElementById('editProfileButtonInline')?.addEventListener('click', openEditor);
+    document.getElementById('editProfileButtonHeader')?.addEventListener('click', openEditor);
     document.getElementById('quickAvatarButton')?.addEventListener('click', () => { editMode = true; renderAccount(); window.setTimeout(() => document.getElementById('accountAvatarInput')?.click(), 80); });
     document.getElementById('cancelEditProfileButton')?.addEventListener('click', cancelEditor);
     document.getElementById('cancelEditProfileButtonBottom')?.addEventListener('click', cancelEditor);
@@ -288,6 +287,7 @@
     avatarUrlInput?.addEventListener('input', () => {
       const name = document.querySelector('[name="full_name"]')?.value || getName(currentUser);
       setAvatarVisual(document.getElementById('accountAvatarXL'), avatarUrlInput.value.trim(), getInitialsLocal(name));
+      setAvatarVisual(document.getElementById('accountHeaderAvatar'), avatarUrlInput.value.trim(), getInitialsLocal(name));
     });
   }
 
@@ -297,11 +297,14 @@
     if (!page) return;
     const user = typeof currentUser !== 'undefined' ? currentUser : null;
     if (!user) {
-      page.innerHTML = `<div class="account-dashboard"><section class="account-section"><h3>Акаунт не підключено</h3><p class="muted">Увійдіть через Google, щоб побачити профіль REBUS Messenger.</p></section></div>`;
+      page.innerHTML = `<div class="account-page-shell"><header class="account-chat-header"><div class="account-header-avatar">R</div><div class="account-header-text"><strong>Профіль користувача</strong><span>Акаунт не підключено</span></div></header><section class="account-section"><h3>Акаунт не підключено</h3><p class="muted">Увійдіть через Google, щоб побачити профіль REBUS Messenger.</p></section></div>`;
       return;
     }
     page.innerHTML = buildAccountPage(user);
-    setAvatarVisual(document.getElementById('accountAvatarXL'), getAvatarUrl(user), getInitialsLocal(getName(user)));
+    const avatarUrl = getAvatarUrl(user);
+    const initials = getInitialsLocal(getName(user));
+    setAvatarVisual(document.getElementById('accountAvatarXL'), avatarUrl, initials);
+    setAvatarVisual(document.getElementById('accountHeaderAvatar'), avatarUrl, initials);
     bindAccountButtons();
   }
 
