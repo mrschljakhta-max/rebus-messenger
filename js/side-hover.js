@@ -3,14 +3,15 @@
   const TOOL_SELECTOR = '.message-tools';
   const SIDE_ZONE_WIDTH = 92;
   const STYLES = [
-    ['rebus-reactions-hover-style', 'css/reactions-hover.css'],
-    ['rebus-chat-polish-style', 'css/chat-polish.css'],
-    ['rebus-chat-reply-edit-style', 'css/chat-reply-edit.css?v=0.7.7']
+    ['rebus-reactions-hover-style', 'css/reactions-hover.css?v=0.7.8'],
+    ['rebus-chat-polish-style', 'css/chat-polish.css?v=0.7.8'],
+    ['rebus-chat-reply-edit-style', 'css/chat-reply-edit.css?v=0.7.8']
   ];
   const SCRIPTS = [
-    ['rebus-message-actions-script', 'js/message-actions.js'],
+    ['rebus-message-actions-script', 'js/message-actions.js?v=0.7.8'],
     ['rebus-account-route-fix-script', 'js/account-route-fix.js?v=0.7.6'],
-    ['rebus-chat-reply-edit-script', 'js/chat-reply-edit.js?v=0.7.7']
+    ['rebus-chat-reply-edit-script', 'js/chat-reply-edit.js?v=0.7.8'],
+    ['rebus-chat-menu-native-fix-script', 'js/chat-menu-native-fix.js?v=0.7.8']
   ];
   let activeMessage = null;
   let hideTimer = null;
