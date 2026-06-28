@@ -3183,3 +3183,28 @@ input { font: inherit; }
   #page-chat .direct-users-panel { padding-left: 18px !important; padding-right: 14px !important; }
   #page-chat .direct-chat-actions { gap: 10px !important; }
 }
+
+
+/* Chat scrollbar flush to right edge */
+.messages,
+.chat-messages,
+.messages-list{
+  padding-right:8px !important;
+  margin-right:0 !important;
+}
+.messages::-webkit-scrollbar,
+.chat-messages::-webkit-scrollbar,
+.messages-list::-webkit-scrollbar{
+  width:6px;
+}
+.messages::-webkit-scrollbar-track,
+.chat-messages::-webkit-scrollbar-track,
+.messages-list::-webkit-scrollbar-track{
+  background:transparent;
+}
+.messages::-webkit-scrollbar-thumb,
+.chat-messages::-webkit-scrollbar-thumb,
+.messages-list::-webkit-scrollbar-thumb{
+  background:linear-gradient(180deg,#ff2d47,#00d8ff);
+  border-radius:999px;
+}
