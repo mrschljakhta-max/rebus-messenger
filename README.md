@@ -132,3 +132,8 @@ REBUS Messenger — responsive web messenger for secure communication inside REB
 - Open chat canvas: the message area is placed directly on the application background.
 - Added subtle REBUS watermark and circuit-style background layer.
 - Kept the users list as a glass panel and the composer as a floating bar.
+
+
+## v0.6.6
+- Додано бокову hover-зону для появи кнопки реакцій: свої повідомлення — зліва, повідомлення співрозмовника — справа.
+- Поява смайлика більше не прив'язана до наведення на саму бульбашку повідомлення.

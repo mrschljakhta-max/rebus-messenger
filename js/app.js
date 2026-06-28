@@ -713,6 +713,7 @@ function appendMessage(message, options = {}) {
   el.className = `message ${isOwn ? 'outgoing' : 'incoming'} ${statusClass}`.trim();
   if (message.id) el.dataset.messageId = message.id;
   el.innerHTML = `
+    <span class="message-hover-zone" aria-hidden="true"></span>
     ${renderMessageTools(message, isOwn)}
     <b>${escapeHtml(isOwn ? 'Ви' : (message.user_name || message.user_email || 'Користувач'))}</b>
     <span class="message-body">${escapeHtml(message.body)}</span>

@@ -3227,29 +3227,74 @@ input { font: inherit; }
 }
 
 
-/* Reaction hover zones */
-.message-row{position:relative;}
-.message-hover-zone{
- position:absolute;
- top:0;
- bottom:0;
- width:48px;
- z-index:15;
+/* v0.6.6 — side-only hover zone for message reactions
+   Own/outgoing messages: hover zone and smile icon on the LEFT.
+   Recipient/incoming messages: hover zone and smile icon on the RIGHT. */
+.message {
+  position: relative !important;
 }
-.message-row.mine .message-hover-zone{
- right:100%;
+
+.message-hover-zone {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 46px;
+  z-index: 28;
+  pointer-events: auto;
+  background: transparent;
 }
-.message-row.theirs .message-hover-zone{
- left:100%;
+
+.message.outgoing .message-hover-zone {
+  right: 100%;
 }
-.reaction-trigger{
- opacity:0;
- pointer-events:none;
- transition:opacity .15s ease, transform .15s ease;
+
+.message.incoming .message-hover-zone {
+  left: 100%;
 }
-.message-hover-zone:hover + .reaction-trigger,
-.reaction-trigger:hover{
- opacity:1;
- pointer-events:auto;
- transform:translateY(-50%) translateX(0);
+
+/* Disable reaction icon appearing from hovering the bubble itself. */
+.message:hover .message-tools:not(.is-reaction-open):not(.is-pinned),
+.message:hover:not(.has-menu-open):not(.has-reaction-open) .message-tools:not(:hover) {
+  opacity: 0 !important;
+  pointer-events: none !important;
+  transform: translateY(-50%) translateX(0) !important;
+}
+
+/* Show only when cursor is in the side hover zone, on the controls, or while menu/palette is open. */
+.message .message-hover-zone:hover ~ .message-tools,
+.message .message-tools:hover,
+.message .message-tools.is-hovered,
+.message .message-tools.is-pinned,
+.message.has-menu-open .message-tools,
+.message.has-reaction-open .message-tools,
+.message .message-tools.is-reaction-open,
+.message:focus-within .message-tools {
+  opacity: 1 !important;
+  pointer-events: auto !important;
+  transform: translateY(-50%) !important;
+}
+
+.message.outgoing .message-tools {
+  left: -38px !important;
+  right: auto !important;
+}
+
+.message.incoming .message-tools {
+  right: -38px !important;
+  left: auto !important;
+}
+
+.message.outgoing .quick-reactions-bar {
+  right: 32px !important;
+  left: auto !important;
+}
+
+.message.incoming .quick-reactions-bar {
+  left: 32px !important;
+  right: auto !important;
+}
+
+.message-hover-zone:hover ~ .message-tools .message-emoji-trigger {
+  opacity: .96 !important;
+  color: rgba(244,251,255,.86) !important;
 }
