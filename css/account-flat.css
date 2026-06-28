@@ -1,13 +1,34 @@
 /* REBUS Messenger — flat account page override */
 
 #page-account {
-  height: 100svh !important;
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  overflow: hidden !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+#page-account.page-view,
+#page-account.is-active {
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+.workspace:has(#page-account.is-active) {
+  position: relative !important;
   overflow: hidden !important;
   padding: 0 !important;
 }
 
 .account-page-shell {
-  height: 100svh !important;
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 0 !important;
   display: block !important;
   overflow: hidden !important;
   background:
@@ -35,6 +56,8 @@
 }
 
 .account-dashboard {
+  position: absolute !important;
+  inset: 0 !important;
   width: 100% !important;
   height: 100% !important;
   margin: 0 !important;
@@ -46,6 +69,7 @@
 
 .account-hero {
   min-height: 0 !important;
+  height: 100% !important;
   padding: 46px 34px !important;
   display: flex !important;
   flex-direction: column !important;
@@ -89,12 +113,16 @@
 
 .account-scroll-panel {
   min-height: 0 !important;
+  height: 100% !important;
   overflow-y: auto !important;
   overflow-x: hidden !important;
-  padding: 38px 42px !important;
+  padding: 38px 18px 38px 42px !important;
+  scrollbar-gutter: stable !important;
 }
 
 .account-main {
+  width: 100% !important;
+  max-width: none !important;
   gap: 30px !important;
 }
 
@@ -145,25 +173,29 @@
 }
 
 @media (max-width: 980px) {
-  .account-page-shell {
+  #page-account,
+  .account-page-shell,
+  .account-dashboard {
+    position: relative !important;
+    inset: auto !important;
     height: auto !important;
     min-height: 100svh !important;
     overflow: visible !important;
   }
 
   .account-dashboard {
-    height: auto !important;
     grid-template-columns: 1fr !important;
-    overflow: visible !important;
   }
 
   .account-hero {
+    height: auto !important;
     border-right: 0 !important;
     border-bottom: 1px solid rgba(255,255,255,.10) !important;
   }
 
   .account-scroll-panel {
     overflow: visible !important;
+    height: auto !important;
     padding: 22px !important;
   }
 }
