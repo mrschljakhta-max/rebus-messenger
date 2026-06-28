@@ -30,13 +30,8 @@
   transition: opacity .14s ease, transform .14s ease, color .14s ease;
 }
 
-#page-chat .message.incoming .message-corner-menu {
-  right: 10px;
-}
-
-#page-chat .message.outgoing .message-corner-menu {
-  left: 10px;
-}
+#page-chat .message.incoming .message-corner-menu { right: 10px; }
+#page-chat .message.outgoing .message-corner-menu { left: 10px; }
 
 #page-chat .message:hover .message-corner-menu,
 #page-chat .message.has-menu-open .message-corner-menu,
@@ -49,6 +44,25 @@
 #page-chat .message-corner-menu:hover {
   color: #fff;
   background: transparent !important;
+}
+
+#page-chat .message-context-menu.rebus-fixed-menu {
+  position: fixed !important;
+  right: auto !important;
+  bottom: auto !important;
+  z-index: 9999 !important;
+  max-height: min(420px, calc(100vh - 24px)) !important;
+  overflow: auto !important;
+  transform: none !important;
+}
+
+#page-chat .message-context-menu.rebus-fixed-menu.opens-up::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -10px;
+  height: 10px;
 }
 
 #page-chat .message-reply-quote {
@@ -78,9 +92,7 @@
   font-weight: 950;
 }
 
-#page-chat .message.outgoing .message-reply-quote strong {
-  color: #ffd166;
-}
+#page-chat .message.outgoing .message-reply-quote strong { color: #ffd166; }
 
 #page-chat .message-reply-quote span {
   margin-top: 2px;
@@ -115,13 +127,8 @@
   background: linear-gradient(180deg, #ff314e, #00d8ff);
 }
 
-.rebus-composer-preview[data-mode="reply"] .preview-line {
-  background: linear-gradient(180deg, #ffd166, #00d8ff);
-}
-
-.rebus-composer-preview[data-mode="edit"] .preview-line {
-  background: linear-gradient(180deg, #ff314e, #b30928);
-}
+.rebus-composer-preview[data-mode="reply"] .preview-line { background: linear-gradient(180deg, #ffd166, #00d8ff); }
+.rebus-composer-preview[data-mode="edit"] .preview-line { background: linear-gradient(180deg, #ff314e, #b30928); }
 
 .rebus-composer-preview strong,
 .rebus-composer-preview span {
@@ -137,9 +144,7 @@
   font-weight: 950;
 }
 
-.rebus-composer-preview[data-mode="edit"] strong {
-  color: #ff6b7c;
-}
+.rebus-composer-preview[data-mode="edit"] strong { color: #ff6b7c; }
 
 .rebus-composer-preview span {
   margin-top: 2px;
