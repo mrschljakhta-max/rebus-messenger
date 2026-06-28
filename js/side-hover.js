@@ -2,17 +2,23 @@
   const MESSAGE_SELECTOR = '#messagesList .message[data-message-id]';
   const TOOL_SELECTOR = '.message-tools';
   const SIDE_ZONE_WIDTH = 92;
-  const REACTION_STYLE_ID = 'rebus-reactions-hover-style';
+  const STYLES = [
+    ['rebus-reactions-hover-style', 'css/reactions-hover.css'],
+    ['rebus-chat-polish-style', 'css/chat-polish.css']
+  ];
   let activeMessage = null;
   let hideTimer = null;
+  let polishObserver = null;
 
-  function ensureReactionStyles() {
-    if (document.getElementById(REACTION_STYLE_ID)) return;
-    const link = document.createElement('link');
-    link.id = REACTION_STYLE_ID;
-    link.rel = 'stylesheet';
-    link.href = 'css/reactions-hover.css';
-    document.head.appendChild(link);
+  function ensureStyles() {
+    STYLES.forEach(([id, href]) => {
+      if (document.getElementById(id)) return;
+      const link = document.createElement('link');
+      link.id = id;
+      link.rel = 'stylesheet';
+      link.href = href;
+      document.head.appendChild(link);
+    });
   }
 
   function getTool(message) {
@@ -55,7 +61,88 @@
     return clientX >= rect.right && clientX <= rect.right + SIDE_ZONE_WIDTH;
   }
 
-  ensureReactionStyles();
+  function smoothScrollMessages() {
+    const list = document.getElementById('messagesList');
+    if (!list) return;
+    window.requestAnimationFrame(() => {
+      list.scrollTo({ top: list.scrollHeight, behavior: 'smooth' });
+    });
+  }
+
+  function flashMessage(message) {
+    if (!message) return;
+    message.classList.remove('is-highlighted');
+    void message.offsetWidth;
+    message.classList.add('is-highlighted');
+    window.setTimeout(() => message.classList.remove('is-highlighted'), 1900);
+  }
+
+  function ensureTypingIndicator() {
+    const list = document.getElementById('messagesList');
+    if (!list || document.getElementById('typingIndicator')) return;
+    const indicator = document.createElement('div');
+    indicator.id = 'typingIndicator';
+    indicator.className = 'typing-indicator';
+    indicator.innerHTML = '<span>Користувач друкує</span><span class="typing-dots" aria-hidden="true"><i></i><i></i><i></i></span>';
+    list.appendChild(indicator);
+  }
+
+  function bindMessageClickHighlight(scope = document) {
+    scope.querySelectorAll?.(MESSAGE_SELECTOR)?.forEach(message => {
+      if (message.dataset.polishClickBound === '1') return;
+      message.dataset.polishClickBound = '1';
+      message.addEventListener('click', event => {
+        if (event.target.closest('button, input, a, .message-tools, .reaction-chip')) return;
+        flashMessage(message);
+      });
+    });
+  }
+
+  function bindLocalTypingPreview() {
+    const input = document.getElementById('messageInput');
+    const indicator = document.getElementById('typingIndicator');
+    if (!input || !indicator || input.dataset.polishTypingBound === '1') return;
+    input.dataset.polishTypingBound = '1';
+    let timer = null;
+    input.addEventListener('input', () => {
+      // Temporary local preview until real remote typing events are connected to Supabase Broadcast.
+      if (!input.value.trim()) {
+        indicator.classList.remove('is-visible');
+        return;
+      }
+      indicator.classList.add('is-visible');
+      window.clearTimeout(timer);
+      timer = window.setTimeout(() => indicator.classList.remove('is-visible'), 900);
+    });
+  }
+
+  function initPolishObserver() {
+    const list = document.getElementById('messagesList');
+    if (!list || polishObserver) return;
+
+    ensureTypingIndicator();
+    bindMessageClickHighlight(document);
+    bindLocalTypingPreview();
+
+    polishObserver = new MutationObserver(mutations => {
+      let hasNewMessage = false;
+      mutations.forEach(mutation => {
+        mutation.addedNodes.forEach(node => {
+          if (!(node instanceof HTMLElement)) return;
+          if (node.matches?.('.message')) hasNewMessage = true;
+          if (node.querySelector?.('.message')) hasNewMessage = true;
+          bindMessageClickHighlight(node);
+        });
+      });
+      ensureTypingIndicator();
+      bindLocalTypingPreview();
+      if (hasNewMessage) smoothScrollMessages();
+    });
+
+    polishObserver.observe(list, { childList: true, subtree: true });
+  }
+
+  ensureStyles();
 
   document.addEventListener('pointermove', event => {
     const tool = event.target.closest?.(TOOL_SELECTOR);
@@ -93,4 +180,10 @@
   document.addEventListener('scroll', () => {
     if (activeMessage) clearMessage(activeMessage);
   }, true);
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initPolishObserver, { once: true });
+  } else {
+    initPolishObserver();
+  }
 })();
