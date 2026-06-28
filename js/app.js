@@ -822,10 +822,7 @@ function updateDirectChatHead(peer) {
         <span>Індивідуальне листування REBUS</span>
       </div>
       <div class="direct-chat-actions" aria-hidden="true">
-        <button type="button" disabled aria-label="Пошук у чаті"><img src="assets/icons/header/search.png" alt="" /></button>
-        <button type="button" disabled aria-label="Аудіодзвінок"><img src="assets/icons/header/telephone.png" alt="" /></button>
-        <button type="button" disabled aria-label="Відеодзвінок"><img src="assets/icons/header/video.png" alt="" /></button>
-        <button type="button" disabled aria-label="Додатково"><img src="assets/icons/header/more.png" alt="" /></button>
+        <button type="button" disabled><img src="assets/icons/header/search.png" alt="" /></button><button type="button" disabled><img src="assets/icons/header/telephone.png" alt="" /></button><button type="button" disabled><img src="assets/icons/header/video.png" alt="" /></button><button type="button" disabled><img src="assets/icons/header/more.png" alt="" /></button>
       </div>
     `;
     return;
@@ -838,10 +835,10 @@ function updateDirectChatHead(peer) {
       <span class="peer-online"><i></i> Онлайн</span>
     </div>
     <div class="direct-chat-actions" aria-label="Дії чату">
-      <button type="button" title="Пошук у чаті" aria-label="Пошук у чаті"><img src="assets/icons/header/search.png" alt="" /></button>
-      <button type="button" title="Аудіодзвінок" aria-label="Аудіодзвінок"><img src="assets/icons/header/telephone.png" alt="" /></button>
-      <button type="button" title="Відеодзвінок" aria-label="Відеодзвінок"><img src="assets/icons/header/video.png" alt="" /></button>
-      <button type="button" title="Додатково" aria-label="Додатково"><img src="assets/icons/header/more.png" alt="" /></button>
+      <button type="button" title="Пошук у чаті"><img src="assets/icons/header/search.png" alt="" /></button>
+      <button type="button" title="Аудіодзвінок"><img src="assets/icons/header/telephone.png" alt="" /></button>
+      <button type="button" title="Відеодзвінок"><img src="assets/icons/header/video.png" alt="" /></button>
+      <button type="button" title="Додатково"><img src="assets/icons/header/more.png" alt="" /></button>
     </div>
   `;
 }
