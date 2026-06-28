@@ -1,0 +1,135 @@
+/* REBUS Messenger — reply/edit controls */
+
+#page-chat .message {
+  position: relative !important;
+}
+
+#page-chat .message-corner-menu {
+  position: absolute;
+  top: 7px;
+  z-index: 18;
+  width: 24px;
+  height: 24px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  color: rgba(244,251,255,.72);
+  background: rgba(3, 10, 18, .42);
+  box-shadow: 0 8px 22px rgba(0,0,0,.20);
+  opacity: 0;
+  transform: translateY(-3px) scale(.94);
+  pointer-events: none;
+  cursor: pointer;
+  transition: opacity .14s ease, transform .14s ease, background .14s ease, color .14s ease;
+}
+
+#page-chat .message.incoming .message-corner-menu {
+  right: 8px;
+}
+
+#page-chat .message.outgoing .message-corner-menu {
+  left: 8px;
+}
+
+#page-chat .message:hover .message-corner-menu,
+#page-chat .message.has-menu-open .message-corner-menu,
+#page-chat .message.has-corner-menu-open .message-corner-menu {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
+}
+
+#page-chat .message-corner-menu:hover {
+  color: #fff;
+  background: rgba(255,255,255,.11);
+}
+
+.rebus-composer-preview {
+  display: none;
+  grid-template-columns: 4px minmax(0, 1fr) 34px;
+  align-items: center;
+  gap: 12px;
+  margin: 0 32px 8px;
+  padding: 10px 12px 10px 0;
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 16px;
+  background: rgba(5, 12, 22, .78);
+  box-shadow: 0 14px 38px rgba(0,0,0,.28);
+  backdrop-filter: blur(14px) saturate(1.05);
+}
+
+.rebus-composer-preview.is-visible {
+  display: grid;
+  animation: rebusTypingIn .14s ease both;
+}
+
+.rebus-composer-preview .preview-line {
+  align-self: stretch;
+  width: 4px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #ff314e, #00d8ff);
+}
+
+.rebus-composer-preview[data-mode="reply"] .preview-line {
+  background: linear-gradient(180deg, #ffd166, #00d8ff);
+}
+
+.rebus-composer-preview[data-mode="edit"] .preview-line {
+  background: linear-gradient(180deg, #ff314e, #b30928);
+}
+
+.rebus-composer-preview strong,
+.rebus-composer-preview span {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rebus-composer-preview strong {
+  color: #00d8ff;
+  font-size: 12px;
+  font-weight: 950;
+}
+
+.rebus-composer-preview[data-mode="edit"] strong {
+  color: #ff6b7c;
+}
+
+.rebus-composer-preview span {
+  margin-top: 2px;
+  color: rgba(244,251,255,.74);
+  font-size: 13px;
+}
+
+.rebus-composer-preview button {
+  width: 30px;
+  height: 30px;
+  border: 0;
+  border-radius: 10px;
+  color: rgba(244,251,255,.78);
+  background: rgba(255,255,255,.06);
+  font-size: 18px;
+  cursor: pointer;
+}
+
+.rebus-composer-preview button:hover {
+  color: #fff;
+  background: rgba(255,255,255,.11);
+}
+
+#page-chat .message-edited-label {
+  margin-right: 6px;
+  color: rgba(244,251,255,.46);
+  font-size: 11px;
+  font-weight: 900;
+  font-style: normal;
+}
+
+#page-chat .message.is-edited-message .message-body::after {
+  content: " ред.";
+  color: rgba(244,251,255,.42);
+  font-size: 11px;
+  font-weight: 850;
+}
