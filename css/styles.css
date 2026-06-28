@@ -2942,3 +2942,54 @@ input { font: inherit; }
     display: none !important;
   }
 }
+
+/* v0.6.4 — header action icons from provided assets */
+#page-chat .direct-chat-head {
+  align-items: center !important;
+}
+
+#page-chat .direct-chat-head .direct-chat-actions {
+  position: static !important;
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  gap: 16px !important;
+}
+
+#page-chat .direct-chat-head .direct-chat-actions button {
+  width: 38px !important;
+  height: 38px !important;
+  min-width: 38px !important;
+  min-height: 38px !important;
+  border: 0 !important;
+  border-radius: 14px !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  opacity: .92;
+}
+
+#page-chat .direct-chat-head .direct-chat-actions button:hover:not(:disabled) {
+  background: rgba(255,255,255,.08) !important;
+  opacity: 1;
+  transform: translateY(-1px) !important;
+}
+
+#page-chat .direct-chat-head .direct-chat-actions button:disabled {
+  opacity: .32 !important;
+}
+
+#page-chat .direct-chat-head .direct-chat-actions img {
+  display: block !important;
+  width: 23px !important;
+  height: 23px !important;
+  object-fit: contain !important;
+  filter: invert(1) brightness(1.55) drop-shadow(0 0 8px rgba(255,255,255,.18));
+  pointer-events: none;
+}
+
+#page-chat .direct-chat-head .direct-chat-actions button:hover:not(:disabled) img {
+  filter: invert(1) brightness(1.9) drop-shadow(0 0 10px rgba(0,216,255,.32));
+}
+
+.version-note b::after { content: " / 0.6.4"; }
