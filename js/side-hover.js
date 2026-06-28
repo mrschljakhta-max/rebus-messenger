@@ -6,6 +6,9 @@
     ['rebus-reactions-hover-style', 'css/reactions-hover.css'],
     ['rebus-chat-polish-style', 'css/chat-polish.css']
   ];
+  const SCRIPTS = [
+    ['rebus-message-actions-script', 'js/message-actions.js']
+  ];
   let activeMessage = null;
   let hideTimer = null;
   let polishObserver = null;
@@ -18,6 +21,17 @@
       link.rel = 'stylesheet';
       link.href = href;
       document.head.appendChild(link);
+    });
+  }
+
+  function ensureScripts() {
+    SCRIPTS.forEach(([id, src]) => {
+      if (document.getElementById(id)) return;
+      const script = document.createElement('script');
+      script.id = id;
+      script.src = src;
+      script.defer = true;
+      document.body.appendChild(script);
     });
   }
 
@@ -189,6 +203,7 @@
   }
 
   ensureStyles();
+  ensureScripts();
   patchSingleReactionPerUser();
 
   document.addEventListener('pointermove', event => {
