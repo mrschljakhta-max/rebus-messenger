@@ -1,9 +1,19 @@
 (() => {
   const MESSAGE_SELECTOR = '#messagesList .message[data-message-id]';
   const TOOL_SELECTOR = '.message-tools';
-  const SIDE_ZONE_WIDTH = 56;
+  const SIDE_ZONE_WIDTH = 92;
+  const REACTION_STYLE_ID = 'rebus-reactions-hover-style';
   let activeMessage = null;
   let hideTimer = null;
+
+  function ensureReactionStyles() {
+    if (document.getElementById(REACTION_STYLE_ID)) return;
+    const link = document.createElement('link');
+    link.id = REACTION_STYLE_ID;
+    link.rel = 'stylesheet';
+    link.href = 'css/reactions-hover.css';
+    document.head.appendChild(link);
+  }
 
   function getTool(message) {
     return message?.querySelector?.(TOOL_SELECTOR) || null;
@@ -35,7 +45,7 @@
 
   function pointerIsInSideZone(message, clientX, clientY) {
     const rect = message.getBoundingClientRect();
-    const inVerticalRange = clientY >= rect.top && clientY <= rect.bottom;
+    const inVerticalRange = clientY >= rect.top - 4 && clientY <= rect.bottom + 4;
     if (!inVerticalRange) return false;
 
     if (message.classList.contains('outgoing')) {
@@ -44,6 +54,8 @@
 
     return clientX >= rect.right && clientX <= rect.right + SIDE_ZONE_WIDTH;
   }
+
+  ensureReactionStyles();
 
   document.addEventListener('pointermove', event => {
     const tool = event.target.closest?.(TOOL_SELECTOR);
