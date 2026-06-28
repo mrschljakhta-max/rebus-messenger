@@ -3225,3 +3225,31 @@ input { font: inherit; }
 .message:hover .message-reactions{
   z-index:110;
 }
+
+
+/* Reaction hover zones */
+.message-row{position:relative;}
+.message-hover-zone{
+ position:absolute;
+ top:0;
+ bottom:0;
+ width:48px;
+ z-index:15;
+}
+.message-row.mine .message-hover-zone{
+ right:100%;
+}
+.message-row.theirs .message-hover-zone{
+ left:100%;
+}
+.reaction-trigger{
+ opacity:0;
+ pointer-events:none;
+ transition:opacity .15s ease, transform .15s ease;
+}
+.message-hover-zone:hover + .reaction-trigger,
+.reaction-trigger:hover{
+ opacity:1;
+ pointer-events:auto;
+ transform:translateY(-50%) translateX(0);
+}
