@@ -10,7 +10,7 @@
     const link = document.createElement('link');
     link.id = ACCOUNT_STYLE_ID;
     link.rel = 'stylesheet';
-    link.href = 'css/account.css?v=0.7.1';
+    link.href = 'css/account.css?v=0.7.2';
     document.head.appendChild(link);
   }
 
@@ -106,84 +106,106 @@
     }
   }
 
-  function buildEditableFields(user) {
+  function getProfileData(user) {
     const meta = user?.user_metadata || {};
-    const name = getName(user);
-    const callsign = meta.callsign || meta.nickname || '';
-    const contour = meta.contour || '';
-    const unit = meta.unit || '';
-    const marker = meta.marker || '';
-    const position = meta.position || '';
-    const avatar = getAvatarUrl(user);
+    return {
+      name: getName(user),
+      email: safeText(user?.email),
+      role: getRole(),
+      provider: getProvider(user),
+      createdAt: formatDate(user?.created_at),
+      lastSignIn: formatDate(user?.last_sign_in_at),
+      emailConfirmed: user?.email_confirmed_at ? 'Підтверджено' : 'Очікує',
+      mfa: getMfaStatus(),
+      userId: safeText(user?.id),
+      callsign: safeText(meta.callsign || meta.nickname, 'Не вказано'),
+      contour: safeText(meta.contour || meta.unit || meta.marker, 'Не призначено'),
+      unit: safeText(meta.unit, 'Не вказано'),
+      marker: safeText(meta.marker, 'Не вказано'),
+      position: safeText(meta.position, 'Не вказано'),
+      raw: {
+        callsign: meta.callsign || meta.nickname || '',
+        contour: meta.contour || '',
+        unit: meta.unit || '',
+        marker: meta.marker || '',
+        position: meta.position || '',
+        avatar: getAvatarUrl(user)
+      }
+    };
+  }
+
+  function editableInput(label, name, value, placeholder = '') {
+    return `
+      <label class="account-inline-field">
+        <span>${label}</span>
+        <input name="${name}" type="text" value="${escapeAttr(value)}" placeholder="${escapeAttr(placeholder)}" />
+      </label>
+    `;
+  }
+
+  function buildUserDataSection(user, data) {
+    if (editMode) {
+      return `
+        <section class="account-section account-editor" id="userDataSection">
+          <div class="account-section-head">
+            <h3>Дані користувача</h3>
+            <button type="button" class="mini-edit-btn" id="cancelEditProfileButton">Скасувати</button>
+          </div>
+          <form id="accountEditForm" class="account-edit-form inline-editor-form">
+            ${editableInput('Імʼя', 'full_name', data.name, 'Olexandr Shliakhta')}
+            ${editableInput('Позивний', 'callsign', data.raw.callsign, 'Lavash')}
+            ${editableInput('Контур', 'contour', data.raw.contour, 'REBUS DEV')}
+            ${editableInput('Підрозділ', 'unit', data.raw.unit, 'Основний контур')}
+            ${editableInput('Маркер файлів', 'marker', data.raw.marker, 'LAVASH')}
+            ${editableInput('Посада', 'position', data.raw.position, 'Адміністратор контуру')}
+            <label class="account-inline-field span-2">
+              <span>URL аватарки</span>
+              <input name="avatar_url" type="url" value="${escapeAttr(data.raw.avatar)}" placeholder="https://..." />
+            </label>
+            <label class="account-inline-field span-2 account-file-picker">
+              <span>Завантажити аватарку</span>
+              <input id="accountAvatarInput" type="file" accept="image/png,image/jpeg,image/webp,image/gif" />
+              <em>Для великих фото пізніше підключимо Supabase Storage. Зараз краще до 900 КБ або URL.</em>
+            </label>
+            <div class="account-edit-actions span-2">
+              <button class="account-action-btn" type="submit">Зберегти</button>
+              <button class="account-action-btn secondary" type="button" id="cancelEditProfileButtonBottom">Скасувати</button>
+            </div>
+            <p class="account-save-status span-2" id="accountSaveStatus"></p>
+          </form>
+        </section>
+      `;
+    }
 
     return `
-      <section class="account-section account-editor" id="accountEditorSection">
+      <section class="account-section" id="userDataSection">
         <div class="account-section-head">
-          <h3>Редагування профілю</h3>
-          <span>Дані зберігаються в Supabase Auth metadata</span>
+          <h3>Дані користувача</h3>
+          <button type="button" class="mini-edit-btn icon-only" id="editProfileButtonInline" title="Редагувати дані">✎</button>
         </div>
-        <form id="accountEditForm" class="account-edit-form">
-          <label>
-            <span>Імʼя / назва профілю</span>
-            <input name="full_name" type="text" value="${escapeAttr(name)}" autocomplete="name" />
-          </label>
-          <label>
-            <span>Позивний</span>
-            <input name="callsign" type="text" value="${escapeAttr(callsign)}" placeholder="Наприклад: Lavash" />
-          </label>
-          <label>
-            <span>Контур</span>
-            <input name="contour" type="text" value="${escapeAttr(contour)}" placeholder="Наприклад: REBUS DEV" />
-          </label>
-          <label>
-            <span>Підрозділ / група</span>
-            <input name="unit" type="text" value="${escapeAttr(unit)}" placeholder="Наприклад: Основний контур" />
-          </label>
-          <label>
-            <span>Маркер файлів</span>
-            <input name="marker" type="text" value="${escapeAttr(marker)}" placeholder="Наприклад: LAVASH" />
-          </label>
-          <label>
-            <span>Посада / роль у контурі</span>
-            <input name="position" type="text" value="${escapeAttr(position)}" placeholder="Наприклад: Адміністратор контуру" />
-          </label>
-          <label class="span-2">
-            <span>URL аватарки</span>
-            <input name="avatar_url" type="url" value="${escapeAttr(avatar)}" placeholder="https://..." />
-          </label>
-          <label class="span-2 account-file-picker">
-            <span>Завантажити аватарку з компʼютера</span>
-            <input id="accountAvatarInput" type="file" accept="image/png,image/jpeg,image/webp,image/gif" />
-            <em>Поки зберігаємо як metadata. Для великих фото пізніше підключимо Supabase Storage.</em>
-          </label>
-          <div class="account-edit-actions span-2">
-            <button class="account-action-btn" type="submit">Зберегти зміни</button>
-            <button class="account-action-btn secondary" type="button" id="cancelEditProfileButton">Скасувати</button>
-          </div>
-          <p class="account-save-status span-2" id="accountSaveStatus"></p>
-        </form>
+        <div class="account-info-grid">
+          <div class="account-field"><span>Імʼя</span><strong>${safeText(data.name)}</strong></div>
+          <div class="account-field"><span>Email</span><strong>${data.email}</strong></div>
+          <div class="account-field"><span>Позивний</span><strong>${data.callsign}</strong></div>
+          <div class="account-field"><span>Роль</span><strong>${data.role}</strong></div>
+          <div class="account-field"><span>Контур</span><strong>${data.contour}</strong></div>
+          <div class="account-field"><span>Підрозділ</span><strong>${data.unit}</strong></div>
+          <div class="account-field"><span>Маркер</span><strong>${data.marker}</strong></div>
+          <div class="account-field"><span>Посада</span><strong>${data.position}</strong></div>
+          <div class="account-field"><span>ID користувача</span><strong title="${data.userId}">${data.userId}</strong></div>
+          <div class="account-field"><span>Провайдер</span><strong>${data.provider}</strong></div>
+          <div class="account-field"><span>Створений</span><strong>${data.createdAt}</strong></div>
+          <div class="account-field"><span>Останній вхід</span><strong>${data.lastSignIn}</strong></div>
+        </div>
       </section>
     `;
   }
 
   function buildAccountPage(user) {
-    const name = getName(user);
-    const email = safeText(user?.email);
-    const role = getRole();
-    const provider = getProvider(user);
-    const createdAt = formatDate(user?.created_at);
-    const lastSignIn = formatDate(user?.last_sign_in_at);
-    const emailConfirmed = user?.email_confirmed_at ? 'Підтверджено' : 'Очікує';
-    const mfa = getMfaStatus();
-    const userId = safeText(user?.id);
-    const callsign = safeText(getMeta(user, 'callsign') || getMeta(user, 'nickname'), 'Не вказано');
-    const contour = safeText(getMeta(user, 'contour') || getMeta(user, 'unit') || getMeta(user, 'marker'), 'Не призначено');
-    const unit = safeText(getMeta(user, 'unit'), 'Не вказано');
-    const marker = safeText(getMeta(user, 'marker'), 'Не вказано');
-    const position = safeText(getMeta(user, 'position'), 'Не вказано');
+    const data = getProfileData(user);
     const avatarUrl = getAvatarUrl(user);
-    const initials = getInitialsLocal(name);
-    const mfaOk = mfa === 'Активна';
+    const initials = getInitialsLocal(data.name);
+    const mfaOk = data.mfa === 'Активна';
     const securityScore = mfaOk ? 98 : 82;
 
     return `
@@ -193,14 +215,14 @@
             <div class="account-avatar-xl" id="accountAvatarXL">${initials}</div>
             <button class="avatar-edit-btn" type="button" id="quickAvatarButton">Змінити фото</button>
           </div>
-          <h2 id="accountDisplayName">${safeText(name)}</h2>
-          <p id="accountEmailMain">${email}</p>
-          <p class="account-callsign">${callsign !== 'Не вказано' ? `Позивний: ${callsign}` : 'Позивний не вказано'}</p>
+          <h2 id="accountDisplayName">${safeText(data.name)}</h2>
+          <p id="accountEmailMain">${data.email}</p>
+          <p class="account-callsign">${data.callsign !== 'Не вказано' ? `Позивний: ${data.callsign}` : 'Позивний не вказано'}</p>
 
           <div class="account-badges">
-            <span class="account-badge is-role">${role}</span>
+            <span class="account-badge is-role">${data.role}</span>
             <span class="account-badge is-ok">Online</span>
-            <span class="account-badge ${mfaOk ? 'is-ok' : 'is-warn'}">2FA: ${mfa}</span>
+            <span class="account-badge ${mfaOk ? 'is-ok' : 'is-warn'}">2FA: ${data.mfa}</span>
           </div>
 
           <div class="account-actions">
@@ -212,46 +234,25 @@
         </aside>
 
         <div class="account-main">
-          ${editMode ? buildEditableFields(user) : ''}
-
-          <section class="account-section">
-            <div class="account-section-head">
-              <h3>Дані користувача</h3>
-              <button type="button" class="mini-edit-btn" id="editProfileButtonInline">Редагувати</button>
-            </div>
-            <div class="account-info-grid">
-              <div class="account-field"><span>Імʼя</span><strong>${safeText(name)}</strong></div>
-              <div class="account-field"><span>Email</span><strong>${email}</strong></div>
-              <div class="account-field"><span>Позивний</span><strong>${callsign}</strong></div>
-              <div class="account-field"><span>Роль</span><strong>${role}</strong></div>
-              <div class="account-field"><span>Контур</span><strong>${contour}</strong></div>
-              <div class="account-field"><span>Підрозділ</span><strong>${unit}</strong></div>
-              <div class="account-field"><span>Маркер</span><strong>${marker}</strong></div>
-              <div class="account-field"><span>Посада</span><strong>${position}</strong></div>
-              <div class="account-field"><span>ID користувача</span><strong title="${userId}">${userId}</strong></div>
-              <div class="account-field"><span>Провайдер</span><strong>${provider}</strong></div>
-              <div class="account-field"><span>Створений</span><strong>${createdAt}</strong></div>
-              <div class="account-field"><span>Останній вхід</span><strong>${lastSignIn}</strong></div>
-            </div>
-          </section>
+          ${buildUserDataSection(user, data)}
 
           <section class="account-section">
             <h3>Картка безпеки</h3>
             <div class="security-list">
               <div class="security-row">
                 <i>G</i>
-                <div><b>${provider} акаунт</b><em>${email}</em></div>
+                <div><b>${data.provider} акаунт</b><em>${data.email}</em></div>
                 <span class="security-status">Підключено</span>
               </div>
               <div class="security-row">
                 <i>2F</i>
                 <div><b>Двофакторна перевірка</b><em>Захист входу до робочої зони</em></div>
-                <span class="security-status ${mfaOk ? '' : 'warn'}">${mfa}</span>
+                <span class="security-status ${mfaOk ? '' : 'warn'}">${data.mfa}</span>
               </div>
               <div class="security-row">
                 <i>✉</i>
                 <div><b>Email</b><em>Підтвердження поштової адреси</em></div>
-                <span class="security-status ${emailConfirmed === 'Підтверджено' ? '' : 'warn'}">${emailConfirmed}</span>
+                <span class="security-status ${data.emailConfirmed === 'Підтверджено' ? '' : 'warn'}">${data.emailConfirmed}</span>
               </div>
               <div class="security-row">
                 <i>🔐</i>
@@ -268,7 +269,7 @@
             </div>
             <div class="connected-account-card">
               <div class="provider-icon">G</div>
-              <div><strong>${provider}</strong><span>${email}</span></div>
+              <div><strong>${data.provider}</strong><span>${data.email}</span></div>
               <span class="security-status">Активний</span>
             </div>
           </section>
@@ -278,14 +279,14 @@
   }
 
   async function reconnectGoogle() {
-    if (!window.supabaseClient && !supabaseClient) return;
+    const client = window.supabaseClient || (typeof supabaseClient !== 'undefined' ? supabaseClient : null);
+    if (!client) return;
     try {
       if (typeof signIn === 'function') {
         await signIn();
         return;
       }
     } catch {}
-    const client = window.supabaseClient || supabaseClient;
     const redirectTo = typeof getMessengerRedirectUrl === 'function'
       ? getMessengerRedirectUrl()
       : 'https://mrschljakhta-max.github.io/rebus-messenger/';
@@ -297,7 +298,7 @@
       if (!file) return resolve('');
       if (!file.type.startsWith('image/')) return reject(new Error('Оберіть файл зображення.'));
       if (file.size > MAX_INLINE_AVATAR_SIZE) {
-        return reject(new Error('Фото завелике для metadata. Оберіть зображення до 900 КБ або вставте URL.'));
+        return reject(new Error('Фото завелике. Оберіть зображення до 900 КБ або вставте URL.'));
       }
       const reader = new FileReader();
       reader.onload = () => resolve(String(reader.result || ''));
@@ -347,6 +348,7 @@
       editMode = false;
       if (typeof updateAccountUi === 'function') updateAccountUi(currentUser);
       renderAccount();
+      document.getElementById('userDataSection')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     } catch (error) {
       console.warn('[REBUS] Profile save failed:', error);
       setSaveStatus(error.message || 'Не вдалося зберегти профіль.', true);
@@ -366,11 +368,23 @@
         setAvatarVisual(document.getElementById('accountAvatarXL'), dataUrl, getInitialsLocal(name));
         const avatarUrlInput = document.querySelector('[name="avatar_url"]');
         if (avatarUrlInput) avatarUrlInput.value = dataUrl;
-        setSaveStatus('Аватарка готова. Натисніть “Зберегти зміни”.');
+        setSaveStatus('Аватарка готова. Натисніть “Зберегти”.');
       } catch (error) {
         setSaveStatus(error.message, true);
       }
     });
+  }
+
+  function openEditor() {
+    editMode = true;
+    renderAccount();
+    document.getElementById('userDataSection')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  function cancelEditor() {
+    pendingAvatarDataUrl = '';
+    editMode = false;
+    renderAccount();
   }
 
   function bindAccountButtons() {
@@ -381,12 +395,6 @@
       if (typeof signOut === 'function') signOut();
     });
 
-    const openEditor = () => {
-      editMode = true;
-      renderAccount();
-      document.getElementById('accountEditorSection')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    };
-
     document.getElementById('editProfileButton')?.addEventListener('click', openEditor);
     document.getElementById('editProfileButtonInline')?.addEventListener('click', openEditor);
     document.getElementById('quickAvatarButton')?.addEventListener('click', () => {
@@ -395,12 +403,8 @@
       window.setTimeout(() => document.getElementById('accountAvatarInput')?.click(), 80);
     });
 
-    document.getElementById('cancelEditProfileButton')?.addEventListener('click', () => {
-      pendingAvatarDataUrl = '';
-      editMode = false;
-      renderAccount();
-    });
-
+    document.getElementById('cancelEditProfileButton')?.addEventListener('click', cancelEditor);
+    document.getElementById('cancelEditProfileButtonBottom')?.addEventListener('click', cancelEditor);
     document.getElementById('accountEditForm')?.addEventListener('submit', saveProfile);
     bindAvatarPreview();
 
@@ -429,8 +433,7 @@
     }
 
     page.innerHTML = buildAccountPage(user);
-    const avatarUrl = getAvatarUrl(user);
-    setAvatarVisual(document.getElementById('accountAvatarXL'), avatarUrl, getInitialsLocal(getName(user)));
+    setAvatarVisual(document.getElementById('accountAvatarXL'), getAvatarUrl(user), getInitialsLocal(getName(user)));
     bindAccountButtons();
   }
 
