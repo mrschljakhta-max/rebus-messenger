@@ -7,7 +7,8 @@
     ['rebus-chat-polish-style', 'css/chat-polish.css']
   ];
   const SCRIPTS = [
-    ['rebus-message-actions-script', 'js/message-actions.js']
+    ['rebus-message-actions-script', 'js/message-actions.js'],
+    ['rebus-account-route-fix-script', 'js/account-route-fix.js?v=0.7.6']
   ];
   let activeMessage = null;
   let hideTimer = null;
@@ -119,7 +120,6 @@
     input.dataset.polishTypingBound = '1';
     let timer = null;
     input.addEventListener('input', () => {
-      // Temporary local preview until real remote typing events are connected to Supabase Broadcast.
       if (!input.value.trim()) {
         indicator.classList.remove('is-visible');
         return;
