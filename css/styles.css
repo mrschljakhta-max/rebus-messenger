@@ -2146,24 +2146,50 @@ input { font: inherit; }
   }
 }
 
-
-/* v0.59 reactions - remove dark circles */
-.message-reaction,
-.reaction-badge,
-.reaction-pill,
-.reaction-item{
-    background: transparent !important;
-    box-shadow: none !important;
-    border: none !important;
+/* v0.5.9 — clean reactions without dark circles */
+.message-reactions-row,
+.message .message-reactions-row,
+.message.incoming .message-reactions-row,
+.message.outgoing .message-reactions-row {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  gap: 4px !important;
+  backdrop-filter: none !important;
 }
 
-.message-reaction{
-    padding:0 !important;
+.reaction-chip,
+.message-reactions-row .reaction-chip,
+.reaction-chip.is-own-reaction,
+.reaction-chip:hover,
+.reaction-chip:focus {
+  min-width: auto !important;
+  width: auto !important;
+  height: auto !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  outline: none !important;
 }
 
-.reaction-list{
-    background: rgba(20,28,40,.55) !important;
-    backdrop-filter: blur(8px);
-    border:1px solid rgba(255,255,255,.08);
-    border-radius:999px;
+.reaction-chip span {
+  display: inline-block !important;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,.35));
+}
+
+.reaction-chip em {
+  margin-left: 2px !important;
+  padding: 0 !important;
+  color: rgba(244,251,255,.82) !important;
+  text-shadow: 0 2px 4px rgba(0,0,0,.4);
+}
+
+.message-reactions-row:has(.reaction-chip + .reaction-chip) {
+  background: rgba(9, 15, 24, .28) !important;
+  border-radius: 999px !important;
+  padding: 2px 4px !important;
 }
