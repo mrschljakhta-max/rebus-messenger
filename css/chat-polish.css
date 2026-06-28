@@ -1,6 +1,6 @@
 /* REBUS Messenger — chat polish pack without timeline
    Adds premium micro-interactions: message reveal, hover lift, reaction pop,
-   selected-message glow, refined day dividers, modern reaction capsules and receipt ticks. */
+   selected-message glow, refined day dividers, clean reactions and receipt ticks. */
 
 #page-chat .messages-list {
   scroll-behavior: smooth !important;
@@ -50,44 +50,53 @@
 }
 
 #page-chat .message-reactions-row {
-  gap: 5px !important;
+  gap: 7px !important;
   align-items: center !important;
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
 }
 
 #page-chat .message .reaction-chip,
 #page-chat .message-reactions-row .reaction-chip,
 #page-chat .reaction-chip.is-own-reaction {
-  min-width: 28px !important;
-  height: 24px !important;
-  padding: 0 7px !important;
+  min-width: auto !important;
+  width: auto !important;
+  height: auto !important;
+  padding: 0 !important;
+  margin: 0 !important;
   display: inline-flex !important;
   align-items: center !important;
   justify-content: center !important;
-  gap: 4px !important;
-  border: 1px solid rgba(255, 255, 255, .10) !important;
-  border-radius: 999px !important;
-  background: rgba(5, 12, 22, .62) !important;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, .20) !important;
-  backdrop-filter: blur(8px) !important;
+  gap: 2px !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  outline: 0 !important;
   animation: rebusReactionPop .18s cubic-bezier(.2, .9, .25, 1.25) both !important;
-  transition: transform .14s ease, background .14s ease, border-color .14s ease !important;
+  transition: transform .14s ease, opacity .14s ease, filter .14s ease !important;
 }
 
 #page-chat .message .reaction-chip:hover,
 #page-chat .message-reactions-row .reaction-chip:hover {
-  transform: translateY(-1px) scale(1.05) !important;
-  border-color: rgba(0, 216, 255, .32) !important;
-  background: rgba(0, 216, 255, .10) !important;
+  transform: translateY(-1px) scale(1.12) !important;
+  background: transparent !important;
+  filter: drop-shadow(0 0 8px rgba(0, 216, 255, .26)) !important;
 }
 
 #page-chat .reaction-chip span {
-  filter: none !important;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, .34)) !important;
 }
 
 #page-chat .reaction-chip em {
+  margin-left: 1px !important;
+  padding: 0 !important;
   font-size: 10px !important;
   font-weight: 900 !important;
-  color: rgba(244, 251, 255, .78) !important;
+  color: rgba(244, 251, 255, .72) !important;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, .38) !important;
 }
 
 #page-chat .message-status {
