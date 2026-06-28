@@ -3,6 +3,7 @@
   const PREVIEW_ID = 'rebusComposerPreview';
   let activeEdit = null;
   let activeReply = null;
+  let pendingReply = null;
 
   function getId(message) {
     return message?.dataset?.messageId || '';
@@ -18,6 +19,15 @@
 
   function isOwn(message) {
     return message?.classList?.contains('outgoing');
+  }
+
+  function escapeLocal(value = '') {
+    return String(value)
+      .replaceAll('&', '&amp;')
+      .replaceAll('<', '&lt;')
+      .replaceAll('>', '&gt;')
+      .replaceAll('"', '&quot;')
+      .replaceAll("'", '&#039;');
   }
 
   function ensurePreview() {
@@ -50,6 +60,33 @@
     const preview = document.getElementById(PREVIEW_ID);
     preview?.classList.remove('is-visible');
     if (preview) preview.dataset.mode = '';
+  }
+
+  function attachReplyToMessage(message, reply) {
+    if (!message || !reply || message.dataset.replyAttached === '1') return;
+    const body = getText(message);
+    if (reply.outgoingBody && body !== reply.outgoingBody) return;
+    const anchor = message.querySelector('b') || message.querySelector('.message-body');
+    if (!anchor) return;
+    message.dataset.replyAttached = '1';
+    const quote = document.createElement('div');
+    quote.className = 'message-reply-quote';
+    quote.innerHTML = `
+      <strong>${escapeLocal(reply.author)}</strong>
+      <span>${escapeLocal(reply.text || 'Повідомлення')}</span>
+    `;
+    anchor.insertAdjacentElement('afterend', quote);
+  }
+
+  function applyPendingReply(scope = document) {
+    if (!pendingReply) return;
+    if (Date.now() > pendingReply.until) {
+      pendingReply = null;
+      return;
+    }
+    scope.querySelectorAll?.(MESSAGE_SELECTOR)?.forEach(message => {
+      if (isOwn(message)) attachReplyToMessage(message, pendingReply);
+    });
   }
 
   function startReply(message) {
@@ -171,6 +208,7 @@
   function enhance(scope = document) {
     scope.querySelectorAll?.(MESSAGE_SELECTOR)?.forEach(addCorner);
     patchMenuButtons(scope);
+    applyPendingReply(scope);
   }
 
   document.addEventListener('keydown', event => {
@@ -195,6 +233,11 @@
       return;
     }
     if (activeReply && event.target?.closest?.('#sendMessageButton')) {
+      const outgoingBody = document.getElementById('messageInput')?.value?.trim() || '';
+      pendingReply = { ...activeReply, outgoingBody, until: Date.now() + 4500 };
+      window.setTimeout(() => applyPendingReply(document), 60);
+      window.setTimeout(() => applyPendingReply(document), 260);
+      window.setTimeout(() => applyPendingReply(document), 900);
       window.setTimeout(clearReply, 150);
     }
   }, true);
