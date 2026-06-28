@@ -3298,3 +3298,83 @@ input { font: inherit; }
   opacity: .96 !important;
   color: rgba(244,251,255,.86) !important;
 }
+
+
+/* v0.6.7 — reliable side hover zone for reactions
+   Own/outgoing messages: hover strip and smile button are on the LEFT.
+   Recipient/incoming messages: hover strip and smile button are on the RIGHT. */
+.message {
+  position: relative !important;
+  overflow: visible !important;
+}
+
+.message-hover-zone {
+  position: absolute !important;
+  top: 0 !important;
+  bottom: 0 !important;
+  width: 52px !important;
+  min-height: 100% !important;
+  z-index: 44 !important;
+  pointer-events: auto !important;
+  background: transparent !important;
+}
+
+.message.outgoing .message-hover-zone {
+  right: 100% !important;
+  left: auto !important;
+}
+
+.message.incoming .message-hover-zone {
+  left: 100% !important;
+  right: auto !important;
+}
+
+.message .message-tools {
+  position: absolute !important;
+  top: 50% !important;
+  bottom: auto !important;
+  z-index: 60 !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  transform: translateY(-50%) scale(.96) !important;
+  transition: opacity .14s ease, transform .14s ease, filter .14s ease !important;
+}
+
+.message.outgoing .message-tools {
+  left: -42px !important;
+  right: auto !important;
+}
+
+.message.incoming .message-tools {
+  right: -42px !important;
+  left: auto !important;
+}
+
+.message.has-side-hover .message-tools,
+.message .message-hover-zone:hover ~ .message-tools,
+.message .message-tools:hover,
+.message .message-tools.is-hovered,
+.message .message-tools.is-pinned,
+.message.has-menu-open .message-tools,
+.message.has-reaction-open .message-tools,
+.message .message-tools.is-reaction-open {
+  opacity: 1 !important;
+  pointer-events: auto !important;
+  transform: translateY(-50%) scale(1) !important;
+}
+
+/* Do not show the reaction trigger from hovering the bubble text itself. */
+.message:hover:not(.has-side-hover):not(.has-menu-open):not(.has-reaction-open) .message-tools:not(:hover):not(.is-hovered):not(.is-pinned):not(.is-reaction-open) {
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+.message.outgoing .quick-reactions-bar {
+  right: 32px !important;
+  left: auto !important;
+}
+
+.message.incoming .quick-reactions-bar {
+  left: 32px !important;
+  right: auto !important;
+}

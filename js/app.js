@@ -615,20 +615,31 @@ function bindMessageReactionEvents(scope) {
       event.stopPropagation();
       openMessageContextMenu(messageNode.dataset.messageId, messageNode);
     });
-    messageNode.addEventListener('mouseleave', () => {
-      if (!messageNode.classList.contains('has-menu-open')) {
-        const tool = messageNode.querySelector('.message-tools');
-        window.clearTimeout(tool?._hideTimer);
-        if (tool) tool._hideTimer = window.setTimeout(() => tool.classList.remove('is-hovered'), 260);
-      }
-    });
-    messageNode.addEventListener('mouseenter', () => {
-      const tool = messageNode.querySelector('.message-tools');
-      if (tool) {
-        window.clearTimeout(tool._hideTimer);
-        tool.classList.add('is-hovered');
-      }
-    });
+    const tool = messageNode.querySelector('.message-tools');
+    const sideHoverZone = messageNode.querySelector('.message-hover-zone');
+    const showSideTools = () => {
+      if (!tool) return;
+      window.clearTimeout(tool._hideTimer);
+      tool.classList.add('is-hovered');
+      messageNode.classList.add('has-side-hover');
+    };
+    const hideSideTools = () => {
+      if (!tool || messageNode.classList.contains('has-menu-open') || messageNode.classList.contains('has-reaction-open')) return;
+      window.clearTimeout(tool._hideTimer);
+      tool._hideTimer = window.setTimeout(() => {
+        tool.classList.remove('is-hovered');
+        messageNode.classList.remove('has-side-hover');
+      }, 180);
+    };
+    if (sideHoverZone) {
+      sideHoverZone.addEventListener('mouseenter', showSideTools);
+      sideHoverZone.addEventListener('mouseleave', hideSideTools);
+    }
+    if (tool) {
+      tool.addEventListener('mouseenter', showSideTools);
+      tool.addEventListener('mouseleave', hideSideTools);
+    }
+    messageNode.addEventListener('mouseleave', hideSideTools);
   }
 
   scope.querySelectorAll('.message-emoji-trigger').forEach(button => {
