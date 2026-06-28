@@ -108,6 +108,13 @@
             <div class="direct-users-list" id="directUsersList" aria-label="Список користувачів">
               <div class="direct-empty">Завантаження користувачів…</div>
             </div>
+            <div class="direct-self-card" id="directSelfCard" aria-label="Поточний користувач">
+              <span class="direct-self-avatar">R</span>
+              <span class="direct-self-main">
+                <strong>REBUS</strong>
+                <em>Онлайн</em>
+              </span>
+            </div>
           </aside>
           <section class="chat-panel glass-card">
             <div class="direct-chat-head" id="directChatHead">
@@ -121,6 +128,7 @@
             <div class="compose-box">
               <button type="button" aria-label="Додати файл">📎</button>
               <input type="text" id="messageInput" placeholder="Оберіть користувача для листування…" autocomplete="off" disabled />
+              <button type="button" class="composer-emoji-btn" id="composerEmojiButton" aria-label="Емодзі" disabled>☺</button>
               <button type="button" class="send-btn" id="sendMessageButton" disabled>Надіслати</button>
             </div>
           </section>

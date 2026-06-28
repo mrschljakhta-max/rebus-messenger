@@ -23,6 +23,8 @@ const channelButtons = document.querySelectorAll('[data-channel]');
 const userSearchInput = document.getElementById('userSearchInput');
 const directUsersList = document.getElementById('directUsersList');
 const directChatHead = document.getElementById('directChatHead');
+const directSelfCard = document.getElementById('directSelfCard');
+const composerEmojiButton = document.getElementById('composerEmojiButton');
 
 const supabaseClient = window.supabase?.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
   auth: {
@@ -55,6 +57,7 @@ let renderedMessageIds = new Set();
 let reactionSummary = new Map();
 let openMessageMenuId = null;
 let openReactionPaletteId = null;
+let lastRenderedDay = null;
 
 const QUICK_REACTIONS = ['👍', '❤️', '😂', '😮', '😢', '🙏'];
 const MESSAGE_MENU_ITEMS = [
@@ -106,6 +109,16 @@ function formatDateTime(value) {
     hour: '2-digit',
     minute: '2-digit'
   });
+}
+
+function formatMessageDay(value) {
+  const date = value ? new Date(value) : new Date();
+  const now = new Date();
+  const start = d => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+  const diff = Math.round((start(now) - start(date)) / 86400000);
+  if (diff === 0) return 'Сьогодні';
+  if (diff === 1) return 'Вчора';
+  return date.toLocaleDateString('uk-UA', { day: '2-digit', month: 'long', year: 'numeric' });
 }
 
 function makeConversationKey(userA, userB) {
@@ -206,6 +219,14 @@ function updateAccountUi(user) {
   document.querySelectorAll('.account-info strong, .profile-card h2').forEach(el => { el.textContent = name; });
   document.querySelectorAll('.account-info span, .profile-card p').forEach(el => { el.textContent = email; });
   document.querySelectorAll('.account-info em, .role-pill').forEach(el => { el.textContent = role; });
+  if (directSelfCard) {
+    const avatar = directSelfCard.querySelector('.direct-self-avatar');
+    const strong = directSelfCard.querySelector('strong');
+    const status = directSelfCard.querySelector('em');
+    if (avatar) avatar.textContent = getInitials(name);
+    if (strong) strong.textContent = name;
+    if (status) status.textContent = 'Онлайн';
+  }
 }
 
 function setRoute(route) {
@@ -675,6 +696,15 @@ function appendMessage(message, options = {}) {
 
   if (message.id) renderedMessageIds.add(message.id);
 
+  const messageDay = formatMessageDay(message.created_at);
+  if (!options.replace && messageDay && messageDay !== lastRenderedDay) {
+    const divider = document.createElement('div');
+    divider.className = 'message-day-divider';
+    divider.innerHTML = `<span>${escapeHtml(messageDay)}</span>`;
+    messagesList.appendChild(divider);
+    lastRenderedDay = messageDay;
+  }
+
   const isOwn = currentUser && message.user_id === currentUser.id;
   const statusLabel = getMessageStatusLabel(message, isOwn);
   const statusClass = getMessageStatusClass(message, isOwn);
@@ -787,9 +817,12 @@ function updateDirectChatHead(peer) {
   if (!peer) {
     directChatHead.innerHTML = `
       <div class="direct-chat-avatar">R</div>
-      <div>
+      <div class="direct-chat-title">
         <strong>Оберіть користувача</strong>
         <span>Індивідуальне листування REBUS</span>
+      </div>
+      <div class="direct-chat-actions" aria-hidden="true">
+        <button type="button" disabled>⌕</button><button type="button" disabled>☎</button><button type="button" disabled>▣</button><button type="button" disabled>ⓘ</button>
       </div>
     `;
     return;
@@ -797,9 +830,15 @@ function updateDirectChatHead(peer) {
 
   directChatHead.innerHTML = `
     <div class="direct-chat-avatar">${escapeHtml(getInitials(peer.name))}</div>
-    <div>
+    <div class="direct-chat-title">
       <strong>${escapeHtml(peer.name)}</strong>
-      <span>${escapeHtml(peer.email || peer.role || 'Користувач REBUS')}</span>
+      <span class="peer-online"><i></i> Онлайн</span>
+    </div>
+    <div class="direct-chat-actions" aria-label="Дії чату">
+      <button type="button" title="Пошук у чаті">⌕</button>
+      <button type="button" title="Аудіодзвінок">☎</button>
+      <button type="button" title="Відеодзвінок">▣</button>
+      <button type="button" title="Інформація">ⓘ</button>
     </div>
   `;
 }
@@ -810,6 +849,7 @@ function setComposeEnabled(enabled) {
     messageInput.placeholder = enabled ? 'Напишіть повідомлення…' : 'Оберіть користувача для листування…';
   }
   if (sendMessageButton) sendMessageButton.disabled = !enabled;
+  if (composerEmojiButton) composerEmojiButton.disabled = !enabled;
 }
 
 function renderDirectUsers(filter = '') {
@@ -837,6 +877,7 @@ function renderDirectUsers(filter = '') {
         <strong>${escapeHtml(user.name)}</strong>
         <em>${escapeHtml(user.email || user.role || 'Користувач REBUS')}</em>
       </span>
+      <span class="direct-user-presence"><i></i>Онлайн</span>
     `;
     item.addEventListener('click', () => selectDirectUser(user));
     directUsersList.appendChild(item);
@@ -890,6 +931,7 @@ async function loadMessages() {
   messagesList.innerHTML = '';
   renderedMessageIds.clear();
   reactionSummary.clear();
+  lastRenderedDay = null;
 
   if (!selectedPeer) {
     updateDirectChatHead(null);
@@ -1228,3 +1270,15 @@ document.addEventListener('click', closeMessageMenus);
 document.addEventListener('keydown', event => {
   if (event.key === 'Escape') closeMessageMenus();
 });
+
+
+if (composerEmojiButton) {
+  composerEmojiButton.addEventListener('click', () => {
+    if (!messageInput || messageInput.disabled) return;
+    const start = messageInput.selectionStart ?? messageInput.value.length;
+    const end = messageInput.selectionEnd ?? start;
+    messageInput.value = `${messageInput.value.slice(0, start)}😊${messageInput.value.slice(end)}`;
+    messageInput.focus();
+    messageInput.selectionStart = messageInput.selectionEnd = start + 2;
+  });
+}
