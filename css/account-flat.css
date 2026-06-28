@@ -1,0 +1,169 @@
+/* REBUS Messenger — flat account page override */
+
+#page-account {
+  height: 100svh !important;
+  overflow: hidden !important;
+  padding: 0 !important;
+}
+
+.account-page-shell {
+  height: 100svh !important;
+  display: block !important;
+  overflow: hidden !important;
+  background:
+    radial-gradient(circle at 70% 45%, rgba(0, 216, 255, .10), transparent 34%),
+    linear-gradient(135deg, rgba(17, 8, 22, .68), rgba(2, 14, 25, .92)) !important;
+}
+
+.account-page-shell::before {
+  content: "REBUS" !important;
+  position: absolute !important;
+  left: 31% !important;
+  top: 35% !important;
+  color: rgba(0, 216, 255, .052) !important;
+  font-size: clamp(120px, 20vw, 320px) !important;
+  font-weight: 950 !important;
+  pointer-events: none !important;
+}
+
+.account-chat-header,
+.account-header-avatar,
+.account-header-text,
+.account-header-actions,
+.account-header-icon {
+  display: none !important;
+}
+
+.account-dashboard {
+  width: 100% !important;
+  height: 100% !important;
+  margin: 0 !important;
+  display: grid !important;
+  grid-template-columns: minmax(320px, 390px) minmax(0, 1fr) !important;
+  gap: 0 !important;
+  overflow: hidden !important;
+}
+
+.account-hero {
+  min-height: 0 !important;
+  padding: 46px 34px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  text-align: center !important;
+  border: 0 !important;
+  border-right: 1px solid rgba(255, 255, 255, .10) !important;
+  border-radius: 0 !important;
+  background: linear-gradient(145deg, rgba(18, 12, 25, .54), rgba(4, 13, 24, .66)) !important;
+  box-shadow: inset -1px 0 rgba(255, 255, 255, .035) !important;
+}
+
+.account-avatar-wrap {
+  margin: 0 auto !important;
+}
+
+.account-avatar-xl {
+  width: 124px !important;
+  height: 124px !important;
+}
+
+.account-hero h2,
+.account-hero p {
+  width: 100% !important;
+  text-align: center !important;
+}
+
+.account-hero h2 {
+  margin-top: 34px !important;
+  font-size: clamp(27px, 2.6vw, 40px) !important;
+}
+
+.account-badges {
+  justify-content: center !important;
+}
+
+.account-actions {
+  width: min(100%, 312px) !important;
+  margin: 30px auto 0 !important;
+}
+
+.account-scroll-panel {
+  min-height: 0 !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  padding: 38px 42px !important;
+}
+
+.account-main {
+  gap: 30px !important;
+}
+
+.account-section {
+  padding: 0 0 28px !important;
+  border: 0 !important;
+  border-bottom: 1px solid rgba(255,255,255,.10) !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+}
+
+.account-section:last-child {
+  border-bottom: 0 !important;
+}
+
+.account-section h3 {
+  font-size: 20px !important;
+}
+
+.account-info-grid,
+.account-edit-form,
+.account-soon-grid {
+  gap: 18px 24px !important;
+}
+
+.account-field {
+  min-height: auto !important;
+  padding: 0 0 16px !important;
+  border: 0 !important;
+  border-bottom: 1px solid rgba(255,255,255,.07) !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+}
+
+.security-row,
+.connected-account-card,
+.account-soon-grid > div {
+  border: 0 !important;
+  border-bottom: 1px solid rgba(255,255,255,.07) !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+}
+
+.account-soon-grid > div {
+  border-bottom-style: dashed !important;
+}
+
+@media (max-width: 980px) {
+  .account-page-shell {
+    height: auto !important;
+    min-height: 100svh !important;
+    overflow: visible !important;
+  }
+
+  .account-dashboard {
+    height: auto !important;
+    grid-template-columns: 1fr !important;
+    overflow: visible !important;
+  }
+
+  .account-hero {
+    border-right: 0 !important;
+    border-bottom: 1px solid rgba(255,255,255,.10) !important;
+  }
+
+  .account-scroll-panel {
+    overflow: visible !important;
+    padding: 22px !important;
+  }
+}
