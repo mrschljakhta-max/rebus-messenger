@@ -6,43 +6,87 @@
 
 #page-chat .message-corner-menu {
   position: absolute;
-  top: 7px;
+  top: 6px;
   z-index: 18;
-  width: 24px;
-  height: 24px;
-  display: grid;
-  place-items: center;
-  border: 0;
-  border-radius: 50%;
-  color: rgba(244,251,255,.72);
-  background: rgba(3, 10, 18, .42);
-  box-shadow: 0 8px 22px rgba(0,0,0,.20);
+  width: auto;
+  height: auto;
+  min-width: 0;
+  padding: 0;
+  display: block;
+  border: 0 !important;
+  border-radius: 0 !important;
+  color: rgba(244,251,255,.62);
+  background: transparent !important;
+  box-shadow: none !important;
+  outline: 0 !important;
   opacity: 0;
-  transform: translateY(-3px) scale(.94);
+  transform: translateY(-2px);
   pointer-events: none;
   cursor: pointer;
-  transition: opacity .14s ease, transform .14s ease, background .14s ease, color .14s ease;
+  font-size: 16px;
+  line-height: 1;
+  font-weight: 950;
+  text-shadow: 0 2px 5px rgba(0,0,0,.48);
+  transition: opacity .14s ease, transform .14s ease, color .14s ease;
 }
 
 #page-chat .message.incoming .message-corner-menu {
-  right: 8px;
+  right: 10px;
 }
 
 #page-chat .message.outgoing .message-corner-menu {
-  left: 8px;
+  left: 10px;
 }
 
 #page-chat .message:hover .message-corner-menu,
 #page-chat .message.has-menu-open .message-corner-menu,
 #page-chat .message.has-corner-menu-open .message-corner-menu {
-  opacity: 1;
-  transform: translateY(0) scale(1);
+  opacity: .86;
+  transform: translateY(0);
   pointer-events: auto;
 }
 
 #page-chat .message-corner-menu:hover {
   color: #fff;
-  background: rgba(255,255,255,.11);
+  background: transparent !important;
+}
+
+#page-chat .message-reply-quote {
+  margin: 6px 0 8px;
+  padding: 7px 9px 7px 10px;
+  border-left: 3px solid rgba(0,216,255,.72);
+  border-radius: 9px;
+  background: rgba(0,0,0,.16);
+}
+
+#page-chat .message.outgoing .message-reply-quote {
+  border-left-color: rgba(255,209,102,.78);
+  background: rgba(255,255,255,.055);
+}
+
+#page-chat .message-reply-quote strong,
+#page-chat .message-reply-quote span {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+#page-chat .message-reply-quote strong {
+  color: #00d8ff;
+  font-size: 12px;
+  font-weight: 950;
+}
+
+#page-chat .message.outgoing .message-reply-quote strong {
+  color: #ffd166;
+}
+
+#page-chat .message-reply-quote span {
+  margin-top: 2px;
+  color: rgba(244,251,255,.68);
+  font-size: 12px;
+  font-weight: 750;
 }
 
 .rebus-composer-preview {
