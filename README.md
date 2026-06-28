@@ -125,3 +125,10 @@ REBUS Messenger — responsive web messenger for secure communication inside REB
 - Іконка реакції розміщена по вертикальному центру повідомлення.
 - Панель реакцій відкривається від іконки, не зникаючи при наведенні.
 - Додано SQL `supabase-message-reactions-policy-v058.sql`, який виправляє `permission denied for table message_reactions` і дозволяє emoji-реакції.
+
+
+## v0.6.0
+
+- Open chat canvas: the message area is placed directly on the application background.
+- Added subtle REBUS watermark and circuit-style background layer.
+- Kept the users list as a glass panel and the composer as a floating bar.

@@ -2193,3 +2193,185 @@ input { font: inherit; }
   border-radius: 999px !important;
   padding: 2px 4px !important;
 }
+
+
+/* v0.6.0 — open chat canvas: messages live on the page background */
+:root {
+  --chat-left-panel: clamp(360px, 29vw, 520px);
+}
+
+.workspace {
+  padding: clamp(24px, 3vh, 38px) clamp(20px, 2vw, 34px) !important;
+}
+
+.chat-layout.direct-chat-layout {
+  grid-template-columns: var(--chat-left-panel) minmax(0, 1fr) !important;
+  gap: clamp(20px, 2vw, 34px) !important;
+  height: calc(100svh - clamp(48px, 6vh, 76px)) !important;
+  min-height: 0 !important;
+  width: 100% !important;
+}
+
+/* Left users list remains a glass card */
+.direct-users-panel {
+  height: 100% !important;
+  max-height: none !important;
+}
+
+/* The right chat is no longer a boxed modal/card */
+.chat-panel,
+.chat-panel.glass-card {
+  position: relative !important;
+  overflow: hidden !important;
+  height: 100% !important;
+  max-height: none !important;
+  min-height: 0 !important;
+  padding: clamp(18px, 2vw, 28px) clamp(16px, 2vw, 28px) 18px !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  isolation: isolate;
+}
+
+/* Decorative REBUS canvas behind the messages */
+.chat-panel::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -3;
+  pointer-events: none;
+  opacity: .54;
+  background:
+    radial-gradient(circle at 58% 45%, rgba(0,216,255,.12), transparent 26%),
+    radial-gradient(circle at 86% 16%, rgba(255,36,56,.07), transparent 22%),
+    linear-gradient(135deg, rgba(8,20,34,.08), rgba(0,0,0,.02));
+}
+
+.chat-panel::after {
+  content: "REBUS";
+  position: absolute;
+  left: 50%;
+  top: 43%;
+  z-index: -2;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  font-size: clamp(96px, 14vw, 240px);
+  font-weight: 900;
+  letter-spacing: .08em;
+  color: rgba(0,216,255,.035);
+  text-shadow: 0 0 36px rgba(0,216,255,.05);
+  user-select: none;
+}
+
+/* Circuit-like background pattern */
+.chat-panel .messages-list::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: .18;
+  background-image:
+    linear-gradient(30deg, rgba(0,216,255,.11) 1px, transparent 1px),
+    linear-gradient(150deg, rgba(0,216,255,.08) 1px, transparent 1px),
+    radial-gradient(circle, rgba(0,216,255,.18) 0 2px, transparent 3px);
+  background-size: 118px 68px, 118px 68px, 94px 94px;
+  mask-image: radial-gradient(circle at 55% 44%, black, transparent 76%);
+}
+
+.chat-panel .messages-list {
+  position: relative !important;
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  gap: clamp(18px, 2.2vh, 28px) !important;
+  padding: 8px 18px 28px 0 !important;
+  margin: 0 0 14px !important;
+}
+
+/* Message bubbles can breathe on the open canvas */
+.message {
+  max-width: min(70%, 760px) !important;
+}
+
+.message.incoming {
+  margin-left: 0 !important;
+}
+
+.message.outgoing {
+  margin-right: 0 !important;
+}
+
+.message .message-bubble {
+  box-shadow: 0 18px 44px rgba(0,0,0,.18) !important;
+}
+
+/* Floating composer instead of another heavy card */
+.compose-box {
+  flex: 0 0 auto !important;
+  position: relative !important;
+  z-index: 4 !important;
+  margin-top: 0 !important;
+  padding: 10px !important;
+  border: 1px solid rgba(255,36,56,.32) !important;
+  border-radius: 22px !important;
+  background: rgba(3, 9, 18, .72) !important;
+  box-shadow:
+    0 18px 60px rgba(0,0,0,.34),
+    0 0 24px rgba(255,36,56,.12),
+    inset 0 1px rgba(255,255,255,.07) !important;
+  backdrop-filter: blur(16px) saturate(1.05) !important;
+}
+
+.compose-box input {
+  min-height: 48px !important;
+}
+
+.compose-box .send-btn,
+.send-btn {
+  min-height: 48px !important;
+  padding-inline: 30px !important;
+  border-radius: 16px !important;
+  background: linear-gradient(135deg, #ff314e, #b30928 65%, #780919) !important;
+  box-shadow: 0 14px 34px rgba(255,36,56,.22) !important;
+}
+
+/* Keep current 'clean reactions' look */
+.message-reactions-row,
+.message .message-reactions-row,
+.message.incoming .message-reactions-row,
+.message.outgoing .message-reactions-row {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  backdrop-filter: none !important;
+}
+
+.reaction-chip,
+.message-reactions-row .reaction-chip {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+@media (max-width: 980px) {
+  .chat-layout.direct-chat-layout {
+    grid-template-columns: 1fr !important;
+    height: auto !important;
+    min-height: calc(100svh - 130px) !important;
+  }
+
+  .chat-panel,
+  .chat-panel.glass-card {
+    min-height: 64svh !important;
+    height: 64svh !important;
+  }
+
+  .message {
+    max-width: 86% !important;
+  }
+}
