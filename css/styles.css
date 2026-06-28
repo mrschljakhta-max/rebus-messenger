@@ -2608,3 +2608,198 @@ input { font: inherit; }
     grid-column: 1 / -1;
   }
 }
+
+
+/* v0.6.2 — true open-page chat canvas, no invisible right container */
+/* The chat page itself now owns the full viewport area. */
+#page-chat.page-view {
+  width: 100% !important;
+  max-width: none !important;
+  height: 100svh !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  animation: none !important;
+}
+
+/* Remove workspace padding for the chat route so the header starts at the page edge. */
+.workspace:has(#page-chat.is-active),
+.workspace:has(#page-chat:not([hidden])) {
+  padding: 0 !important;
+  overflow: hidden !important;
+}
+
+/* Direct chat is no longer a card inside a padded page. */
+.chat-layout.direct-chat-layout {
+  width: 100% !important;
+  height: 100svh !important;
+  min-height: 100svh !important;
+  display: grid !important;
+  grid-template-columns: var(--chat-left-panel) minmax(0, 1fr) !important;
+  gap: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* Left users list remains a separate visual card, but it lives on the page. */
+.direct-users-panel {
+  align-self: stretch !important;
+  height: calc(100svh - 48px) !important;
+  min-height: 0 !important;
+  margin: 24px 16px 24px 24px !important;
+  padding: 24px !important;
+}
+
+/* Right side becomes the page canvas, not a block/container/card. */
+.chat-panel,
+.chat-panel.chat-canvas,
+.chat-panel.glass-card {
+  position: relative !important;
+  display: flex !important;
+  flex-direction: column !important;
+  height: 100svh !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  outline: 0 !important;
+  backdrop-filter: none !important;
+}
+
+/* Compact header pinned to the very top of the chat page. */
+.chat-panel .direct-chat-head,
+.direct-chat-head {
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 20 !important;
+  min-height: 70px !important;
+  height: 70px !important;
+  margin: 0 !important;
+  padding: 0 32px !important;
+  display: grid !important;
+  grid-template-columns: 46px minmax(0, 1fr) auto !important;
+  align-items: center !important;
+  gap: 13px !important;
+  border: 0 !important;
+  border-bottom: 1px solid rgba(255,255,255,.075) !important;
+  border-radius: 0 !important;
+  background: linear-gradient(180deg, rgba(3, 10, 18, .82), rgba(3, 10, 18, .48)) !important;
+  box-shadow: 0 14px 34px rgba(0,0,0,.18) !important;
+  backdrop-filter: blur(14px) saturate(1.08) !important;
+}
+
+.direct-chat-head .direct-chat-avatar {
+  width: 44px !important;
+  height: 44px !important;
+  border-radius: 15px !important;
+}
+
+.direct-chat-title strong {
+  font-size: 16px !important;
+}
+
+.peer-online,
+.direct-chat-title span {
+  font-size: 12px !important;
+}
+
+.direct-chat-actions {
+  gap: 10px !important;
+}
+
+.direct-chat-actions button {
+  width: 34px !important;
+  height: 34px !important;
+  border-radius: 12px !important;
+  font-size: 18px !important;
+}
+
+/* Messages fill the remaining page canvas. */
+.chat-panel .messages-list,
+.messages-list {
+  position: relative !important;
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  margin: 0 !important;
+  padding: 26px 44px 18px 32px !important;
+  gap: 18px !important;
+  scroll-padding-bottom: 112px;
+}
+
+/* Keep the REBUS background on the canvas, not as a visual container. */
+.chat-panel::before {
+  inset: 70px 0 0 0 !important;
+}
+
+.chat-panel::after {
+  top: 48% !important;
+}
+
+/* Composer is a floating page element at the bottom. */
+.compose-box {
+  position: sticky !important;
+  bottom: 0 !important;
+  z-index: 22 !important;
+  flex: 0 0 auto !important;
+  margin: 0 32px 22px !important;
+  padding: 10px !important;
+  border-radius: 22px !important;
+}
+
+/* Slightly tighter messages after removing the container. */
+.message {
+  max-width: min(68%, 780px) !important;
+}
+
+@media (max-width: 980px) {
+  .workspace:has(#page-chat.is-active),
+  .workspace:has(#page-chat:not([hidden])) {
+    overflow: auto !important;
+  }
+
+  #page-chat.page-view {
+    height: auto !important;
+    min-height: 100svh !important;
+  }
+
+  .chat-layout.direct-chat-layout {
+    grid-template-columns: 1fr !important;
+    height: auto !important;
+    min-height: 100svh !important;
+  }
+
+  .direct-users-panel {
+    height: auto !important;
+    min-height: 280px !important;
+    margin: 16px !important;
+  }
+
+  .chat-panel,
+  .chat-panel.chat-canvas,
+  .chat-panel.glass-card {
+    height: 72svh !important;
+    min-height: 520px !important;
+  }
+
+  .chat-panel .direct-chat-head,
+  .direct-chat-head {
+    height: 64px !important;
+    min-height: 64px !important;
+    padding: 0 18px !important;
+  }
+
+  .chat-panel .messages-list,
+  .messages-list {
+    padding: 18px 18px 14px !important;
+  }
+
+  .compose-box {
+    margin: 0 16px 16px !important;
+  }
+}
