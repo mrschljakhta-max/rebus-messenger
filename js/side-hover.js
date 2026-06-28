@@ -4,11 +4,13 @@
   const SIDE_ZONE_WIDTH = 92;
   const STYLES = [
     ['rebus-reactions-hover-style', 'css/reactions-hover.css'],
-    ['rebus-chat-polish-style', 'css/chat-polish.css']
+    ['rebus-chat-polish-style', 'css/chat-polish.css'],
+    ['rebus-chat-reply-edit-style', 'css/chat-reply-edit.css?v=0.7.7']
   ];
   const SCRIPTS = [
     ['rebus-message-actions-script', 'js/message-actions.js'],
-    ['rebus-account-route-fix-script', 'js/account-route-fix.js?v=0.7.6']
+    ['rebus-account-route-fix-script', 'js/account-route-fix.js?v=0.7.6'],
+    ['rebus-chat-reply-edit-script', 'js/chat-reply-edit.js?v=0.7.7']
   ];
   let activeMessage = null;
   let hideTimer = null;
