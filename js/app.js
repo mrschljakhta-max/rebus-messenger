@@ -1209,6 +1209,83 @@ async function enterMessengerAfterAuth(user) {
   await startMessengerMfaChallenge();
 }
 
+
+// v0.6.8 — robust side hover detector for reaction trigger.
+// Shows the smile trigger only when the cursor is in the narrow side strip:
+// outgoing/own messages -> strip on the LEFT; incoming/recipient messages -> strip on the RIGHT.
+function bindSideReactionHoverZones() {
+  if (!messagesList || messagesList.dataset.sideHoverBound === '1') return;
+  messagesList.dataset.sideHoverBound = '1';
+
+  const HOVER_ZONE_WIDTH = 54;
+  let activeMessage = null;
+  let rafId = 0;
+  let lastEvent = null;
+
+  const clearSideHover = () => {
+    if (!activeMessage) return;
+    const tools = activeMessage.querySelector('.message-tools');
+    if (
+      activeMessage.classList.contains('has-menu-open') ||
+      activeMessage.classList.contains('has-reaction-open') ||
+      tools?.matches(':hover')
+    ) return;
+    tools?.classList.remove('is-hovered');
+    activeMessage.classList.remove('has-side-hover');
+    activeMessage = null;
+  };
+
+  const setSideHover = message => {
+    if (activeMessage && activeMessage !== message) {
+      activeMessage.querySelector('.message-tools')?.classList.remove('is-hovered');
+      activeMessage.classList.remove('has-side-hover');
+    }
+    activeMessage = message;
+    activeMessage.classList.add('has-side-hover');
+    activeMessage.querySelector('.message-tools')?.classList.add('is-hovered');
+  };
+
+  const updateFromPointer = event => {
+    const messages = [...messagesList.querySelectorAll('.message')];
+    let nextMessage = null;
+
+    for (const message of messages) {
+      if (message.classList.contains('has-menu-open') || message.classList.contains('has-reaction-open')) {
+        nextMessage = message;
+        break;
+      }
+
+      const rect = message.getBoundingClientRect();
+      const withinY = event.clientY >= rect.top && event.clientY <= rect.bottom;
+      if (!withinY) continue;
+
+      const isOutgoing = message.classList.contains('outgoing');
+      const inOutgoingSide = isOutgoing && event.clientX >= rect.left - HOVER_ZONE_WIDTH && event.clientX <= rect.left;
+      const inIncomingSide = !isOutgoing && event.clientX >= rect.right && event.clientX <= rect.right + HOVER_ZONE_WIDTH;
+
+      if (inOutgoingSide || inIncomingSide) {
+        nextMessage = message;
+        break;
+      }
+    }
+
+    if (nextMessage) setSideHover(nextMessage);
+    else clearSideHover();
+  };
+
+  messagesList.addEventListener('pointermove', event => {
+    lastEvent = event;
+    if (rafId) return;
+    rafId = window.requestAnimationFrame(() => {
+      rafId = 0;
+      if (lastEvent) updateFromPointer(lastEvent);
+    });
+  });
+
+  messagesList.addEventListener('pointerleave', clearSideHover);
+  document.addEventListener('scroll', clearSideHover, true);
+}
+
 async function initAuth() {
   if (!supabaseClient) {
     console.error('[REBUS] Supabase не ініціалізувався.');
@@ -1275,6 +1352,7 @@ mfaCode?.addEventListener('input', () => {
   mfaCode.value = mfaCode.value.replace(/\D/g, '').slice(0, 6);
 });
 
+bindSideReactionHoverZones();
 initAuth();
 
 
