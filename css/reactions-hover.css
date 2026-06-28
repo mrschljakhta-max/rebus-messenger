@@ -36,7 +36,7 @@
   opacity: 0 !important;
   pointer-events: none !important;
   transform: translateY(-50%) scale(.92) !important;
-  transition: opacity .14s ease, transform .14s ease, filter .14s ease !important;
+  transition: opacity .14s ease, transform .14s ease !important;
 }
 
 #page-chat .message.incoming .message-tools {
@@ -50,30 +50,37 @@
 }
 
 #page-chat .message .message-emoji-trigger {
-  width: 28px !important;
-  height: 28px !important;
+  width: 24px !important;
+  height: 24px !important;
   display: inline-flex !important;
   align-items: center !important;
   justify-content: center !important;
+  padding: 0 !important;
+  margin: 0 !important;
   border: 0 !important;
-  border-radius: 50% !important;
-  background: rgba(3, 10, 18, .18) !important;
-  color: rgba(244, 251, 255, .34) !important;
+  border-radius: 0 !important;
+  outline: 0 !important;
+  background: transparent !important;
+  color: rgba(244, 251, 255, .46) !important;
   font-size: 18px !important;
   line-height: 1 !important;
   cursor: pointer !important;
   box-shadow: none !important;
-  backdrop-filter: blur(4px) !important;
-  opacity: .55 !important;
+  backdrop-filter: none !important;
+  filter: none !important;
+  opacity: .72 !important;
+  transition: opacity .14s ease, color .14s ease, transform .14s ease !important;
 }
 
 #page-chat .message .message-emoji-trigger:hover,
 #page-chat .message .message-tools.is-reaction-open .message-emoji-trigger {
-  color: rgba(244, 251, 255, .92) !important;
-  background: rgba(0, 216, 255, .10) !important;
+  color: rgba(244, 251, 255, .96) !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  filter: none !important;
   opacity: 1 !important;
-  filter: drop-shadow(0 0 10px rgba(0, 216, 255, .28)) !important;
-  transform: scale(1.08) !important;
+  transform: scale(1.12) !important;
 }
 
 #page-chat .message.has-side-hover .message-tools,
