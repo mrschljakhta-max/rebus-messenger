@@ -142,7 +142,54 @@
     polishObserver.observe(list, { childList: true, subtree: true });
   }
 
+  function patchSingleReactionPerUser() {
+    if (window.__rebusSingleReactionPatch === '1') return;
+    window.__rebusSingleReactionPatch = '1';
+
+    try {
+      toggleReaction = async function patchedToggleReaction(messageId, reaction = '👍') {
+        if (!supabaseClient || !currentUser || !messageId || !reaction) return;
+
+        const current = getMessageReactionState({ id: messageId });
+        const alreadyReacted = current.myReactions?.has(reaction);
+
+        const removeCurrent = await supabaseClient
+          .from('message_reactions')
+          .delete()
+          .eq('message_id', messageId)
+          .eq('user_id', currentUser.id);
+
+        if (removeCurrent.error) {
+          console.warn('[REBUS] Reaction replace/remove failed:', removeCurrent.error.message);
+          alert(`Не вдалося змінити реакцію: ${removeCurrent.error.message}`);
+          return;
+        }
+
+        if (!alreadyReacted) {
+          const { error } = await supabaseClient
+            .from('message_reactions')
+            .insert({
+              message_id: messageId,
+              user_id: currentUser.id,
+              reaction
+            });
+
+          if (error) {
+            console.warn('[REBUS] Reaction add failed:', error.message);
+            alert(`Не вдалося додати реакцію: ${error.message}`);
+            return;
+          }
+        }
+
+        await refreshReactionForMessage(messageId);
+      };
+    } catch (error) {
+      console.warn('[REBUS] Single reaction patch skipped:', error);
+    }
+  }
+
   ensureStyles();
+  patchSingleReactionPerUser();
 
   document.addEventListener('pointermove', event => {
     const tool = event.target.closest?.(TOOL_SELECTOR);
