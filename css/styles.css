@@ -3208,3 +3208,19 @@ input { font: inherit; }
   background:linear-gradient(180deg,#ff2d47,#00d8ff);
   border-radius:999px;
 }
+
+
+/* Status tooltip below message at reactions area */
+.message-status-tooltip,
+.status-tooltip,
+.read-tooltip{
+  top:auto !important;
+  bottom:-36px !important;
+  right:18px !important;
+  left:auto !important;
+  transform:none !important;
+  z-index:120 !important;
+}
+.message:hover .message-reactions{
+  z-index:110;
+}
