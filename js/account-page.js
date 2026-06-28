@@ -10,7 +10,7 @@
     const link = document.createElement('link');
     link.id = ACCOUNT_STYLE_ID;
     link.rel = 'stylesheet';
-    link.href = 'css/account.css?v=0.7.4';
+    link.href = 'css/account.css?v=0.7.5';
     document.head.appendChild(link);
   }
 
@@ -165,11 +165,6 @@
 
     return `
       <div class="account-page-shell ${editMode ? 'is-editing' : ''}">
-        <header class="account-chat-header">
-          <div class="account-header-avatar" id="accountHeaderAvatar">${initials}</div>
-          <div class="account-header-text"><strong>Профіль користувача</strong><span>${data.email}</span></div>
-          <div class="account-header-actions"><button type="button" class="account-header-icon" id="editProfileButtonHeader" title="Редагувати профіль">✎</button></div>
-        </header>
         <div class="account-dashboard">
           <aside class="account-hero">
             <div class="account-avatar-wrap"><div class="account-avatar-xl" id="accountAvatarXL">${initials}</div><button class="avatar-edit-btn" type="button" id="quickAvatarButton">Змінити фото</button></div>
@@ -259,7 +254,6 @@
         pendingAvatarDataUrl = dataUrl;
         const name = document.querySelector('[name="full_name"]')?.value || getName(currentUser);
         setAvatarVisual(document.getElementById('accountAvatarXL'), dataUrl, getInitialsLocal(name));
-        setAvatarVisual(document.getElementById('accountHeaderAvatar'), dataUrl, getInitialsLocal(name));
         const avatarUrlInput = document.querySelector('[name="avatar_url"]');
         if (avatarUrlInput) avatarUrlInput.value = dataUrl;
         setSaveStatus('Аватарка готова. Натисніть “Зберегти”.');
@@ -277,7 +271,6 @@
     document.getElementById('accountLogoutButton')?.addEventListener('click', () => { if (typeof signOut === 'function') signOut(); });
     document.getElementById('editProfileButton')?.addEventListener('click', openEditor);
     document.getElementById('editProfileButtonInline')?.addEventListener('click', openEditor);
-    document.getElementById('editProfileButtonHeader')?.addEventListener('click', openEditor);
     document.getElementById('quickAvatarButton')?.addEventListener('click', () => { editMode = true; renderAccount(); window.setTimeout(() => document.getElementById('accountAvatarInput')?.click(), 80); });
     document.getElementById('cancelEditProfileButton')?.addEventListener('click', cancelEditor);
     document.getElementById('cancelEditProfileButtonBottom')?.addEventListener('click', cancelEditor);
@@ -287,7 +280,6 @@
     avatarUrlInput?.addEventListener('input', () => {
       const name = document.querySelector('[name="full_name"]')?.value || getName(currentUser);
       setAvatarVisual(document.getElementById('accountAvatarXL'), avatarUrlInput.value.trim(), getInitialsLocal(name));
-      setAvatarVisual(document.getElementById('accountHeaderAvatar'), avatarUrlInput.value.trim(), getInitialsLocal(name));
     });
   }
 
@@ -297,14 +289,11 @@
     if (!page) return;
     const user = typeof currentUser !== 'undefined' ? currentUser : null;
     if (!user) {
-      page.innerHTML = `<div class="account-page-shell"><header class="account-chat-header"><div class="account-header-avatar">R</div><div class="account-header-text"><strong>Профіль користувача</strong><span>Акаунт не підключено</span></div></header><section class="account-section"><h3>Акаунт не підключено</h3><p class="muted">Увійдіть через Google, щоб побачити профіль REBUS Messenger.</p></section></div>`;
+      page.innerHTML = `<div class="account-page-shell"><section class="account-section"><h3>Акаунт не підключено</h3><p class="muted">Увійдіть через Google, щоб побачити профіль REBUS Messenger.</p></section></div>`;
       return;
     }
     page.innerHTML = buildAccountPage(user);
-    const avatarUrl = getAvatarUrl(user);
-    const initials = getInitialsLocal(getName(user));
-    setAvatarVisual(document.getElementById('accountAvatarXL'), avatarUrl, initials);
-    setAvatarVisual(document.getElementById('accountHeaderAvatar'), avatarUrl, initials);
+    setAvatarVisual(document.getElementById('accountAvatarXL'), getAvatarUrl(user), getInitialsLocal(getName(user)));
     bindAccountButtons();
   }
 
