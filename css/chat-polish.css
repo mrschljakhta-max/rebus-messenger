@@ -1,0 +1,244 @@
+/* REBUS Messenger — chat polish pack without timeline
+   Adds premium micro-interactions: message reveal, hover lift, reaction pop,
+   selected-message glow, refined day dividers, modern reaction capsules and receipt ticks. */
+
+#page-chat .messages-list {
+  scroll-behavior: smooth !important;
+}
+
+#page-chat .message {
+  will-change: transform, opacity, filter !important;
+  animation: rebusMessageIn .18s cubic-bezier(.2, .8, .2, 1) both !important;
+  transition:
+    transform .16s ease,
+    filter .16s ease,
+    box-shadow .16s ease,
+    background .16s ease !important;
+}
+
+#page-chat .message.incoming {
+  transform-origin: left center !important;
+}
+
+#page-chat .message.outgoing {
+  transform-origin: right center !important;
+}
+
+#page-chat .message:hover,
+#page-chat .message.has-side-hover,
+#page-chat .message.has-reaction-open,
+#page-chat .message.has-menu-open {
+  filter: brightness(1.055) saturate(1.03) !important;
+}
+
+#page-chat .message:hover {
+  transform: translateY(-1px) !important;
+}
+
+#page-chat .message.is-highlighted {
+  animation: rebusMessageHighlight 1.85s ease both !important;
+}
+
+#page-chat .message-day-divider {
+  opacity: .9 !important;
+  animation: rebusDividerIn .22s ease both !important;
+}
+
+#page-chat .message-day-divider span {
+  letter-spacing: .02em !important;
+  backdrop-filter: blur(12px) saturate(1.05) !important;
+}
+
+#page-chat .message-reactions-row {
+  gap: 5px !important;
+  align-items: center !important;
+}
+
+#page-chat .message .reaction-chip,
+#page-chat .message-reactions-row .reaction-chip,
+#page-chat .reaction-chip.is-own-reaction {
+  min-width: 28px !important;
+  height: 24px !important;
+  padding: 0 7px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 4px !important;
+  border: 1px solid rgba(255, 255, 255, .10) !important;
+  border-radius: 999px !important;
+  background: rgba(5, 12, 22, .62) !important;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, .20) !important;
+  backdrop-filter: blur(8px) !important;
+  animation: rebusReactionPop .18s cubic-bezier(.2, .9, .25, 1.25) both !important;
+  transition: transform .14s ease, background .14s ease, border-color .14s ease !important;
+}
+
+#page-chat .message .reaction-chip:hover,
+#page-chat .message-reactions-row .reaction-chip:hover {
+  transform: translateY(-1px) scale(1.05) !important;
+  border-color: rgba(0, 216, 255, .32) !important;
+  background: rgba(0, 216, 255, .10) !important;
+}
+
+#page-chat .reaction-chip span {
+  filter: none !important;
+}
+
+#page-chat .reaction-chip em {
+  font-size: 10px !important;
+  font-weight: 900 !important;
+  color: rgba(244, 251, 255, .78) !important;
+}
+
+#page-chat .message-status {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 3px !important;
+  min-width: max-content !important;
+  transition: color .18s ease, text-shadow .18s ease, opacity .18s ease !important;
+}
+
+#page-chat .message.is-sent .message-status,
+#page-chat .message.is-received .message-status,
+#page-chat .message.is-read .message-status {
+  font-size: 0 !important;
+}
+
+#page-chat .message.is-sent .message-status::before {
+  content: "✓";
+  font-size: 12px;
+  font-weight: 950;
+  color: rgba(244, 251, 255, .62);
+}
+
+#page-chat .message.is-received .message-status::before {
+  content: "✓✓";
+  font-size: 12px;
+  font-weight: 950;
+  letter-spacing: -2px;
+  color: rgba(244, 251, 255, .72);
+}
+
+#page-chat .message.is-read .message-status::before {
+  content: "✓✓";
+  font-size: 12px;
+  font-weight: 950;
+  letter-spacing: -2px;
+  color: #00d8ff;
+  text-shadow: 0 0 12px rgba(0, 216, 255, .38);
+}
+
+#page-chat .typing-indicator {
+  width: max-content;
+  max-width: min(68%, 520px);
+  margin: -4px 0 6px;
+  padding: 9px 13px;
+  display: none;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid rgba(255, 255, 255, .08);
+  border-radius: 999px;
+  color: rgba(244, 251, 255, .58);
+  background: rgba(7, 14, 24, .46);
+  backdrop-filter: blur(10px);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+#page-chat .typing-indicator.is-visible {
+  display: inline-flex;
+  animation: rebusTypingIn .16s ease both;
+}
+
+#page-chat .typing-dots {
+  display: inline-flex;
+  gap: 4px;
+}
+
+#page-chat .typing-dots i {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: rgba(0, 216, 255, .74);
+  animation: rebusTypingDot 1s ease-in-out infinite;
+}
+
+#page-chat .typing-dots i:nth-child(2) { animation-delay: .14s; }
+#page-chat .typing-dots i:nth-child(3) { animation-delay: .28s; }
+
+@keyframes rebusMessageIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes rebusDividerIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: .9;
+    transform: translateY(0);
+  }
+}
+
+@keyframes rebusReactionPop {
+  0% {
+    opacity: 0;
+    transform: scale(.62) translateY(5px);
+  }
+  70% {
+    opacity: 1;
+    transform: scale(1.12) translateY(-1px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes rebusMessageHighlight {
+  0% {
+    box-shadow: 0 0 0 rgba(0, 216, 255, 0);
+    filter: brightness(1);
+  }
+  18% {
+    box-shadow: 0 0 0 2px rgba(0, 216, 255, .34), 0 0 34px rgba(0, 216, 255, .20);
+    filter: brightness(1.12);
+  }
+  100% {
+    box-shadow: 0 0 0 rgba(0, 216, 255, 0);
+    filter: brightness(1);
+  }
+}
+
+@keyframes rebusTypingIn {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes rebusTypingDot {
+  0%, 60%, 100% { opacity: .36; transform: translateY(0); }
+  30% { opacity: 1; transform: translateY(-3px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #page-chat .message,
+  #page-chat .message-day-divider,
+  #page-chat .reaction-chip,
+  #page-chat .typing-indicator,
+  #page-chat .typing-dots i {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  #page-chat .messages-list {
+    scroll-behavior: auto !important;
+  }
+}
