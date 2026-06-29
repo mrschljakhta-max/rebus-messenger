@@ -98,8 +98,31 @@
 .rebus-peer-sidebar-body {
   min-height: 0;
   flex: 1;
-  overflow: auto;
-  padding: 26px 22px 28px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 26px 20px 28px 22px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,36,56,.90) rgba(255,255,255,.045);
+}
+
+.rebus-peer-sidebar-body::-webkit-scrollbar {
+  width: 9px;
+}
+
+.rebus-peer-sidebar-body::-webkit-scrollbar-track {
+  border-radius: 999px;
+  background: rgba(255,255,255,.045);
+}
+
+.rebus-peer-sidebar-body::-webkit-scrollbar-thumb {
+  border: 2px solid rgba(5, 12, 22, .96);
+  border-radius: 999px;
+  background: linear-gradient(180deg, #ff2438, #00d8ff);
+  box-shadow: 0 0 14px rgba(0,216,255,.22);
+}
+
+.rebus-peer-sidebar-body::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #ff4b62, #38e5ff);
 }
 
 .rebus-peer-card {
@@ -109,6 +132,10 @@
   text-align: center;
   padding: 8px 0 28px;
   border-bottom: 1px solid rgba(255,255,255,.08);
+}
+
+.rebus-peer-card.is-loading {
+  opacity: .88;
 }
 
 .rebus-peer-avatar-xl {
@@ -167,6 +194,13 @@
   border-radius: 50%;
   background: #37ffd3;
   box-shadow: 0 0 13px rgba(55,255,211,.75);
+}
+
+.rebus-peer-loading {
+  margin-top: 10px;
+  color: rgba(244,251,255,.42);
+  font-size: 11px;
+  font-weight: 850;
 }
 
 .rebus-peer-section {
