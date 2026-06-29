@@ -1,181 +1,96 @@
 (() => {
   const MESSAGE_SELECTOR = '#messagesList .message[data-message-id]';
-  const TOOL_SELECTOR = '.message-tools';
-  const SIDE_ZONE_WIDTH = 92;
-  let activeMessage = null;
-  let hideTimer = null;
-  let polishObserver = null;
+  const STYLE_ID = 'rebus-forced-message-arrow-style';
 
-  function getTool(message) {
-    return message?.querySelector?.(TOOL_SELECTOR) || null;
+  function ensureStyle() {
+    if (document.getElementById(STYLE_ID)) return;
+    const style = document.createElement('style');
+    style.id = STYLE_ID;
+    style.textContent = `
+      #page-chat .message[data-message-id] { position: relative !important; min-width: 84px !important; }
+      #page-chat .message[data-message-id].incoming { padding-right: 30px !important; }
+      #page-chat .message[data-message-id].outgoing { padding-left: 30px !important; }
+      #page-chat .message-corner-menu {
+        position: absolute !important;
+        top: 8px !important;
+        z-index: 40 !important;
+        width: 16px !important;
+        height: 16px !important;
+        min-width: 16px !important;
+        padding: 0 !important;
+        border: 0 !important;
+        border-radius: 0 !important;
+        background: transparent !important;
+        box-shadow: none !important;
+        outline: 0 !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
+        cursor: pointer !important;
+        font-size: 0 !important;
+        line-height: 0 !important;
+        color: rgba(244,251,255,.76) !important;
+      }
+      #page-chat .message.incoming .message-corner-menu { right: 9px !important; }
+      #page-chat .message.outgoing .message-corner-menu { left: 9px !important; }
+      #page-chat .message-corner-menu::before {
+        content: "";
+        position: absolute;
+        inset: 1px;
+        background: currentColor;
+        clip-path: polygon(12% 28%, 50% 66%, 88% 28%, 100% 40%, 50% 90%, 0 40%);
+      }
+      #page-chat .message:hover .message-corner-menu,
+      #page-chat .message.has-menu-open .message-corner-menu,
+      #page-chat .message.has-side-hover .message-corner-menu {
+        opacity: .9 !important;
+        pointer-events: auto !important;
+      }
+      #page-chat .message-corner-menu:hover { color: #fff !important; }
+    `;
+    document.head.appendChild(style);
   }
 
-  function clearMessage(message) {
+  function openMenu(message) {
     if (!message) return;
-    if (
-      message.classList.contains('has-menu-open') ||
-      message.classList.contains('has-reaction-open') ||
-      getTool(message)?.classList.contains('is-reaction-open') ||
-      getTool(message)?.classList.contains('is-pinned')
-    ) return;
-
-    message.classList.remove('has-side-hover');
-    getTool(message)?.classList.remove('is-hovered');
-    if (activeMessage === message) activeMessage = null;
+    if (typeof openMessageContextMenu === 'function') {
+      openMessageContextMenu(message.dataset.messageId, message);
+      return;
+    }
+    message.querySelector('.message-menu-toggle')?.click();
   }
 
-  function activateMessage(message) {
-    if (!message) return;
-    window.clearTimeout(hideTimer);
-    if (activeMessage && activeMessage !== message) clearMessage(activeMessage);
-    activeMessage = message;
-    message.classList.add('has-side-hover');
-    getTool(message)?.classList.add('is-hovered');
-  }
-
-  function pointerIsInSideZone(message, clientX, clientY) {
-    const rect = message.getBoundingClientRect();
-    const inVerticalRange = clientY >= rect.top - 4 && clientY <= rect.bottom + 4;
-    if (!inVerticalRange) return false;
-    if (message.classList.contains('outgoing')) return clientX >= rect.left - SIDE_ZONE_WIDTH && clientX <= rect.left;
-    return clientX >= rect.right && clientX <= rect.right + SIDE_ZONE_WIDTH;
-  }
-
-  function smoothScrollMessages() {
-    const list = document.getElementById('messagesList');
-    if (!list) return;
-    window.requestAnimationFrame(() => list.scrollTo({ top: list.scrollHeight, behavior: 'smooth' }));
-  }
-
-  function flashMessage(message) {
-    if (!message) return;
-    message.classList.remove('is-highlighted');
-    void message.offsetWidth;
-    message.classList.add('is-highlighted');
-    window.setTimeout(() => message.classList.remove('is-highlighted'), 1900);
-  }
-
-  function ensureTypingIndicator() {
-    const list = document.getElementById('messagesList');
-    if (!list || document.getElementById('typingIndicator')) return;
-    const indicator = document.createElement('div');
-    indicator.id = 'typingIndicator';
-    indicator.className = 'typing-indicator';
-    indicator.innerHTML = '<span>Користувач друкує</span><span class="typing-dots" aria-hidden="true"><i></i><i></i><i></i></span>';
-    list.appendChild(indicator);
-  }
-
-  function bindMessageClickHighlight(scope = document) {
+  function ensureButtons(scope = document) {
     scope.querySelectorAll?.(MESSAGE_SELECTOR)?.forEach(message => {
-      if (message.dataset.polishClickBound === '1') return;
-      message.dataset.polishClickBound = '1';
-      message.addEventListener('click', event => {
-        if (event.target.closest('button, input, a, .message-tools, .reaction-chip')) return;
-        flashMessage(message);
-      });
+      if (message.querySelector('.message-corner-menu')) return;
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'message-corner-menu';
+      button.setAttribute('aria-label', 'Дії повідомлення');
+      button.addEventListener('click', event => {
+        event.preventDefault();
+        event.stopPropagation();
+        openMenu(message);
+      }, true);
+      message.appendChild(button);
     });
   }
 
-  function bindLocalTypingPreview() {
-    const input = document.getElementById('messageInput');
-    const indicator = document.getElementById('typingIndicator');
-    if (!input || !indicator || input.dataset.polishTypingBound === '1') return;
-    input.dataset.polishTypingBound = '1';
-    let timer = null;
-    input.addEventListener('input', () => {
-      if (!input.value.trim()) {
-        indicator.classList.remove('is-visible');
-        return;
-      }
-      indicator.classList.add('is-visible');
-      window.clearTimeout(timer);
-      timer = window.setTimeout(() => indicator.classList.remove('is-visible'), 900);
-    });
-  }
-
-  function patchSingleReactionPerUser() {
-    if (window.__rebusSingleReactionPatch === '1') return;
-    window.__rebusSingleReactionPatch = '1';
-    try {
-      toggleReaction = async function patchedToggleReaction(messageId, reaction = '👍') {
-        if (!supabaseClient || !currentUser || !messageId || !reaction) return;
-        const current = getMessageReactionState({ id: messageId });
-        const alreadyReacted = current.myReactions?.has(reaction);
-        const removeCurrent = await supabaseClient.from('message_reactions').delete().eq('message_id', messageId).eq('user_id', currentUser.id);
-        if (removeCurrent.error) {
-          alert(`Не вдалося змінити реакцію: ${removeCurrent.error.message}`);
-          return;
-        }
-        if (!alreadyReacted) {
-          const { error } = await supabaseClient.from('message_reactions').insert({ message_id: messageId, user_id: currentUser.id, reaction });
-          if (error) {
-            alert(`Не вдалося додати реакцію: ${error.message}`);
-            return;
-          }
-        }
-        await refreshReactionForMessage(messageId);
-      };
-    } catch (error) {
-      console.warn('[REBUS] Single reaction patch skipped:', error);
-    }
-  }
-
-  function initPolishObserver() {
+  function init() {
+    ensureStyle();
+    ensureButtons(document);
     const list = document.getElementById('messagesList');
-    if (!list || polishObserver) return;
-    ensureTypingIndicator();
-    bindMessageClickHighlight(document);
-    bindLocalTypingPreview();
-    polishObserver = new MutationObserver(mutations => {
-      let hasNewMessage = false;
-      mutations.forEach(mutation => {
-        mutation.addedNodes.forEach(node => {
-          if (!(node instanceof HTMLElement)) return;
-          if (node.matches?.('.message') || node.querySelector?.('.message')) hasNewMessage = true;
-          bindMessageClickHighlight(node);
-        });
-      });
-      ensureTypingIndicator();
-      bindLocalTypingPreview();
-      if (hasNewMessage) smoothScrollMessages();
-    });
-    polishObserver.observe(list, { childList: true, subtree: true });
+    if (!list || list.dataset.arrowForceReady === '1') return;
+    list.dataset.arrowForceReady = '1';
+    new MutationObserver(mutations => {
+      mutations.forEach(mutation => mutation.addedNodes.forEach(node => {
+        if (node instanceof HTMLElement) ensureButtons(node);
+      }));
+      ensureButtons(document);
+    }).observe(list, { childList: true, subtree: true });
   }
 
-  patchSingleReactionPerUser();
-
-  document.addEventListener('pointermove', event => {
-    const tool = event.target.closest?.(TOOL_SELECTOR);
-    if (tool) {
-      activateMessage(tool.closest('.message'));
-      return;
-    }
-    let hovered = null;
-    for (const message of document.querySelectorAll(MESSAGE_SELECTOR)) {
-      if (pointerIsInSideZone(message, event.clientX, event.clientY)) {
-        hovered = message;
-        break;
-      }
-    }
-    if (hovered) {
-      activateMessage(hovered);
-      return;
-    }
-    if (activeMessage) {
-      window.clearTimeout(hideTimer);
-      hideTimer = window.setTimeout(() => clearMessage(activeMessage), 120);
-    }
-  }, true);
-
-  document.addEventListener('pointerdown', event => {
-    if (event.target.closest?.(TOOL_SELECTOR)) return;
-    if (activeMessage && !event.target.closest?.('.message')) clearMessage(activeMessage);
-  }, true);
-
-  document.addEventListener('scroll', () => {
-    if (activeMessage) clearMessage(activeMessage);
-  }, true);
-
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initPolishObserver, { once: true });
-  else initPolishObserver();
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init, { once: true });
+  else init();
+  window.setTimeout(init, 300);
+  window.setTimeout(init, 900);
 })();
