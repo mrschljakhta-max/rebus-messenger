@@ -72,7 +72,8 @@
   pointer-events: auto;
 }
 
-#page-chat .message-context-menu.rebus-fixed-menu {
+#page-chat .message-context-menu.rebus-fixed-menu,
+.message-context-menu.rebus-fixed-menu {
   position: fixed !important;
   right: auto !important;
   bottom: auto !important;
@@ -82,7 +83,8 @@
   transform: none !important;
 }
 
-#page-chat .message-context-menu.rebus-fixed-menu.opens-up::after {
+#page-chat .message-context-menu.rebus-fixed-menu.opens-up::after,
+.message-context-menu.rebus-fixed-menu.opens-up::after {
   content: "";
   position: absolute;
   left: 0;
