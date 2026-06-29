@@ -105,6 +105,7 @@
       const el = original.call(this, message, options);
       if (el) stripNativeReceiptTooltips(el);
       if (el && reply) attachReply(el, reply);
+      if (el) window.setTimeout(() => bind(el), 0);
       return el;
     };
     try { appendMessage = window.appendMessage; } catch {}
@@ -115,6 +116,7 @@
       menu.classList.remove('is-open', 'rebus-fixed-menu', 'opens-up');
       menu.style.left = '';
       menu.style.top = '';
+      menu.style.width = '';
     });
     document.querySelectorAll('.message-tools.is-pinned').forEach(tool => tool.classList.remove('is-pinned'));
     document.querySelectorAll('.message.has-menu-open').forEach(message => message.classList.remove('has-menu-open'));
@@ -129,37 +131,50 @@
     return Math.min(window.innerHeight - 10, composerTop - 10, previewTop - 10);
   }
 
+  function prepareMenuForBody(menu, message) {
+    if (!menu || !message) return;
+    menu.dataset.menuFor = message.dataset.messageId;
+    if (menu.parentElement !== document.body) document.body.appendChild(menu);
+    const isOutgoing = message.classList.contains('outgoing');
+    menu.querySelectorAll('.message-menu-item').forEach(button => {
+      const action = button.dataset.action;
+      if (action === 'reply' || action === 'copy') button.disabled = false;
+      if (action === 'edit' || action === 'delete') button.disabled = !isOutgoing;
+    });
+  }
+
   function openFixedMenu(messageId) {
     const message = messageById(messageId);
     const menu = document.querySelector(`.message-context-menu[data-menu-for="${CSS.escape(messageId)}"]`);
     if (!message || !menu) return;
 
     closeMenus();
+    prepareMenuForBody(menu, message);
     menu.classList.add('is-open', 'rebus-fixed-menu');
     message.classList.add('has-menu-open');
-    menu.closest('.message-tools')?.classList.add('is-pinned');
-
-    menu.querySelectorAll('.message-menu-item').forEach(button => {
-      if (button.dataset.action === 'reply') button.disabled = false;
-      if (button.dataset.action === 'edit') button.disabled = !message.classList.contains('outgoing');
-    });
 
     menu.style.left = '0px';
     menu.style.top = '0px';
+    menu.style.width = '224px';
+
     const messageRect = message.getBoundingClientRect();
     const menuRect = menu.getBoundingClientRect();
-    const gap = 8;
+    const gap = 10;
     const bottom = safeBottom();
     const isOutgoing = message.classList.contains('outgoing');
-    const leftBase = isOutgoing ? messageRect.left - menuRect.width - 8 : messageRect.right + 8;
-    const left = Math.min(Math.max(gap, leftBase), window.innerWidth - menuRect.width - gap);
-    const y = messageRect.bottom;
-    const openUp = bottom - y < menuRect.height + gap;
-    const top = openUp ? messageRect.top - menuRect.height - gap : messageRect.bottom + gap;
+
+    let left = isOutgoing ? messageRect.left - menuRect.width - gap : messageRect.right + gap;
+    if (left < gap) left = messageRect.left;
+    if (left + menuRect.width > window.innerWidth - gap) left = window.innerWidth - menuRect.width - gap;
+
+    const belowTop = messageRect.bottom + gap;
+    const aboveTop = messageRect.top - menuRect.height - gap;
+    const openUp = belowTop + menuRect.height > bottom && aboveTop >= gap;
+    const top = openUp ? aboveTop : Math.min(belowTop, bottom - menuRect.height);
 
     menu.classList.toggle('opens-up', openUp);
-    menu.style.left = `${left}px`;
-    menu.style.top = `${Math.max(gap, Math.min(top, bottom - menuRect.height))}px`;
+    menu.style.left = `${Math.max(gap, left)}px`;
+    menu.style.top = `${Math.max(gap, top)}px`;
     try { openMessageMenuId = messageId; } catch {}
   }
 
@@ -222,6 +237,12 @@
       button.type = 'button';
       button.className = 'message-corner-menu';
       button.textContent = '⌄';
+      button.setAttribute('aria-label', 'Дії з повідомленням');
+      button.addEventListener('pointerdown', event => {
+        event.preventDefault();
+        event.stopPropagation();
+        event.stopImmediatePropagation?.();
+      }, true);
       button.addEventListener('click', event => {
         event.preventDefault();
         event.stopPropagation();
@@ -237,6 +258,7 @@
     patchMenu();
     stripNativeReceiptTooltips(scope);
     scope.querySelectorAll?.(MESSAGE_SELECTOR)?.forEach(addCorner);
+    if (scope.matches?.(MESSAGE_SELECTOR)) addCorner(scope);
   }
 
   document.addEventListener('click', event => {
