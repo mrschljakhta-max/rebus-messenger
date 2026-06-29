@@ -1,6 +1,7 @@
 (() => {
   const SIDEBAR_ID = 'rebusPeerSidebar';
   const BACKDROP_ID = 'rebusPeerSidebarBackdrop';
+  const profileCache = new Map();
 
   function esc(value = '') {
     return String(value)
@@ -9,6 +10,10 @@
       .replaceAll('>', '&gt;')
       .replaceAll('"', '&quot;')
       .replaceAll("'", '&#039;');
+  }
+
+  function safeCssUrl(value = '') {
+    return String(value).replaceAll('"', '%22').replaceAll("'", '%27').replaceAll('\\', '%5C');
   }
 
   function getInitialsSafe(name = '') {
@@ -35,7 +40,53 @@
   }
 
   function getAvatarUrl(peer) {
-    return peer?.avatar_url || peer?.picture || peer?.photo_url || peer?.avatar || peer?.metadata?.avatar_url || '';
+    return peer?.avatar_url
+      || peer?.avatarUrl
+      || peer?.picture
+      || peer?.photo_url
+      || peer?.photoUrl
+      || peer?.avatar
+      || peer?.metadata?.avatar_url
+      || peer?.raw_user_meta_data?.avatar_url
+      || '';
+  }
+
+  async function loadPeerProfile(peer) {
+    if (!peer?.id) return peer;
+    if (profileCache.has(peer.id)) return { ...peer, ...profileCache.get(peer.id) };
+
+    try {
+      const client = window.supabaseClient || (typeof supabaseClient !== 'undefined' ? supabaseClient : null);
+      if (!client?.from) return peer;
+
+      const { data, error } = await client
+        .from('rebus_profiles')
+        .select('*')
+        .or(`user_id.eq.${peer.id},id.eq.${peer.profileId || peer.id}`)
+        .limit(1)
+        .maybeSingle();
+
+      if (error || !data) return peer;
+
+      const enriched = {
+        ...data,
+        id: data.user_id || data.auth_user_id || data.uid || peer.id,
+        profileId: data.id || peer.profileId || null,
+        name: data.full_name || data.display_name || data.name || peer.name,
+        email: data.email || peer.email,
+        role: data.role || data.user_role || peer.role,
+        callsign: data.callsign || data.call_sign || data.nickname || peer.callsign,
+        contour: data.contour || data.contour_name || peer.contour,
+        unit: data.unit || data.group || data.department || data.subdivision || peer.unit,
+        position: data.position || data.job_title || data.post || peer.position,
+        avatar_url: data.avatar_url || data.picture || data.photo_url || data.avatar || peer.avatar_url
+      };
+
+      profileCache.set(peer.id, enriched);
+      return { ...peer, ...enriched };
+    } catch {
+      return peer;
+    }
   }
 
   function ensureSidebar() {
@@ -72,7 +123,7 @@
     return { backdrop, sidebar };
   }
 
-  function renderSidebar(peer) {
+  function renderSidebar(peer, loading = false) {
     const { sidebar } = ensureSidebar();
     const body = sidebar.querySelector('.rebus-peer-sidebar-body');
     if (!body) return;
@@ -82,17 +133,18 @@
     const role = peer?.role || 'USER';
     const callSign = peer?.callsign || peer?.call_sign || peer?.nickname || 'Не вказано';
     const contour = peer?.contour || peer?.contour_name || 'Не призначено';
-    const unit = peer?.unit || peer?.group || peer?.department || 'Не вказано';
-    const position = peer?.position || peer?.job_title || 'Не вказано';
+    const unit = peer?.unit || peer?.group || peer?.department || peer?.subdivision || 'Не вказано';
+    const position = peer?.position || peer?.job_title || peer?.post || 'Не вказано';
     const avatarUrl = getAvatarUrl(peer);
-    const avatarStyle = avatarUrl ? ` style="background-image:url('${esc(avatarUrl)}')"` : '';
+    const avatarStyle = avatarUrl ? ` style="background-image:url('${safeCssUrl(avatarUrl)}')"` : '';
 
     body.innerHTML = `
-      <section class="rebus-peer-card">
+      <section class="rebus-peer-card${loading ? ' is-loading' : ''}">
         <div class="rebus-peer-avatar-xl${avatarUrl ? ' has-avatar' : ''}"${avatarStyle}>${avatarUrl ? '' : esc(getInitialsSafe(name))}</div>
         <div class="rebus-peer-name">${esc(name)}</div>
         <div class="rebus-peer-email">${esc(email)}</div>
         <div class="rebus-peer-status"><i></i> Онлайн</div>
+        ${loading ? '<div class="rebus-peer-loading">Оновлюю профіль…</div>' : ''}
       </section>
 
       <section class="rebus-peer-section">
@@ -122,13 +174,15 @@
     `;
   }
 
-  function openSidebar() {
+  async function openSidebar() {
     const peer = getPeer();
     if (!peer) return;
     const { backdrop, sidebar } = ensureSidebar();
-    renderSidebar(peer);
+    renderSidebar(peer, true);
     backdrop.classList.add('is-open');
     sidebar.classList.add('is-open');
+    const enrichedPeer = await loadPeerProfile(peer);
+    if (sidebar.classList.contains('is-open')) renderSidebar(enrichedPeer, false);
   }
 
   function closeSidebar() {
