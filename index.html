@@ -22,171 +22,31 @@
   <main class="login-page" id="loginPage" aria-label="REBUS Messenger стартова сторінка">
     <div class="login-bg" aria-hidden="true"></div>
     <div class="login-vignette" aria-hidden="true"></div>
-
-    <button class="enter-button" type="button" id="enterButton" aria-label="Увійти до REBUS Messenger">
-      <span>Вхід</span>
-    </button>
+    <button class="enter-button" type="button" id="enterButton" aria-label="Увійти до REBUS Messenger"><span>Вхід</span></button>
   </main>
-
   <section class="mfa-page" id="mfaPage" aria-label="REBUS Messenger двофакторна перевірка" hidden>
     <div class="mfa-bg" aria-hidden="true"></div>
     <div class="mfa-card">
-      <div class="mfa-mark">R</div>
-      <p class="mfa-kicker">REBUS Messenger</p>
-      <h1>Двофакторна перевірка</h1>
+      <div class="mfa-mark">R</div><p class="mfa-kicker">REBUS Messenger</p><h1>Двофакторна перевірка</h1>
       <p class="mfa-text" id="mfaText">Підтвердіть доступ до робочої зони месенджера.</p>
-
-      <form class="mfa-form" id="mfaForm">
-        <label for="mfaCode">Код підтвердження</label>
-        <input id="mfaCode" name="mfaCode" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="000000" />
-        <button type="submit" id="mfaSubmitButton">Підтвердити</button>
-      </form>
-
-      <p class="mfa-status" id="mfaStatus">Очікується код 2FA.</p>
-      <button class="mfa-secondary" type="button" id="mfaBackButton">Вийти з акаунта</button>
+      <form class="mfa-form" id="mfaForm"><label for="mfaCode">Код підтвердження</label><input id="mfaCode" name="mfaCode" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="000000" /><button type="submit" id="mfaSubmitButton">Підтвердити</button></form>
+      <p class="mfa-status" id="mfaStatus">Очікується код 2FA.</p><button class="mfa-secondary" type="button" id="mfaBackButton">Вийти з акаунта</button>
     </div>
   </section>
-
-
   <section class="app-shell" id="appShell" aria-label="REBUS Messenger робоча зона" hidden>
     <aside class="left-nav" aria-label="Основна навігація">
-      <div class="account-card" data-route="account" tabindex="0" role="button" aria-label="Відкрити акаунт">
-        <div class="account-logo" aria-hidden="true">R</div>
-        <div class="account-info">
-          <strong>REBUS</strong>
-          <span>account@rebus</span>
-          <em>USER</em>
-        </div>
-      </div>
-
-      <nav class="main-menu" aria-label="Розділи месенджера">
-        <button class="nav-item is-active" type="button" data-route="chat">
-          <span class="nav-icon"><img src="assets/icons/nav/chat.png" alt="" /></span>
-          <span class="nav-label">Чат</span>
-        </button>
-        <button class="nav-item" type="button" data-route="contours">
-          <span class="nav-icon"><img src="assets/icons/nav/people.png" alt="" /></span>
-          <span class="nav-label">Контур</span>
-        </button>
-        <button class="nav-item" type="button" data-route="library">
-          <span class="nav-icon"><img src="assets/icons/nav/books.png" alt="" /></span>
-          <span class="nav-label">Бібліотека</span>
-        </button>
-        <button class="nav-item" type="button" data-route="contacts">
-          <span class="nav-icon"><img src="assets/icons/nav/contact-book.png" alt="" /></span>
-          <span class="nav-label">Контакти</span>
-        </button>
-      </nav>
-
-      <div class="nav-spacer"></div>
-
-      <button class="nav-item logout-item" type="button" data-route="logout">
-        <span class="nav-icon"><img src="assets/icons/nav/logout.png" alt="" /></span>
-        <span class="nav-label">Вихід</span>
-      </button>
-      <div class="version-note">REBUS Messenger <b>v0.8.1</b></div>
+      <div class="account-card" data-route="account" tabindex="0" role="button" aria-label="Відкрити акаунт"><div class="account-logo" aria-hidden="true">R</div><div class="account-info"><strong>REBUS</strong><span>account@rebus</span><em>USER</em></div></div>
+      <nav class="main-menu" aria-label="Розділи месенджера"><button class="nav-item is-active" type="button" data-route="chat"><span class="nav-icon"><img src="assets/icons/nav/chat.png" alt="" /></span><span class="nav-label">Чат</span></button><button class="nav-item" type="button" data-route="contours"><span class="nav-icon"><img src="assets/icons/nav/people.png" alt="" /></span><span class="nav-label">Контур</span></button><button class="nav-item" type="button" data-route="library"><span class="nav-icon"><img src="assets/icons/nav/books.png" alt="" /></span><span class="nav-label">Бібліотека</span></button><button class="nav-item" type="button" data-route="contacts"><span class="nav-icon"><img src="assets/icons/nav/contact-book.png" alt="" /></span><span class="nav-label">Контакти</span></button></nav>
+      <div class="nav-spacer"></div><button class="nav-item logout-item" type="button" data-route="logout"><span class="nav-icon"><img src="assets/icons/nav/logout.png" alt="" /></span><span class="nav-label">Вихід</span></button><div class="version-note">REBUS Messenger <b>v0.8.1</b></div>
     </aside>
-
     <main class="workspace" aria-live="polite">
-      <section class="page-view" id="page-account" data-page="account" hidden>
-        <div class="account-dashboard">
-          <section class="account-section">
-            <h3>Завантаження профілю…</h3>
-            <p class="muted">REBUS готує дані акаунта.</p>
-          </section>
-        </div>
-      </section>
-
-      <section class="page-view is-active" id="page-chat" data-page="chat">
-        <div class="chat-layout direct-chat-layout">
-          <aside class="chat-list direct-users-panel glass-card">
-            <h3>Користувачі</h3>
-            <div class="direct-user-search">
-              <span aria-hidden="true">⌕</span>
-              <input type="search" id="userSearchInput" placeholder="Пошук користувача…" autocomplete="off" aria-label="Пошук користувача" />
-            </div>
-            <div class="direct-users-list" id="directUsersList" aria-label="Список користувачів">
-              <div class="direct-empty">Завантаження користувачів…</div>
-            </div>
-            <div class="direct-self-card" id="directSelfCard" aria-label="Поточний користувач">
-              <span class="direct-self-avatar">R</span>
-              <span class="direct-self-main">
-                <strong>REBUS</strong>
-                <em>Онлайн</em>
-              </span>
-            </div>
-          </aside>
-          <section class="chat-panel chat-canvas">
-            <div class="direct-chat-head" id="directChatHead">
-              <div class="direct-chat-avatar">R</div>
-              <div>
-                <strong>Оберіть користувача</strong>
-                <span>Індивідуальне листування REBUS</span>
-              </div>
-            </div>
-            <div class="messages-list" id="messagesList" aria-live="polite"></div>
-            <div class="compose-box">
-              <button type="button" aria-label="Додати файл">📎</button>
-              <input type="text" id="messageInput" placeholder="Оберіть користувача для листування…" autocomplete="off" disabled />
-              <button type="button" class="composer-emoji-btn" id="composerEmojiButton" aria-label="Емодзі" disabled>☺</button>
-              <button type="button" class="send-btn" id="sendMessageButton" disabled>Надіслати</button>
-            </div>
-          </section>
-        </div>
-      </section>
-
-      <section class="page-view" id="page-contours" data-page="contours" hidden>
-        <div class="contours-workspace glass-card">
-          <div class="contours-toolbar">
-            <div class="contour-search">
-              <span aria-hidden="true">⌕</span>
-              <input type="search" placeholder="Пошук контуру…" aria-label="Пошук контуру" />
-            </div>
-            <button class="add-contour-btn" type="button">Додати контур</button>
-          </div>
-
-          <div class="contours-list" aria-label="Список контурів">
-            <button class="contour-row is-current" type="button">
-              <span class="contour-status active">Активний</span>
-              <strong>Загальний контур</strong>
-              <em>Основний простір взаємодії користувача</em>
-              <span class="contour-meta">12 учасників · 24 файли</span>
-            </button>
-            <button class="contour-row" type="button">
-              <span class="contour-status pending">Очікує підключення</span>
-              <strong>Контур підрозділу</strong>
-              <em>Буде підтягуватись із Supabase після авторизації</em>
-              <span class="contour-meta">0 учасників · 0 файлів</span>
-            </button>
-            <button class="contour-row" type="button">
-              <span class="contour-status draft">Шаблон</span>
-              <strong>Новий контур</strong>
-              <em>Підготовлена плашка для майбутнього створення контуру</em>
-              <span class="contour-meta">Не налаштовано</span>
-            </button>
-          </div>
-        </div>
-      </section>
-
-      <section class="page-view" id="page-library" data-page="library" hidden>
-        <div class="content-grid library-grid">
-          <article class="glass-card library-tile"><strong>Документи</strong><span>0 файлів</span></article>
-          <article class="glass-card library-tile"><strong>Зображення</strong><span>0 файлів</span></article>
-          <article class="glass-card library-tile"><strong>Архіви</strong><span>0 файлів</span></article>
-          <article class="glass-card library-tile"><strong>Посилання</strong><span>0 записів</span></article>
-        </div>
-      </section>
-
-      <section class="page-view" id="page-contacts" data-page="contacts" hidden>
-        <div class="contacts-list glass-card">
-          <div class="contact-row"><span class="status online"></span><b>Олександр</b><em>SUPER-ADMIN</em></div>
-          <div class="contact-row"><span class="status idle"></span><b>Користувач REBUS</b><em>USER</em></div>
-          <div class="contact-row"><span class="status offline"></span><b>Оператор контуру</b><em>OPERATOR</em></div>
-        </div>
-      </section>
+      <section class="page-view" id="page-account" data-page="account" hidden><div class="account-dashboard"><section class="account-section"><h3>Завантаження профілю…</h3><p class="muted">REBUS готує дані акаунта.</p></section></div></section>
+      <section class="page-view is-active" id="page-chat" data-page="chat"><div class="chat-layout direct-chat-layout"><aside class="chat-list direct-users-panel glass-card"><h3>Користувачі</h3><div class="direct-user-search"><span aria-hidden="true">⌕</span><input type="search" id="userSearchInput" placeholder="Пошук користувача…" autocomplete="off" aria-label="Пошук користувача" /></div><div class="direct-users-list" id="directUsersList" aria-label="Список користувачів"><div class="direct-empty">Завантаження користувачів…</div></div><div class="direct-self-card" id="directSelfCard" aria-label="Поточний користувач"><span class="direct-self-avatar">R</span><span class="direct-self-main"><strong>REBUS</strong><em>Онлайн</em></span></div></aside><section class="chat-panel chat-canvas"><div class="direct-chat-head" id="directChatHead"><div class="direct-chat-avatar">R</div><div><strong>Оберіть користувача</strong><span>Індивідуальне листування REBUS</span></div></div><div class="messages-list" id="messagesList" aria-live="polite"></div><div class="compose-box"><button type="button" aria-label="Додати файл">📎</button><input type="text" id="messageInput" placeholder="Оберіть користувача для листування…" autocomplete="off" disabled /><button type="button" class="composer-emoji-btn" id="composerEmojiButton" aria-label="Емодзі" disabled>☺</button><button type="button" class="send-btn" id="sendMessageButton" disabled>Надіслати</button></div></section></div></section>
+      <section class="page-view" id="page-contours" data-page="contours" hidden><div class="contours-workspace glass-card"><div class="contours-toolbar"><div class="contour-search"><span aria-hidden="true">⌕</span><input type="search" placeholder="Пошук контуру…" aria-label="Пошук контуру" /></div><button class="add-contour-btn" type="button">Додати контур</button></div><div class="contours-list" aria-label="Список контурів"><button class="contour-row is-current" type="button"><span class="contour-status active">Активний</span><strong>Загальний контур</strong><em>Основний простір взаємодії користувача</em><span class="contour-meta">12 учасників · 24 файли</span></button><button class="contour-row" type="button"><span class="contour-status pending">Очікує підключення</span><strong>Контур підрозділу</strong><em>Буде підтягуватись із Supabase після авторизації</em><span class="contour-meta">0 учасників · 0 файлів</span></button><button class="contour-row" type="button"><span class="contour-status draft">Шаблон</span><strong>Новий контур</strong><em>Підготовлена плашка для майбутнього створення контуру</em><span class="contour-meta">Не налаштовано</span></button></div></div></section>
+      <section class="page-view" id="page-library" data-page="library" hidden><div class="content-grid library-grid"><article class="glass-card library-tile"><strong>Документи</strong><span>0 файлів</span></article><article class="glass-card library-tile"><strong>Зображення</strong><span>0 файлів</span></article><article class="glass-card library-tile"><strong>Архіви</strong><span>0 файлів</span></article><article class="glass-card library-tile"><strong>Посилання</strong><span>0 записів</span></article></div></section>
+      <section class="page-view" id="page-contacts" data-page="contacts" hidden><div class="contacts-list glass-card"><div class="contact-row"><span class="status online"></span><b>Олександр</b><em>SUPER-ADMIN</em></div><div class="contact-row"><span class="status idle"></span><b>Користувач REBUS</b><em>USER</em></div><div class="contact-row"><span class="status offline"></span><b>Оператор контуру</b><em>OPERATOR</em></div></div></section>
     </main>
-</section>
-
+  </section>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="js/app.js?v=0.8.1"></script>
   <script src="js/composer-emoji-picker.js?v=0.8.2"></script>
@@ -194,6 +54,6 @@
   <script src="js/side-hover.js?v=0.8.1"></script>
   <script src="js/account-page.js?v=0.8.1"></script>
   <script src="js/account-route-fix.js?v=0.8.1"></script>
-  <script src="js/chat-core-override.js?v=0.8.1"></script>
+  <script src="js/chat-core-override.js?v=0.8.7"></script>
 </body>
 </html>
