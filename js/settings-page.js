@@ -1,4 +1,51 @@
 (() => {
+  const ROUTE_KEY = 'rebus:messenger:last-route';
+  const ROUTE_LABELS = { account: 'Акаунт', chat: 'Чат', contours: 'Контур', library: 'Бібліотека', contacts: 'Контакти', settings: 'Налаштування' };
+
+  function validRoute(route) {
+    return !!route && route !== 'logout' && !!document.querySelector(`[data-page="${CSS.escape(route)}"]`);
+  }
+
+  function activateRoute(route) {
+    if (!validRoute(route)) return;
+    document.querySelectorAll('[data-page]').forEach(page => {
+      const active = page.dataset.page === route;
+      page.hidden = !active;
+      page.classList.toggle('is-active', active);
+    });
+    document.querySelectorAll('[data-route]').forEach(button => {
+      button.classList.toggle('is-active', button.dataset.route === route);
+    });
+    document.title = `${ROUTE_LABELS[route] || 'REBUS'} — REBUS Messenger`;
+    if (route === 'settings') setTimeout(loadProfile, 60);
+    if (route === 'contacts') document.dispatchEvent(new CustomEvent('rebus:contacts-visible'));
+  }
+
+  function holdRoute(route, duration = 1800) {
+    if (!validRoute(route)) return;
+    const start = Date.now();
+    activateRoute(route);
+    const timer = setInterval(() => {
+      const active = document.querySelector('[data-page].is-active')?.dataset.page;
+      if (active !== route) activateRoute(route);
+      if (Date.now() - start > duration) clearInterval(timer);
+    }, 120);
+  }
+
+  document.addEventListener('click', event => {
+    const button = event.target.closest('[data-route]');
+    const route = button?.dataset?.route;
+    if (!validRoute(route)) return;
+    sessionStorage.setItem(ROUTE_KEY, route);
+    setTimeout(() => holdRoute(route, 2100), 0);
+    setTimeout(() => holdRoute(route, 1400), 350);
+  }, true);
+
+  window.addEventListener('pageshow', () => {
+    const saved = sessionStorage.getItem(ROUTE_KEY);
+    if (validRoute(saved)) setTimeout(() => holdRoute(saved, 900), 250);
+  });
+
   const SUPABASE_URL = 'https://aehedmvxpqxsmzxemkix.supabase.co';
   const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_8cJ1jnSyGOoAG8MOEXZtCA_cY72YAnh';
   const SETTINGS_KEY = 'rebus:messenger:settings';
@@ -134,6 +181,12 @@
   document.addEventListener('click', event => {
     if (event.target.closest('[data-route="settings"]')) setTimeout(() => { bindSettings(); loadProfile(); }, 140);
   }, true);
+
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState !== 'visible') return;
+    const saved = sessionStorage.getItem(ROUTE_KEY);
+    if (validRoute(saved)) setTimeout(() => holdRoute(saved, 900), 120);
+  });
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init, { once: true });
   else init();
