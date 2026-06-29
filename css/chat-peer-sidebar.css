@@ -1,0 +1,256 @@
+/* REBUS Messenger — peer profile sidebar */
+
+#page-chat .direct-chat-head .direct-chat-avatar,
+#page-chat .direct-chat-head .direct-chat-title {
+  cursor: pointer;
+}
+
+#page-chat .direct-chat-head .direct-chat-avatar {
+  transition: transform .16s ease, box-shadow .16s ease;
+}
+
+#page-chat .direct-chat-head .direct-chat-avatar:hover {
+  transform: translateY(-1px) scale(1.03);
+  box-shadow: 0 0 0 1px rgba(0,216,255,.22), 0 16px 34px rgba(0,0,0,.28), 0 0 28px rgba(255,36,56,.16);
+}
+
+.rebus-peer-sidebar-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 10030;
+  background: rgba(0,0,0,.26);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .18s ease;
+}
+
+.rebus-peer-sidebar-backdrop.is-open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.rebus-peer-sidebar {
+  position: fixed;
+  top: 0;
+  right: 0;
+  z-index: 10031;
+  width: min(420px, calc(100vw - 24px));
+  height: 100svh;
+  display: flex;
+  flex-direction: column;
+  border-left: 1px solid rgba(255,255,255,.10);
+  background:
+    radial-gradient(circle at 44% 0%, rgba(255,36,56,.16), transparent 34%),
+    radial-gradient(circle at 92% 28%, rgba(0,216,255,.10), transparent 36%),
+    rgba(5, 12, 22, .96);
+  box-shadow: -30px 0 90px rgba(0,0,0,.48);
+  backdrop-filter: blur(20px) saturate(1.06);
+  color: rgba(244,251,255,.92);
+  transform: translateX(104%);
+  transition: transform .22s ease;
+}
+
+.rebus-peer-sidebar.is-open {
+  transform: translateX(0);
+}
+
+.rebus-peer-sidebar-head {
+  min-height: 84px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 22px 22px 16px;
+  border-bottom: 1px solid rgba(255,255,255,.08);
+}
+
+.rebus-peer-sidebar-head strong {
+  display: block;
+  font-size: 18px;
+  font-weight: 950;
+}
+
+.rebus-peer-sidebar-head span {
+  display: block;
+  margin-top: 2px;
+  color: rgba(244,251,255,.52);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.rebus-peer-sidebar-close {
+  width: 38px;
+  height: 38px;
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 14px;
+  color: rgba(244,251,255,.78);
+  background: rgba(255,255,255,.055);
+  cursor: pointer;
+  font-size: 22px;
+  line-height: 1;
+}
+
+.rebus-peer-sidebar-close:hover {
+  color: #fff;
+  background: rgba(255,255,255,.10);
+}
+
+.rebus-peer-sidebar-body {
+  min-height: 0;
+  flex: 1;
+  overflow: auto;
+  padding: 26px 22px 28px;
+}
+
+.rebus-peer-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 8px 0 28px;
+  border-bottom: 1px solid rgba(255,255,255,.08);
+}
+
+.rebus-peer-avatar-xl {
+  width: 112px;
+  height: 112px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(255,255,255,.12);
+  border-radius: 34px;
+  color: #fff;
+  background: linear-gradient(145deg, #ff2438, #7b0019);
+  box-shadow: 0 24px 58px rgba(255,36,56,.18), inset 0 1px rgba(255,255,255,.18);
+  overflow: hidden;
+  font-size: 34px;
+  font-weight: 950;
+}
+
+.rebus-peer-avatar-xl.has-avatar {
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  color: transparent;
+}
+
+.rebus-peer-name {
+  margin: 18px 0 4px;
+  font-size: 26px;
+  line-height: 1.05;
+  font-weight: 950;
+}
+
+.rebus-peer-email {
+  color: rgba(244,251,255,.58);
+  font-size: 13px;
+  font-weight: 760;
+  word-break: break-word;
+}
+
+.rebus-peer-status {
+  margin-top: 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 11px;
+  border: 1px solid rgba(0,255,190,.14);
+  border-radius: 999px;
+  color: #37ffd3;
+  background: rgba(0,255,190,.07);
+  font-size: 12px;
+  font-weight: 950;
+}
+
+.rebus-peer-status i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #37ffd3;
+  box-shadow: 0 0 13px rgba(55,255,211,.75);
+}
+
+.rebus-peer-section {
+  padding: 22px 0;
+  border-bottom: 1px solid rgba(255,255,255,.08);
+}
+
+.rebus-peer-section:last-child {
+  border-bottom: 0;
+}
+
+.rebus-peer-section h4 {
+  margin: 0 0 14px;
+  font-size: 15px;
+  font-weight: 950;
+}
+
+.rebus-peer-info-grid {
+  display: grid;
+  gap: 10px;
+}
+
+.rebus-peer-info-row {
+  display: grid;
+  grid-template-columns: 104px minmax(0, 1fr);
+  gap: 12px;
+  align-items: center;
+  padding: 11px 0;
+  border-bottom: 1px solid rgba(255,255,255,.055);
+}
+
+.rebus-peer-info-row:last-child {
+  border-bottom: 0;
+}
+
+.rebus-peer-info-row span {
+  color: rgba(244,251,255,.42);
+  font-size: 11px;
+  font-weight: 950;
+  text-transform: uppercase;
+}
+
+.rebus-peer-info-row strong {
+  min-width: 0;
+  color: rgba(244,251,255,.90);
+  font-size: 13px;
+  font-weight: 850;
+  word-break: break-word;
+}
+
+.rebus-peer-shortcuts {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.rebus-peer-shortcut {
+  min-height: 78px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 18px;
+  color: rgba(244,251,255,.78);
+  background: rgba(255,255,255,.045);
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.rebus-peer-shortcut em {
+  font-style: normal;
+  font-size: 22px;
+}
+
+.rebus-peer-placeholder {
+  color: rgba(244,251,255,.44);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+@media (max-width: 768px) {
+  .rebus-peer-sidebar {
+    width: min(92vw, 420px);
+  }
+}
