@@ -13,13 +13,21 @@
     (tag === 'script' ? document.body : document.head).appendChild(node);
   }
 
-  function ensureCalendarAssets() {
+  function ensureFeatureAssets() {
     loadAsset('link', 'rebus-chat-calendar-style', {
       rel: 'stylesheet',
       href: 'css/chat-calendar.css?v=0.8.4'
     });
     loadAsset('script', 'rebus-chat-calendar-script', {
       src: 'js/chat-calendar.js?v=0.8.4',
+      defer: 'defer'
+    });
+    loadAsset('link', 'rebus-peer-sidebar-style', {
+      rel: 'stylesheet',
+      href: 'css/chat-peer-sidebar.css?v=0.8.5'
+    });
+    loadAsset('script', 'rebus-peer-sidebar-script', {
+      src: 'js/chat-peer-sidebar.js?v=0.8.5',
       defer: 'defer'
     });
   }
@@ -212,7 +220,7 @@
   }
 
   function init() {
-    ensureCalendarAssets();
+    ensureFeatureAssets();
     bindFaviconAuth();
     refreshFaviconAndAvatar();
     ensureStyle();
