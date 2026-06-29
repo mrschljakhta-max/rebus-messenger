@@ -2,42 +2,9 @@
   const MESSAGE_SELECTOR = '#messagesList .message[data-message-id]';
   const TOOL_SELECTOR = '.message-tools';
   const SIDE_ZONE_WIDTH = 92;
-  const STYLES = [
-    ['rebus-reactions-hover-style', 'css/reactions-hover.css?v=0.7.8'],
-    ['rebus-chat-polish-style', 'css/chat-polish.css?v=0.7.8'],
-    ['rebus-chat-reply-edit-style', 'css/chat-reply-edit.css?v=0.7.8']
-  ];
-  const SCRIPTS = [
-    ['rebus-message-actions-script', 'js/message-actions.js?v=0.7.8'],
-    ['rebus-account-route-fix-script', 'js/account-route-fix.js?v=0.7.6'],
-    ['rebus-chat-reply-edit-script', 'js/chat-reply-edit.js?v=0.7.8'],
-    ['rebus-chat-menu-native-fix-script', 'js/chat-menu-native-fix.js?v=0.7.8']
-  ];
   let activeMessage = null;
   let hideTimer = null;
   let polishObserver = null;
-
-  function ensureStyles() {
-    STYLES.forEach(([id, href]) => {
-      if (document.getElementById(id)) return;
-      const link = document.createElement('link');
-      link.id = id;
-      link.rel = 'stylesheet';
-      link.href = href;
-      document.head.appendChild(link);
-    });
-  }
-
-  function ensureScripts() {
-    SCRIPTS.forEach(([id, src]) => {
-      if (document.getElementById(id)) return;
-      const script = document.createElement('script');
-      script.id = id;
-      script.src = src;
-      script.defer = true;
-      document.body.appendChild(script);
-    });
-  }
 
   function getTool(message) {
     return message?.querySelector?.(TOOL_SELECTOR) || null;
@@ -50,9 +17,8 @@
       message.classList.contains('has-reaction-open') ||
       getTool(message)?.classList.contains('is-reaction-open') ||
       getTool(message)?.classList.contains('is-pinned')
-    ) {
-      return;
-    }
+    ) return;
+
     message.classList.remove('has-side-hover');
     getTool(message)?.classList.remove('is-hovered');
     if (activeMessage === message) activeMessage = null;
@@ -71,20 +37,14 @@
     const rect = message.getBoundingClientRect();
     const inVerticalRange = clientY >= rect.top - 4 && clientY <= rect.bottom + 4;
     if (!inVerticalRange) return false;
-
-    if (message.classList.contains('outgoing')) {
-      return clientX >= rect.left - SIDE_ZONE_WIDTH && clientX <= rect.left;
-    }
-
+    if (message.classList.contains('outgoing')) return clientX >= rect.left - SIDE_ZONE_WIDTH && clientX <= rect.left;
     return clientX >= rect.right && clientX <= rect.right + SIDE_ZONE_WIDTH;
   }
 
   function smoothScrollMessages() {
     const list = document.getElementById('messagesList');
     if (!list) return;
-    window.requestAnimationFrame(() => {
-      list.scrollTo({ top: list.scrollHeight, behavior: 'smooth' });
-    });
+    window.requestAnimationFrame(() => list.scrollTo({ top: list.scrollHeight, behavior: 'smooth' }));
   }
 
   function flashMessage(message) {
@@ -133,71 +93,26 @@
     });
   }
 
-  function initPolishObserver() {
-    const list = document.getElementById('messagesList');
-    if (!list || polishObserver) return;
-
-    ensureTypingIndicator();
-    bindMessageClickHighlight(document);
-    bindLocalTypingPreview();
-
-    polishObserver = new MutationObserver(mutations => {
-      let hasNewMessage = false;
-      mutations.forEach(mutation => {
-        mutation.addedNodes.forEach(node => {
-          if (!(node instanceof HTMLElement)) return;
-          if (node.matches?.('.message')) hasNewMessage = true;
-          if (node.querySelector?.('.message')) hasNewMessage = true;
-          bindMessageClickHighlight(node);
-        });
-      });
-      ensureTypingIndicator();
-      bindLocalTypingPreview();
-      if (hasNewMessage) smoothScrollMessages();
-    });
-
-    polishObserver.observe(list, { childList: true, subtree: true });
-  }
-
   function patchSingleReactionPerUser() {
     if (window.__rebusSingleReactionPatch === '1') return;
     window.__rebusSingleReactionPatch = '1';
-
     try {
       toggleReaction = async function patchedToggleReaction(messageId, reaction = '👍') {
         if (!supabaseClient || !currentUser || !messageId || !reaction) return;
-
         const current = getMessageReactionState({ id: messageId });
         const alreadyReacted = current.myReactions?.has(reaction);
-
-        const removeCurrent = await supabaseClient
-          .from('message_reactions')
-          .delete()
-          .eq('message_id', messageId)
-          .eq('user_id', currentUser.id);
-
+        const removeCurrent = await supabaseClient.from('message_reactions').delete().eq('message_id', messageId).eq('user_id', currentUser.id);
         if (removeCurrent.error) {
-          console.warn('[REBUS] Reaction replace/remove failed:', removeCurrent.error.message);
           alert(`Не вдалося змінити реакцію: ${removeCurrent.error.message}`);
           return;
         }
-
         if (!alreadyReacted) {
-          const { error } = await supabaseClient
-            .from('message_reactions')
-            .insert({
-              message_id: messageId,
-              user_id: currentUser.id,
-              reaction
-            });
-
+          const { error } = await supabaseClient.from('message_reactions').insert({ message_id: messageId, user_id: currentUser.id, reaction });
           if (error) {
-            console.warn('[REBUS] Reaction add failed:', error.message);
             alert(`Не вдалося додати реакцію: ${error.message}`);
             return;
           }
         }
-
         await refreshReactionForMessage(messageId);
       };
     } catch (error) {
@@ -205,8 +120,28 @@
     }
   }
 
-  ensureStyles();
-  ensureScripts();
+  function initPolishObserver() {
+    const list = document.getElementById('messagesList');
+    if (!list || polishObserver) return;
+    ensureTypingIndicator();
+    bindMessageClickHighlight(document);
+    bindLocalTypingPreview();
+    polishObserver = new MutationObserver(mutations => {
+      let hasNewMessage = false;
+      mutations.forEach(mutation => {
+        mutation.addedNodes.forEach(node => {
+          if (!(node instanceof HTMLElement)) return;
+          if (node.matches?.('.message') || node.querySelector?.('.message')) hasNewMessage = true;
+          bindMessageClickHighlight(node);
+        });
+      });
+      ensureTypingIndicator();
+      bindLocalTypingPreview();
+      if (hasNewMessage) smoothScrollMessages();
+    });
+    polishObserver.observe(list, { childList: true, subtree: true });
+  }
+
   patchSingleReactionPerUser();
 
   document.addEventListener('pointermove', event => {
@@ -215,22 +150,17 @@
       activateMessage(tool.closest('.message'));
       return;
     }
-
-    const messages = document.querySelectorAll(MESSAGE_SELECTOR);
     let hovered = null;
-
-    for (const message of messages) {
+    for (const message of document.querySelectorAll(MESSAGE_SELECTOR)) {
       if (pointerIsInSideZone(message, event.clientX, event.clientY)) {
         hovered = message;
         break;
       }
     }
-
     if (hovered) {
       activateMessage(hovered);
       return;
     }
-
     if (activeMessage) {
       window.clearTimeout(hideTimer);
       hideTimer = window.setTimeout(() => clearMessage(activeMessage), 120);
@@ -246,9 +176,6 @@
     if (activeMessage) clearMessage(activeMessage);
   }, true);
 
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initPolishObserver, { once: true });
-  } else {
-    initPolishObserver();
-  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initPolishObserver, { once: true });
+  else initPolishObserver();
 })();
