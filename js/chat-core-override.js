@@ -124,15 +124,7 @@
 
   function clamp(value, min, max) { return Math.max(min, Math.min(value, max)); }
 
-  function getAnchorPoint(message, point) {
-    const rect = message.getBoundingClientRect();
-    if (point && Number.isFinite(point.x) && Number.isFinite(point.y)) return point;
-    return message.classList.contains('outgoing')
-      ? { x: rect.left + 10, y: rect.top + 18 }
-      : { x: rect.right - 10, y: rect.top + 18 };
-  }
-
-  function openFixedMenu(messageId, point = null) {
+  function openFixedMenu(messageId) {
     const message = messageById(messageId);
     const menu = document.querySelector(`.message-context-menu[data-menu-for="${CSS.escape(messageId)}"]`);
     if (!message || !menu) return;
@@ -146,18 +138,19 @@
     menu.style.top = '0px';
     menu.style.width = '224px';
 
+    const messageRect = message.getBoundingClientRect();
     const menuRect = menu.getBoundingClientRect();
     const gap = 10;
-    const anchor = getAnchorPoint(message, point);
     const isOutgoing = message.classList.contains('outgoing');
 
-    let left = isOutgoing ? anchor.x - menuRect.width - 14 : anchor.x + 14;
+    let left = isOutgoing ? messageRect.left - menuRect.width - 12 : messageRect.right + 12;
+    if (left < gap) left = isOutgoing ? messageRect.left : messageRect.right + 12;
     left = clamp(left, gap, window.innerWidth - menuRect.width - gap);
 
-    let top = anchor.y - 18;
+    let top = messageRect.top - 2;
     const maxTop = window.innerHeight - menuRect.height - gap;
     if (top > maxTop) {
-      top = anchor.y - menuRect.height + 18;
+      top = messageRect.bottom - menuRect.height + 2;
       menu.classList.add('opens-up');
     }
     top = clamp(top, gap, maxTop);
@@ -228,7 +221,7 @@
         event.preventDefault();
         event.stopPropagation();
         event.stopImmediatePropagation?.();
-        openFixedMenu(message.dataset.messageId, { x: event.clientX, y: event.clientY });
+        openFixedMenu(message.dataset.messageId);
       }, true);
       message.appendChild(button);
     }
@@ -264,7 +257,7 @@
     const message = event.target.closest?.(MESSAGE_SELECTOR);
     if (!message) return;
     event.preventDefault(); event.stopPropagation(); event.stopImmediatePropagation?.();
-    openFixedMenu(message.dataset.messageId, { x: event.clientX, y: event.clientY });
+    openFixedMenu(message.dataset.messageId);
   }, true);
 
   document.addEventListener('keydown', event => {
