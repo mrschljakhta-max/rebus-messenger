@@ -27,6 +27,15 @@
     return message?.querySelector?.('b')?.textContent?.trim() || 'Користувач';
   }
 
+  function stripNativeReceiptTooltips(scope = document) {
+    scope.querySelectorAll?.('.message-status[title]').forEach(status => {
+      const nativeTitle = status.getAttribute('title');
+      if (nativeTitle && !status.dataset.tooltip) status.dataset.tooltip = nativeTitle;
+      status.removeAttribute('title');
+      status.setAttribute('aria-label', status.dataset.tooltip || status.textContent.trim());
+    });
+  }
+
   function ensurePreview() {
     const compose = document.querySelector('#page-chat .compose-box');
     if (!compose) return null;
@@ -94,6 +103,7 @@
     window.appendMessage = function patchedAppendMessage(message, options = {}) {
       const reply = replyForMessage(message);
       const el = original.call(this, message, options);
+      if (el) stripNativeReceiptTooltips(el);
       if (el && reply) attachReply(el, reply);
       return el;
     };
@@ -164,14 +174,9 @@
 
   function startReply(message) {
     activeEdit = null;
-    activeReply = {
-      id: message.dataset.messageId,
-      author: msgAuthor(message),
-      text: msgText(message)
-    };
+    activeReply = { id: message.dataset.messageId, author: msgAuthor(message), text: msgText(message) };
     showPreview('reply', `Відповідь: ${activeReply.author}`, activeReply.text);
-    const input = document.getElementById('messageInput');
-    input?.focus();
+    document.getElementById('messageInput')?.focus();
   }
 
   function startEdit(message) {
@@ -197,11 +202,7 @@
     if (!body) return;
     const message = messageById(activeEdit.id);
     try {
-      const { error } = await supabaseClient
-        .from('messenger_messages')
-        .update({ body })
-        .eq('id', activeEdit.id)
-        .eq('user_id', currentUser.id);
+      const { error } = await supabaseClient.from('messenger_messages').update({ body }).eq('id', activeEdit.id).eq('user_id', currentUser.id);
       if (error) throw error;
       const bodyNode = message?.querySelector('.message-body');
       if (bodyNode) bodyNode.textContent = body;
@@ -234,6 +235,7 @@
   function bind(scope = document) {
     patchAppendMessage();
     patchMenu();
+    stripNativeReceiptTooltips(scope);
     scope.querySelectorAll?.(MESSAGE_SELECTOR)?.forEach(addCorner);
   }
 
@@ -242,60 +244,38 @@
     if (menuItem) {
       const message = messageById(menuItem.dataset.messageId);
       if (menuItem.dataset.action === 'reply' && message) {
-        event.preventDefault();
-        event.stopPropagation();
-        event.stopImmediatePropagation?.();
-        closeMenus();
-        startReply(message);
+        event.preventDefault(); event.stopPropagation(); event.stopImmediatePropagation?.(); closeMenus(); startReply(message);
       }
       if (menuItem.dataset.action === 'edit' && message?.classList.contains('outgoing')) {
-        event.preventDefault();
-        event.stopPropagation();
-        event.stopImmediatePropagation?.();
-        closeMenus();
-        startEdit(message);
+        event.preventDefault(); event.stopPropagation(); event.stopImmediatePropagation?.(); closeMenus(); startEdit(message);
       }
       return;
     }
 
     if (activeEdit && event.target.closest?.('#sendMessageButton')) {
-      event.preventDefault();
-      event.stopPropagation();
-      event.stopImmediatePropagation?.();
-      saveEdit();
-      return;
+      event.preventDefault(); event.stopPropagation(); event.stopImmediatePropagation?.(); saveEdit(); return;
     }
 
     if (activeReply && event.target.closest?.('#sendMessageButton')) {
       const body = document.getElementById('messageInput')?.value?.trim() || '';
-      if (body) {
-        pendingReply = { ...activeReply, body, userId: window.currentUser?.id || undefined, until: Date.now() + 30000 };
-      }
+      if (body) pendingReply = { ...activeReply, body, userId: window.currentUser?.id || undefined, until: Date.now() + 30000 };
       window.setTimeout(clearModes, 80);
       return;
     }
 
-    if (!event.target.closest?.('.message-context-menu, .message-menu-toggle, .message-corner-menu')) {
-      closeMenus();
-    }
+    if (!event.target.closest?.('.message-context-menu, .message-menu-toggle, .message-corner-menu, .message-status')) closeMenus();
   }, true);
 
   document.addEventListener('contextmenu', event => {
     const message = event.target.closest?.(MESSAGE_SELECTOR);
     if (!message) return;
-    event.preventDefault();
-    event.stopPropagation();
-    event.stopImmediatePropagation?.();
-    openFixedMenu(message.dataset.messageId);
+    event.preventDefault(); event.stopPropagation(); event.stopImmediatePropagation?.(); openFixedMenu(message.dataset.messageId);
   }, true);
 
   document.addEventListener('keydown', event => {
     if (event.key === 'Escape') clearModes();
     if (activeEdit && event.key === 'Enter' && !event.shiftKey && event.target?.id === 'messageInput') {
-      event.preventDefault();
-      event.stopPropagation();
-      event.stopImmediatePropagation?.();
-      saveEdit();
+      event.preventDefault(); event.stopPropagation(); event.stopImmediatePropagation?.(); saveEdit();
     }
   }, true);
 
