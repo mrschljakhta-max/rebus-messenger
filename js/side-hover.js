@@ -21,43 +21,65 @@
     return meta.avatar_url || meta.picture || meta.photo_url || meta.avatar || '';
   }
 
-  function setNavAccountAvatar(user) {
+  function safeCssUrl(value = '') {
+    return String(value).replaceAll('"', '%22').replaceAll('\\', '%5C');
+  }
+
+  function setAccountStatusLogo(online) {
     const logo = document.querySelector('.account-card .account-logo');
     if (!logo) return;
+    logo.classList.remove('has-user-avatar');
+    logo.classList.add('is-status-logo');
+    logo.textContent = '';
+    logo.style.backgroundImage = `url("${online ? ONLINE_FAVICON : OFFLINE_FAVICON}")`;
+    logo.style.backgroundSize = 'cover';
+    logo.style.backgroundPosition = 'center';
+    logo.style.backgroundRepeat = 'no-repeat';
+  }
+
+  function setSelfCardAvatar(user) {
+    const avatar = document.querySelector('#directSelfCard .direct-self-avatar');
+    if (!avatar) return;
     const avatarUrl = getAvatarUrl(user);
     if (avatarUrl) {
-      logo.classList.add('has-user-avatar');
-      logo.textContent = '';
-      logo.style.backgroundImage = `url("${String(avatarUrl).replaceAll('"', '%22')}")`;
-      logo.style.backgroundSize = 'cover';
-      logo.style.backgroundPosition = 'center';
-      logo.style.backgroundRepeat = 'no-repeat';
+      avatar.classList.add('has-user-avatar');
+      avatar.textContent = '';
+      avatar.style.backgroundImage = `url("${safeCssUrl(avatarUrl)}")`;
+      avatar.style.backgroundSize = 'cover';
+      avatar.style.backgroundPosition = 'center';
+      avatar.style.backgroundRepeat = 'no-repeat';
       return;
     }
-    logo.classList.remove('has-user-avatar');
-    logo.style.backgroundImage = '';
-    logo.style.backgroundSize = '';
-    logo.style.backgroundPosition = '';
-    logo.style.backgroundRepeat = '';
-    logo.textContent = 'R';
+    avatar.classList.remove('has-user-avatar');
+    avatar.style.backgroundImage = '';
+    avatar.style.backgroundSize = '';
+    avatar.style.backgroundPosition = '';
+    avatar.style.backgroundRepeat = '';
+    avatar.textContent = 'R';
   }
 
   async function refreshFaviconAndAvatar() {
     try {
       const client = window.supabaseClient || (typeof supabaseClient !== 'undefined' ? supabaseClient : null);
       if (!client?.auth?.getSession) {
+        faviconSignedIn = false;
         setFavicon(false);
-        setNavAccountAvatar(null);
+        setAccountStatusLogo(false);
+        setSelfCardAvatar(null);
         return;
       }
       const { data } = await client.auth.getSession();
       const user = data?.session?.user || null;
       faviconSignedIn = Boolean(user);
-      setFavicon(faviconSignedIn && navigator.onLine !== false);
-      setNavAccountAvatar(user);
+      const online = faviconSignedIn && navigator.onLine !== false;
+      setFavicon(online);
+      setAccountStatusLogo(online);
+      setSelfCardAvatar(user);
     } catch {
+      faviconSignedIn = false;
       setFavicon(false);
-      setNavAccountAvatar(null);
+      setAccountStatusLogo(false);
+      setSelfCardAvatar(null);
     }
   }
 
@@ -70,13 +92,16 @@
         if (event === 'SIGNED_OUT') {
           faviconSignedIn = false;
           setFavicon(false);
-          setNavAccountAvatar(null);
+          setAccountStatusLogo(false);
+          setSelfCardAvatar(null);
           return;
         }
         if (session?.user || event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') {
           faviconSignedIn = Boolean(session?.user || faviconSignedIn);
-          setFavicon(faviconSignedIn && navigator.onLine !== false);
-          setNavAccountAvatar(session?.user || null);
+          const online = faviconSignedIn && navigator.onLine !== false;
+          setFavicon(online);
+          setAccountStatusLogo(online);
+          setSelfCardAvatar(session?.user || null);
         }
       });
     } catch {}
@@ -87,7 +112,13 @@
     const style = document.createElement('style');
     style.id = STYLE_ID;
     style.textContent = `
-      .account-card .account-logo.has-user-avatar {
+      .account-card .account-logo.is-status-logo {
+        overflow: hidden !important;
+        color: transparent !important;
+        background-color: rgba(255,255,255,.05) !important;
+        box-shadow: 0 0 24px rgba(255,36,56,.22) !important;
+      }
+      #directSelfCard .direct-self-avatar.has-user-avatar {
         color: transparent !important;
         overflow: hidden !important;
         background-color: rgba(255,255,255,.08) !important;
@@ -178,8 +209,16 @@
   }
 
   setFavicon(false);
-  window.addEventListener('online', () => setFavicon(faviconSignedIn));
-  window.addEventListener('offline', () => setFavicon(false));
+  setAccountStatusLogo(false);
+  window.addEventListener('online', () => {
+    const online = faviconSignedIn;
+    setFavicon(online);
+    setAccountStatusLogo(online);
+  });
+  window.addEventListener('offline', () => {
+    setFavicon(false);
+    setAccountStatusLogo(false);
+  });
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init, { once: true });
   else init();
