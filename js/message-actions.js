@@ -83,12 +83,88 @@
     });
   }
 
+  function closeFixedMenus() {
+    document.querySelectorAll('.message-context-menu.is-open').forEach(menu => {
+      menu.classList.remove('is-open', 'rebus-fixed-menu', 'opens-up');
+      menu.style.left = '';
+      menu.style.top = '';
+    });
+    document.querySelectorAll('.message.has-menu-open').forEach(message => message.classList.remove('has-menu-open'));
+    document.querySelectorAll('.message-tools.is-pinned').forEach(tool => tool.classList.remove('is-pinned'));
+  }
+
+  function positionMenu(menu, trigger, message) {
+    if (!menu || !trigger) return;
+    menu.classList.add('rebus-fixed-menu');
+    const triggerRect = trigger.getBoundingClientRect();
+    const messageRect = message.getBoundingClientRect();
+    const menuWidth = Math.min(224, window.innerWidth - 24);
+    const menuHeight = Math.min(420, window.innerHeight - 24);
+    const isOutgoing = message.classList.contains('outgoing');
+
+    let left = isOutgoing ? messageRect.left - menuWidth - 12 : messageRect.right + 12;
+    if (left < 12) left = Math.max(12, triggerRect.left - menuWidth + 26);
+    if (left + menuWidth > window.innerWidth - 12) left = window.innerWidth - menuWidth - 12;
+
+    let top = triggerRect.top - 8;
+    if (top + menuHeight > window.innerHeight - 12) {
+      top = Math.max(12, window.innerHeight - menuHeight - 12);
+      menu.classList.add('opens-up');
+    }
+
+    menu.style.left = `${left}px`;
+    menu.style.top = `${top}px`;
+  }
+
+  function openMessageMenuFromCorner(message, trigger, event) {
+    if (!message?.dataset.messageId) return;
+    event?.preventDefault();
+    event?.stopPropagation();
+    const menu = message.querySelector(`[data-menu-for="${CSS.escape(message.dataset.messageId)}"]`);
+    if (!menu) return;
+    closeFixedMenus();
+    menu.classList.add('is-open');
+    message.classList.add('has-menu-open');
+    message.querySelector('.message-tools')?.classList.add('is-pinned');
+    positionMenu(menu, trigger, message);
+  }
+
+  function bindMessageCornerMenus() {
+    document.querySelectorAll('#page-chat .messages-list .message[data-message-id]').forEach(message => {
+      if (message.dataset.cornerMenuBound === '1') return;
+      if (String(message.dataset.messageId || '').startsWith('local-')) return;
+      message.dataset.cornerMenuBound = '1';
+
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'message-corner-menu';
+      button.setAttribute('aria-label', 'Відкрити меню повідомлення');
+      button.setAttribute('title', 'Дії з повідомленням');
+      message.appendChild(button);
+
+      button.addEventListener('click', event => openMessageMenuFromCorner(message, button, event));
+      message.addEventListener('contextmenu', event => openMessageMenuFromCorner(message, button, event));
+    });
+  }
+
   function observe() {
     bindTypingBroadcast();
     ensureTypingChannel();
+    bindMessageCornerMenus();
+  }
+
+  const messagesList = document.getElementById('messagesList');
+  if (messagesList) {
+    const observer = new MutationObserver(() => bindMessageCornerMenus());
+    observer.observe(messagesList, { childList: true, subtree: true });
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', observe, { once: true });
   else observe();
-  document.addEventListener('click', () => window.setTimeout(observe, 80), true);
+  document.addEventListener('click', event => {
+    if (!event.target.closest('.message-context-menu') && !event.target.closest('.message-corner-menu')) {
+      window.setTimeout(closeFixedMenus, 0);
+    }
+    window.setTimeout(observe, 80);
+  }, true);
 })();
