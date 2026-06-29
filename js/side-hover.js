@@ -16,18 +16,48 @@
     link.href = online ? ONLINE_FAVICON : OFFLINE_FAVICON;
   }
 
-  async function refreshFavicon() {
+  function getAvatarUrl(user) {
+    const meta = user?.user_metadata || {};
+    return meta.avatar_url || meta.picture || meta.photo_url || meta.avatar || '';
+  }
+
+  function setNavAccountAvatar(user) {
+    const logo = document.querySelector('.account-card .account-logo');
+    if (!logo) return;
+    const avatarUrl = getAvatarUrl(user);
+    if (avatarUrl) {
+      logo.classList.add('has-user-avatar');
+      logo.textContent = '';
+      logo.style.backgroundImage = `url("${String(avatarUrl).replaceAll('"', '%22')}")`;
+      logo.style.backgroundSize = 'cover';
+      logo.style.backgroundPosition = 'center';
+      logo.style.backgroundRepeat = 'no-repeat';
+      return;
+    }
+    logo.classList.remove('has-user-avatar');
+    logo.style.backgroundImage = '';
+    logo.style.backgroundSize = '';
+    logo.style.backgroundPosition = '';
+    logo.style.backgroundRepeat = '';
+    logo.textContent = 'R';
+  }
+
+  async function refreshFaviconAndAvatar() {
     try {
       const client = window.supabaseClient || (typeof supabaseClient !== 'undefined' ? supabaseClient : null);
       if (!client?.auth?.getSession) {
         setFavicon(false);
+        setNavAccountAvatar(null);
         return;
       }
       const { data } = await client.auth.getSession();
-      faviconSignedIn = Boolean(data?.session?.user);
+      const user = data?.session?.user || null;
+      faviconSignedIn = Boolean(user);
       setFavicon(faviconSignedIn && navigator.onLine !== false);
+      setNavAccountAvatar(user);
     } catch {
       setFavicon(false);
+      setNavAccountAvatar(null);
     }
   }
 
@@ -40,11 +70,13 @@
         if (event === 'SIGNED_OUT') {
           faviconSignedIn = false;
           setFavicon(false);
+          setNavAccountAvatar(null);
           return;
         }
         if (session?.user || event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') {
           faviconSignedIn = Boolean(session?.user || faviconSignedIn);
           setFavicon(faviconSignedIn && navigator.onLine !== false);
+          setNavAccountAvatar(session?.user || null);
         }
       });
     } catch {}
@@ -55,6 +87,12 @@
     const style = document.createElement('style');
     style.id = STYLE_ID;
     style.textContent = `
+      .account-card .account-logo.has-user-avatar {
+        color: transparent !important;
+        overflow: hidden !important;
+        background-color: rgba(255,255,255,.08) !important;
+        box-shadow: 0 0 24px rgba(0,216,255,.16), 0 0 24px rgba(255,36,56,.16) !important;
+      }
       #page-chat .message[data-message-id] { position: relative !important; min-width: 84px !important; }
       #page-chat .message[data-message-id].incoming { padding-right: 30px !important; }
       #page-chat .message[data-message-id].outgoing { padding-left: 30px !important; }
@@ -125,7 +163,7 @@
 
   function init() {
     bindFaviconAuth();
-    refreshFavicon();
+    refreshFaviconAndAvatar();
     ensureStyle();
     ensureButtons(document);
     const list = document.getElementById('messagesList');
@@ -147,4 +185,5 @@
   else init();
   window.setTimeout(init, 300);
   window.setTimeout(init, 900);
+  window.setTimeout(init, 1800);
 })();
