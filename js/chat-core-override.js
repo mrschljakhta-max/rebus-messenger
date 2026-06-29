@@ -6,12 +6,7 @@
   let pendingReply = null;
 
   function esc(value = '') {
-    return String(value)
-      .replaceAll('&', '&amp;')
-      .replaceAll('<', '&lt;')
-      .replaceAll('>', '&gt;')
-      .replaceAll('"', '&quot;')
-      .replaceAll("'", '&#039;');
+    return String(value).replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;').replaceAll("'", '&#039;');
   }
 
   function messageById(id) {
@@ -19,13 +14,8 @@
     return document.querySelector(`#messagesList .message[data-message-id="${CSS.escape(id)}"]`);
   }
 
-  function msgText(message) {
-    return message?.querySelector?.('.message-body')?.textContent?.trim() || '';
-  }
-
-  function msgAuthor(message) {
-    return message?.querySelector?.('b')?.textContent?.trim() || 'Користувач';
-  }
+  function msgText(message) { return message?.querySelector?.('.message-body')?.textContent?.trim() || ''; }
+  function msgAuthor(message) { return message?.querySelector?.('b')?.textContent?.trim() || 'Користувач'; }
 
   function stripNativeReceiptTooltips(scope = document) {
     scope.querySelectorAll?.('.message-status[title]').forEach(status => {
@@ -87,10 +77,7 @@
   function replyForMessage(message) {
     if (message?.__reply) return message.__reply;
     if (!pendingReply) return null;
-    if (Date.now() > pendingReply.until) {
-      pendingReply = null;
-      return null;
-    }
+    if (Date.now() > pendingReply.until) { pendingReply = null; return null; }
     if (message?.user_id && pendingReply.userId && message.user_id !== pendingReply.userId) return null;
     if ((message?.body || '').trim() !== pendingReply.body) return null;
     return pendingReply;
@@ -123,14 +110,6 @@
     try { openMessageMenuId = null; } catch {}
   }
 
-  function safeBottom() {
-    const composer = document.querySelector('#page-chat .compose-box');
-    const preview = document.getElementById(PREVIEW_ID);
-    const composerTop = composer?.getBoundingClientRect?.().top || window.innerHeight;
-    const previewTop = preview?.classList.contains('is-visible') ? preview.getBoundingClientRect().top : composerTop;
-    return Math.min(window.innerHeight - 10, composerTop - 10, previewTop - 10);
-  }
-
   function prepareMenuForBody(menu, message) {
     if (!menu || !message) return;
     menu.dataset.menuFor = message.dataset.messageId;
@@ -143,7 +122,17 @@
     });
   }
 
-  function openFixedMenu(messageId) {
+  function clamp(value, min, max) { return Math.max(min, Math.min(value, max)); }
+
+  function getAnchorPoint(message, point) {
+    const rect = message.getBoundingClientRect();
+    if (point && Number.isFinite(point.x) && Number.isFinite(point.y)) return point;
+    return message.classList.contains('outgoing')
+      ? { x: rect.left + 10, y: rect.top + 18 }
+      : { x: rect.right - 10, y: rect.top + 18 };
+  }
+
+  function openFixedMenu(messageId, point = null) {
     const message = messageById(messageId);
     const menu = document.querySelector(`.message-context-menu[data-menu-for="${CSS.escape(messageId)}"]`);
     if (!message || !menu) return;
@@ -157,33 +146,31 @@
     menu.style.top = '0px';
     menu.style.width = '224px';
 
-    const messageRect = message.getBoundingClientRect();
     const menuRect = menu.getBoundingClientRect();
     const gap = 10;
-    const bottom = safeBottom();
+    const anchor = getAnchorPoint(message, point);
     const isOutgoing = message.classList.contains('outgoing');
 
-    let left = isOutgoing ? messageRect.left - menuRect.width - gap : messageRect.right + gap;
-    if (left < gap) left = messageRect.left;
-    if (left + menuRect.width > window.innerWidth - gap) left = window.innerWidth - menuRect.width - gap;
+    let left = isOutgoing ? anchor.x - menuRect.width - 14 : anchor.x + 14;
+    left = clamp(left, gap, window.innerWidth - menuRect.width - gap);
 
-    const belowTop = messageRect.bottom + gap;
-    const aboveTop = messageRect.top - menuRect.height - gap;
-    const openUp = belowTop + menuRect.height > bottom && aboveTop >= gap;
-    const top = openUp ? aboveTop : Math.min(belowTop, bottom - menuRect.height);
+    let top = anchor.y - 18;
+    const maxTop = window.innerHeight - menuRect.height - gap;
+    if (top > maxTop) {
+      top = anchor.y - menuRect.height + 18;
+      menu.classList.add('opens-up');
+    }
+    top = clamp(top, gap, maxTop);
 
-    menu.classList.toggle('opens-up', openUp);
-    menu.style.left = `${Math.max(gap, left)}px`;
-    menu.style.top = `${Math.max(gap, top)}px`;
+    menu.style.left = `${left}px`;
+    menu.style.top = `${top}px`;
     try { openMessageMenuId = messageId; } catch {}
   }
 
   function patchMenu() {
     if (window.__rebusMenuPatched === '1' || typeof window.openMessageContextMenu !== 'function') return;
     window.__rebusMenuPatched = '1';
-    window.openMessageContextMenu = function patchedOpenMessageContextMenu(messageId) {
-      openFixedMenu(messageId);
-    };
+    window.openMessageContextMenu = function patchedOpenMessageContextMenu(messageId) { openFixedMenu(messageId); };
     try { openMessageContextMenu = window.openMessageContextMenu; } catch {}
   }
 
@@ -224,9 +211,7 @@
       message?.classList.add('is-edited-message');
       if (input) input.value = '';
       clearModes();
-    } catch (error) {
-      alert(`Не вдалося відредагувати повідомлення: ${error.message || error}`);
-    }
+    } catch (error) { alert(`Не вдалося відредагувати повідомлення: ${error.message || error}`); }
   }
 
   function addCorner(message) {
@@ -238,16 +223,12 @@
       button.className = 'message-corner-menu';
       button.textContent = '⌄';
       button.setAttribute('aria-label', 'Дії з повідомленням');
-      button.addEventListener('pointerdown', event => {
-        event.preventDefault();
-        event.stopPropagation();
-        event.stopImmediatePropagation?.();
-      }, true);
+      button.addEventListener('pointerdown', event => { event.preventDefault(); event.stopPropagation(); event.stopImmediatePropagation?.(); }, true);
       button.addEventListener('click', event => {
         event.preventDefault();
         event.stopPropagation();
         event.stopImmediatePropagation?.();
-        openFixedMenu(message.dataset.messageId);
+        openFixedMenu(message.dataset.messageId, { x: event.clientX, y: event.clientY });
       }, true);
       message.appendChild(button);
     }
@@ -265,40 +246,30 @@
     const menuItem = event.target.closest?.('.message-menu-item');
     if (menuItem) {
       const message = messageById(menuItem.dataset.messageId);
-      if (menuItem.dataset.action === 'reply' && message) {
-        event.preventDefault(); event.stopPropagation(); event.stopImmediatePropagation?.(); closeMenus(); startReply(message);
-      }
-      if (menuItem.dataset.action === 'edit' && message?.classList.contains('outgoing')) {
-        event.preventDefault(); event.stopPropagation(); event.stopImmediatePropagation?.(); closeMenus(); startEdit(message);
-      }
+      if (menuItem.dataset.action === 'reply' && message) { event.preventDefault(); event.stopPropagation(); event.stopImmediatePropagation?.(); closeMenus(); startReply(message); }
+      if (menuItem.dataset.action === 'edit' && message?.classList.contains('outgoing')) { event.preventDefault(); event.stopPropagation(); event.stopImmediatePropagation?.(); closeMenus(); startEdit(message); }
       return;
     }
-
-    if (activeEdit && event.target.closest?.('#sendMessageButton')) {
-      event.preventDefault(); event.stopPropagation(); event.stopImmediatePropagation?.(); saveEdit(); return;
-    }
-
+    if (activeEdit && event.target.closest?.('#sendMessageButton')) { event.preventDefault(); event.stopPropagation(); event.stopImmediatePropagation?.(); saveEdit(); return; }
     if (activeReply && event.target.closest?.('#sendMessageButton')) {
       const body = document.getElementById('messageInput')?.value?.trim() || '';
       if (body) pendingReply = { ...activeReply, body, userId: window.currentUser?.id || undefined, until: Date.now() + 30000 };
       window.setTimeout(clearModes, 80);
       return;
     }
-
     if (!event.target.closest?.('.message-context-menu, .message-menu-toggle, .message-corner-menu, .message-status')) closeMenus();
   }, true);
 
   document.addEventListener('contextmenu', event => {
     const message = event.target.closest?.(MESSAGE_SELECTOR);
     if (!message) return;
-    event.preventDefault(); event.stopPropagation(); event.stopImmediatePropagation?.(); openFixedMenu(message.dataset.messageId);
+    event.preventDefault(); event.stopPropagation(); event.stopImmediatePropagation?.();
+    openFixedMenu(message.dataset.messageId, { x: event.clientX, y: event.clientY });
   }, true);
 
   document.addEventListener('keydown', event => {
     if (event.key === 'Escape') clearModes();
-    if (activeEdit && event.key === 'Enter' && !event.shiftKey && event.target?.id === 'messageInput') {
-      event.preventDefault(); event.stopPropagation(); event.stopImmediatePropagation?.(); saveEdit();
-    }
+    if (activeEdit && event.key === 'Enter' && !event.shiftKey && event.target?.id === 'messageInput') { event.preventDefault(); event.stopPropagation(); event.stopImmediatePropagation?.(); saveEdit(); }
   }, true);
 
   function init() {
@@ -306,11 +277,7 @@
     const list = document.getElementById('messagesList');
     if (list && list.dataset.coreOverrideReady !== '1') {
       list.dataset.coreOverrideReady = '1';
-      new MutationObserver(mutations => {
-        mutations.forEach(mutation => mutation.addedNodes.forEach(node => {
-          if (node instanceof HTMLElement) bind(node);
-        }));
-      }).observe(list, { childList: true, subtree: true });
+      new MutationObserver(mutations => { mutations.forEach(mutation => mutation.addedNodes.forEach(node => { if (node instanceof HTMLElement) bind(node); })); }).observe(list, { childList: true, subtree: true });
     }
   }
 
