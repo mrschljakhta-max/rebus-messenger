@@ -9,8 +9,12 @@
   <link rel="icon" href="assets/icons/rebus-mark.svg" type="image/svg+xml" />
   <link rel="preload" href="assets/images/desktop/login-bg-1920.webp" as="image" media="(min-width: 769px)" />
   <link rel="preload" href="assets/images/mobile/login-bg-mobile-1080.webp" as="image" media="(max-width: 768px)" />
-  <link rel="stylesheet" href="css/styles.css?v=0.7.0" />
-  <link rel="stylesheet" href="css/account-flat.css?v=0.7.5" />
+  <link rel="stylesheet" href="css/styles.css?v=0.8.1" />
+  <link rel="stylesheet" id="rebus-account-style" href="css/account.css?v=0.8.1" />
+  <link rel="stylesheet" href="css/account-flat.css?v=0.8.1" />
+  <link rel="stylesheet" href="css/reactions-hover.css?v=0.8.1" />
+  <link rel="stylesheet" href="css/chat-polish.css?v=0.8.1" />
+  <link rel="stylesheet" href="css/chat-reply-edit.css?v=0.8.1" />
 </head>
 <body>
   <main class="login-page" id="loginPage" aria-label="REBUS Messenger стартова сторінка">
@@ -78,7 +82,7 @@
         <span class="nav-icon"><img src="assets/icons/nav/logout.png" alt="" /></span>
         <span class="nav-label">Вихід</span>
       </button>
-      <div class="version-note">REBUS Messenger <b>v0.8.0</b></div>
+      <div class="version-note">REBUS Messenger <b>v0.8.1</b></div>
     </aside>
 
     <main class="workspace" aria-live="polite">
@@ -182,11 +186,11 @@
 </section>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="js/app.js?v=0.8.0"></script>
-  <script src="js/side-hover.js?v=0.7.9"></script>
-  <script src="js/account-page.js?v=0.7.5"></script>
-  <script src="js/chat-reply-edit.js?v=0.7.9"></script>
-  <script src="js/chat-menu-native-fix.js?v=0.7.9"></script>
-  <script src="js/chat-core-override.js?v=0.8.0"></script>
+  <script src="js/app.js?v=0.8.1"></script>
+  <script src="js/message-actions.js?v=0.8.1"></script>
+  <script src="js/side-hover.js?v=0.8.1"></script>
+  <script src="js/account-page.js?v=0.8.1"></script>
+  <script src="js/account-route-fix.js?v=0.8.1"></script>
+  <script src="js/chat-core-override.js?v=0.8.1"></script>
 </body>
 </html>
