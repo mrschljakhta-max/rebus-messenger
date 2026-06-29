@@ -5,6 +5,25 @@
   const OFFLINE_FAVICON = 'assets/icons/rebus-offline.svg?v=0.8.3';
   let faviconSignedIn = false;
 
+  function loadAsset(tag, id, attrs) {
+    if (document.getElementById(id)) return;
+    const node = document.createElement(tag);
+    node.id = id;
+    Object.entries(attrs).forEach(([key, value]) => node.setAttribute(key, value));
+    (tag === 'script' ? document.body : document.head).appendChild(node);
+  }
+
+  function ensureCalendarAssets() {
+    loadAsset('link', 'rebus-chat-calendar-style', {
+      rel: 'stylesheet',
+      href: 'css/chat-calendar.css?v=0.8.4'
+    });
+    loadAsset('script', 'rebus-chat-calendar-script', {
+      src: 'js/chat-calendar.js?v=0.8.4',
+      defer: 'defer'
+    });
+  }
+
   function setFavicon(online) {
     let link = document.querySelector('link[rel="icon"]') || document.querySelector('link[rel*="icon"]');
     if (!link) {
@@ -193,6 +212,7 @@
   }
 
   function init() {
+    ensureCalendarAssets();
     bindFaviconAuth();
     refreshFaviconAndAvatar();
     ensureStyle();
