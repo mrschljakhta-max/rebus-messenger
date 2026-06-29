@@ -1,0 +1,295 @@
+/* REBUS Messenger — contacts page enhancement layer */
+
+.contacts-quick-panel {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin: 0 0 16px;
+}
+
+.contacts-quick-chip {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid rgba(255, 255, 255, .075);
+  border-radius: 16px;
+  color: rgba(244, 251, 255, .76);
+  background: rgba(255, 255, 255, .045);
+  font-weight: 900;
+  cursor: pointer;
+  transition: transform .14s ease, background .14s ease, border-color .14s ease;
+}
+
+.contacts-quick-chip:hover,
+.contacts-quick-chip.is-active {
+  transform: translateY(-1px);
+  color: #fff;
+  border-color: rgba(255, 49, 78, .34);
+  background: rgba(255, 49, 78, .10);
+}
+
+.contact-row-card {
+  isolation: isolate;
+}
+
+.contact-fast-actions {
+  position: absolute;
+  right: 12px;
+  bottom: 10px;
+  z-index: 5;
+  display: flex;
+  gap: 6px;
+  opacity: 0;
+  transform: translateY(4px);
+  pointer-events: none;
+  transition: opacity .14s ease, transform .14s ease;
+}
+
+.contact-row-card:hover .contact-fast-actions,
+.contact-row-card:focus-visible .contact-fast-actions {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.contact-fast-actions button {
+  width: 28px;
+  height: 28px;
+  min-width: 28px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, .09);
+  border-radius: 10px;
+  color: #fff;
+  background: rgba(5, 12, 22, .84);
+  box-shadow: 0 8px 22px rgba(0, 0, 0, .24);
+  cursor: pointer;
+}
+
+.contact-fast-actions button:hover {
+  border-color: rgba(0, 216, 255, .38);
+  background: rgba(0, 216, 255, .12);
+}
+
+.contacts-service-section {
+  margin-bottom: 18px;
+  padding: 14px;
+  border: 1px solid rgba(0, 216, 255, .12);
+  border-radius: 22px;
+  background: radial-gradient(circle at 0 0, rgba(0, 216, 255, .09), transparent 34%), rgba(255, 255, 255, .035);
+}
+
+.contacts-service-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.service-contact-card {
+  min-height: 78px;
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  border: 1px solid rgba(255, 255, 255, .07);
+  border-radius: 18px;
+  color: #fff;
+  background: rgba(255, 255, 255, .045);
+  text-align: left;
+  cursor: pointer;
+}
+
+.service-contact-card:hover {
+  border-color: rgba(255, 49, 78, .32);
+  background: rgba(255, 49, 78, .09);
+}
+
+.service-contact-card i {
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  border-radius: 15px;
+  background: linear-gradient(145deg, rgba(255,49,78,.95), rgba(0,216,255,.18));
+  font-style: normal;
+  font-size: 18px;
+}
+
+.service-contact-card strong,
+.service-contact-card span {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.service-contact-card strong {
+  font-size: 13px;
+  font-weight: 950;
+}
+
+.service-contact-card span {
+  margin-top: 3px;
+  color: rgba(244, 251, 255, .56);
+  font-size: 12px;
+  font-weight: 780;
+}
+
+.contacts-alphabet-rail {
+  position: absolute;
+  right: 10px;
+  top: 92px;
+  bottom: 24px;
+  z-index: 8;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
+  pointer-events: none;
+}
+
+.contacts-alphabet-rail button {
+  width: 24px;
+  height: 21px;
+  border: 0;
+  border-radius: 8px;
+  color: rgba(0, 216, 255, .68);
+  background: transparent;
+  font-size: 11px;
+  font-weight: 950;
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+.contacts-alphabet-rail button:hover {
+  color: #fff;
+  background: rgba(0, 216, 255, .13);
+}
+
+.contacts-profile-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 15000;
+  display: none;
+  place-items: center;
+  padding: 24px;
+  background: rgba(0, 0, 0, .42);
+  backdrop-filter: blur(10px);
+}
+
+.contacts-profile-modal.is-open {
+  display: grid;
+}
+
+.contacts-profile-card {
+  width: min(440px, calc(100vw - 32px));
+  border: 1px solid rgba(255, 255, 255, .1);
+  border-radius: 28px;
+  background: linear-gradient(145deg, rgba(9, 14, 28, .98), rgba(4, 10, 20, .96));
+  box-shadow: 0 34px 90px rgba(0, 0, 0, .55), 0 0 38px rgba(255, 49, 78, .12);
+  overflow: hidden;
+}
+
+.contacts-profile-head {
+  padding: 24px;
+  display: grid;
+  grid-template-columns: 66px minmax(0, 1fr) 34px;
+  gap: 14px;
+  align-items: center;
+  background: radial-gradient(circle at 0 0, rgba(0, 216, 255, .18), transparent 48%);
+}
+
+.contacts-profile-avatar {
+  width: 66px;
+  height: 66px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: linear-gradient(145deg, #ff314e, #7e021d 70%);
+  font-size: 22px;
+  font-weight: 950;
+}
+
+.contacts-profile-head strong,
+.contacts-profile-head span {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.contacts-profile-head strong {
+  font-size: 20px;
+  font-weight: 950;
+}
+
+.contacts-profile-head span {
+  margin-top: 4px;
+  color: rgba(244, 251, 255, .6);
+  font-weight: 820;
+}
+
+.contacts-profile-close {
+  width: 34px;
+  height: 34px;
+  border: 0;
+  border-radius: 12px;
+  color: rgba(244, 251, 255, .7);
+  background: rgba(255, 255, 255, .06);
+  cursor: pointer;
+}
+
+.contacts-profile-body {
+  padding: 0 24px 24px;
+  display: grid;
+  gap: 10px;
+}
+
+.contacts-profile-row {
+  display: grid;
+  grid-template-columns: 120px minmax(0, 1fr);
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, .065);
+}
+
+.contacts-profile-row em {
+  color: rgba(244, 251, 255, .48);
+  font-style: normal;
+  font-weight: 850;
+}
+
+.contacts-profile-row span {
+  color: rgba(244, 251, 255, .86);
+  font-weight: 900;
+}
+
+.contacts-profile-actions {
+  padding: 0 24px 24px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.contacts-profile-actions button {
+  min-height: 46px;
+  border: 0;
+  border-radius: 16px;
+  color: #fff;
+  background: rgba(255, 255, 255, .07);
+  font-weight: 950;
+  cursor: pointer;
+}
+
+.contacts-profile-actions button:first-child {
+  background: linear-gradient(145deg, #ff314e, #940421);
+}
+
+@media (max-width: 900px) {
+  .contacts-quick-panel { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .contacts-service-grid { grid-template-columns: 1fr; }
+  .contacts-alphabet-rail { display: none; }
+}
