@@ -1,0 +1,140 @@
+(() => {
+  const SUPABASE_URL = 'https://aehedmvxpqxsmzxemkix.supabase.co';
+  const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_8cJ1jnSyGOoAG8MOEXZtCA_cY72YAnh';
+  const SETTINGS_KEY = 'rebus:messenger:settings';
+
+  const defaultSettings = {
+    presence: 'online',
+    scale: '100',
+    animations: true,
+    messageSound: true,
+    pushNotifications: true,
+    popups: true
+  };
+
+  const qs = (selector, root = document) => root.querySelector(selector);
+
+  function loadSettings() {
+    try { return { ...defaultSettings, ...JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}') }; }
+    catch { return { ...defaultSettings }; }
+  }
+
+  function saveSettings(settings) {
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+  }
+
+  function initials(name = '') {
+    const clean = String(name || '').trim();
+    if (!clean) return 'R';
+    return clean.split(/\s+/).slice(0, 2).map(part => part[0]).join('').toUpperCase();
+  }
+
+  function toast(text) {
+    const old = qs('.settings-toast');
+    old?.remove();
+    const el = document.createElement('div');
+    el.className = 'settings-toast';
+    el.textContent = text;
+    Object.assign(el.style, {
+      position: 'fixed', right: '24px', bottom: '24px', zIndex: '17000', padding: '12px 16px', borderRadius: '16px',
+      color: '#fff', background: 'rgba(5,12,22,.96)', border: '1px solid rgba(255,255,255,.1)',
+      boxShadow: '0 18px 44px rgba(0,0,0,.36)', fontWeight: '850'
+    });
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 2400);
+  }
+
+  function applySettings(settings) {
+    document.documentElement.style.setProperty('--rebus-ui-scale', `${settings.scale}%`);
+    document.body.classList.toggle('rebus-reduce-motion', !settings.animations);
+    const pill = qs('#settingsPresencePill');
+    if (pill) pill.textContent = settings.presence === 'online' ? '🟢 Онлайн' : settings.presence === 'dnd' ? '🟡 Не турбувати' : settings.presence === 'busy' ? '🔴 Зайнятий' : '⚪ Не в мережі';
+  }
+
+  async function loadProfile() {
+    if (!window.supabase?.createClient) return;
+    const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true } });
+    const userResult = await client.auth.getUser();
+    const user = userResult?.data?.user;
+    if (!user) return;
+
+    let profile = null;
+    try {
+      const result = await client.from('rebus_profiles').select('id,user_id,email,full_name,role').eq('user_id', user.id).maybeSingle();
+      profile = result?.data || null;
+    } catch {}
+
+    const name = profile?.full_name || user.user_metadata?.full_name || user.email?.split('@')[0] || 'Користувач REBUS';
+    const email = profile?.email || user.email || 'account@rebus';
+    const role = profile?.role || 'USER';
+    const avatar = qs('#settingsAvatar');
+    const nameNode = qs('#settingsName');
+    const emailNode = qs('#settingsEmail');
+    const roleNode = qs('#settingsRole');
+    if (avatar) avatar.textContent = initials(name);
+    if (nameNode) nameNode.textContent = name;
+    if (emailNode) emailNode.textContent = email;
+    if (roleNode) roleNode.textContent = role;
+  }
+
+  function bindSettings() {
+    const root = qs('#page-settings');
+    if (!root || root.dataset.settingsReady === '1') return;
+    root.dataset.settingsReady = '1';
+
+    const settings = loadSettings();
+    const presence = qs('#settingsPresence');
+    const scale = qs('#settingsScale');
+    const animations = qs('#settingsAnimations');
+    const messageSound = qs('#settingsMessageSound');
+    const push = qs('#settingsPush');
+    const popups = qs('#settingsPopups');
+
+    if (presence) presence.value = settings.presence;
+    if (scale) scale.value = settings.scale;
+    if (animations) animations.checked = settings.animations;
+    if (messageSound) messageSound.checked = settings.messageSound;
+    if (push) push.checked = settings.pushNotifications;
+    if (popups) popups.checked = settings.popups;
+    applySettings(settings);
+
+    root.addEventListener('change', () => {
+      const next = {
+        presence: presence?.value || 'online',
+        scale: scale?.value || '100',
+        animations: !!animations?.checked,
+        messageSound: !!messageSound?.checked,
+        pushNotifications: !!push?.checked,
+        popups: !!popups?.checked
+      };
+      saveSettings(next);
+      applySettings(next);
+      toast('Налаштування збережено локально.');
+    });
+
+    root.addEventListener('click', event => {
+      const action = event.target.closest('[data-settings-action]')?.dataset.settingsAction;
+      if (!action) return;
+      if (action === 'password') toast('Зміну пароля підключимо через Supabase Auth.');
+      if (action === '2fa') toast('2FA вже використовується при вході. Панель керування додамо окремо.');
+      if (action === 'sessions') toast('Активні сесії підключимо через security-модуль.');
+      if (action === 'clear-cache') {
+        localStorage.removeItem(SETTINGS_KEY);
+        toast('Локальні налаштування очищено.');
+        setTimeout(() => location.reload(), 700);
+      }
+    });
+  }
+
+  function init() {
+    bindSettings();
+    if (qs('#page-settings.is-active')) loadProfile();
+  }
+
+  document.addEventListener('click', event => {
+    if (event.target.closest('[data-route="settings"]')) setTimeout(() => { bindSettings(); loadProfile(); }, 140);
+  }, true);
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init, { once: true });
+  else init();
+})();
