@@ -4,15 +4,28 @@
   position: relative !important;
 }
 
+#page-chat .message:has(.message-corner-menu) {
+  min-width: 76px;
+}
+
+#page-chat .message.incoming:has(.message-corner-menu) {
+  padding-right: 28px !important;
+}
+
+#page-chat .message.outgoing:has(.message-corner-menu) {
+  padding-left: 28px !important;
+}
+
 #page-chat .message-corner-menu {
   position: absolute;
   top: 6px;
   z-index: 18;
-  width: auto;
-  height: auto;
-  min-width: 0;
+  width: 18px;
+  height: 18px;
+  min-width: 18px;
   padding: 0;
-  display: block;
+  display: grid;
+  place-items: center;
   border: 0 !important;
   border-radius: 0 !important;
   color: rgba(244,251,255,.62);
@@ -23,15 +36,15 @@
   transform: translateY(-2px);
   pointer-events: none;
   cursor: pointer;
-  font-size: 16px;
+  font-size: 15px;
   line-height: 1;
   font-weight: 950;
   text-shadow: 0 2px 5px rgba(0,0,0,.48);
   transition: opacity .14s ease, transform .14s ease, color .14s ease;
 }
 
-#page-chat .message.incoming .message-corner-menu { right: 10px; }
-#page-chat .message.outgoing .message-corner-menu { left: 10px; }
+#page-chat .message.incoming .message-corner-menu { right: 8px; }
+#page-chat .message.outgoing .message-corner-menu { left: 8px; }
 
 #page-chat .message:hover .message-corner-menu,
 #page-chat .message.has-menu-open .message-corner-menu,
