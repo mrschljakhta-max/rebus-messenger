@@ -1,0 +1,10 @@
+/* REBUS Messenger — direct chat cleanup
+   Direct messages are one-to-one, so sender labels inside bubbles are redundant. */
+
+#page-chat .messages-list .message:not(.system-message) > b {
+  display: none !important;
+}
+
+#page-chat .messages-list .message:not(.system-message) {
+  gap: 4px;
+}
