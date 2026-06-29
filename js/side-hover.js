@@ -1,6 +1,54 @@
 (() => {
   const MESSAGE_SELECTOR = '#messagesList .message[data-message-id]';
   const STYLE_ID = 'rebus-forced-message-arrow-style';
+  const ONLINE_FAVICON = 'assets/icons/rebus-online.svg?v=0.8.3';
+  const OFFLINE_FAVICON = 'assets/icons/rebus-offline.svg?v=0.8.3';
+  let faviconSignedIn = false;
+
+  function setFavicon(online) {
+    let link = document.querySelector('link[rel="icon"]') || document.querySelector('link[rel*="icon"]');
+    if (!link) {
+      link = document.createElement('link');
+      link.rel = 'icon';
+      document.head.appendChild(link);
+    }
+    link.type = 'image/svg+xml';
+    link.href = online ? ONLINE_FAVICON : OFFLINE_FAVICON;
+  }
+
+  async function refreshFavicon() {
+    try {
+      const client = window.supabaseClient || (typeof supabaseClient !== 'undefined' ? supabaseClient : null);
+      if (!client?.auth?.getSession) {
+        setFavicon(false);
+        return;
+      }
+      const { data } = await client.auth.getSession();
+      faviconSignedIn = Boolean(data?.session?.user);
+      setFavicon(faviconSignedIn && navigator.onLine !== false);
+    } catch {
+      setFavicon(false);
+    }
+  }
+
+  function bindFaviconAuth() {
+    try {
+      const client = window.supabaseClient || (typeof supabaseClient !== 'undefined' ? supabaseClient : null);
+      if (!client?.auth?.onAuthStateChange || window.__rebusFaviconBound === '1') return;
+      window.__rebusFaviconBound = '1';
+      client.auth.onAuthStateChange((event, session) => {
+        if (event === 'SIGNED_OUT') {
+          faviconSignedIn = false;
+          setFavicon(false);
+          return;
+        }
+        if (session?.user || event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') {
+          faviconSignedIn = Boolean(session?.user || faviconSignedIn);
+          setFavicon(faviconSignedIn && navigator.onLine !== false);
+        }
+      });
+    } catch {}
+  }
 
   function ensureStyle() {
     if (document.getElementById(STYLE_ID)) return;
@@ -76,6 +124,8 @@
   }
 
   function init() {
+    bindFaviconAuth();
+    refreshFavicon();
     ensureStyle();
     ensureButtons(document);
     const list = document.getElementById('messagesList');
@@ -88,6 +138,10 @@
       ensureButtons(document);
     }).observe(list, { childList: true, subtree: true });
   }
+
+  setFavicon(false);
+  window.addEventListener('online', () => setFavicon(faviconSignedIn));
+  window.addEventListener('offline', () => setFavicon(false));
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init, { once: true });
   else init();
