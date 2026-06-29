@@ -39,12 +39,22 @@
 .account-page-shell::before {
   content: "REBUS" !important;
   position: absolute !important;
-  left: 31% !important;
-  top: 35% !important;
-  color: rgba(0, 216, 255, .052) !important;
-  font-size: clamp(120px, 20vw, 320px) !important;
+  left: 390px !important;
+  right: 0 !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: auto !important;
+  color: rgba(0, 216, 255, .045) !important;
+  font-size: clamp(86px, 13vw, 230px) !important;
+  line-height: .9 !important;
+  letter-spacing: .035em !important;
   font-weight: 950 !important;
+  white-space: nowrap !important;
   pointer-events: none !important;
+  user-select: none !important;
 }
 
 .account-chat-header,
@@ -181,6 +191,11 @@
     height: auto !important;
     min-height: 100svh !important;
     overflow: visible !important;
+  }
+
+  .account-page-shell::before {
+    left: 0 !important;
+    font-size: clamp(72px, 22vw, 180px) !important;
   }
 
   .account-dashboard {
