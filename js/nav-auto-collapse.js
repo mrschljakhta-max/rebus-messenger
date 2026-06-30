@@ -19,14 +19,6 @@
       src: 'js/mfa-enrollment-fix.js?v=1.0.0',
       defer: 'defer'
     });
-    loadAsset('link', 'rebus-account-quick-actions-style', {
-      rel: 'stylesheet',
-      href: 'css/account-quick-actions.css?v=1.0.0'
-    });
-    loadAsset('script', 'rebus-account-quick-actions-script', {
-      src: 'js/account-quick-actions.js?v=1.0.0',
-      defer: 'defer'
-    });
   }
 
   function getNav() {
