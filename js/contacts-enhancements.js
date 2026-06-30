@@ -4,6 +4,13 @@
   const qs = (selector, root = document) => root.querySelector(selector);
   const qsa = (selector, root = document) => Array.from(root.querySelectorAll(selector));
 
+  const FAST_ACTIONS = [
+    { action: 'chat', title: 'Чат', icon: 'assets/icons/account/brand-hipchat.svg' },
+    { action: 'profile', title: 'Профіль', icon: 'assets/icons/account/user-check.svg' },
+    { action: 'call', title: 'Аудіодзвінок', icon: 'assets/icons/account/call.svg' },
+    { action: 'video', title: 'Відеодзвінок', icon: 'assets/icons/account/video-call.svg' }
+  ];
+
   function esc(value = '') {
     return String(value)
       .replaceAll('&', '&amp;')
@@ -63,17 +70,25 @@
     qsa('#contactsListScroll .contacts-service-section').forEach(section => section.remove());
   }
 
+  function buildFastActions() {
+    return FAST_ACTIONS.map(item => `
+      <button type="button" data-fast-contact-action="${item.action}" title="${item.title}" aria-label="${item.title}">
+        <img src="${item.icon}" alt="" />
+      </button>
+    `).join('');
+  }
+
   function ensureFastActions() {
     qsa('#contactsListScroll .contact-row-card').forEach(card => {
-      if (qs('.contact-fast-actions', card)) return;
-      const actions = document.createElement('span');
-      actions.className = 'contact-fast-actions';
-      actions.innerHTML = `
-        <button type="button" data-fast-contact-action="chat" title="Чат">💬</button>
-        <button type="button" data-fast-contact-action="profile" title="Профіль">👤</button>
-        <button type="button" data-fast-contact-action="call" title="Дзвінок">☎</button>
-      `;
-      card.appendChild(actions);
+      let actions = qs('.contact-fast-actions', card);
+      if (!actions) {
+        actions = document.createElement('span');
+        actions.className = 'contact-fast-actions';
+        card.appendChild(actions);
+      }
+      if (actions.dataset.iconsVersion === '2') return;
+      actions.dataset.iconsVersion = '2';
+      actions.innerHTML = buildFastActions();
     });
   }
 
@@ -189,6 +204,7 @@
       if (fast.dataset.fastContactAction === 'chat') openContactChat(card?.dataset.contactId);
       if (fast.dataset.fastContactAction === 'profile') openProfile(card);
       if (fast.dataset.fastContactAction === 'call') showToast('Аудіодзвінок буде підключено на етапі WebRTC.');
+      if (fast.dataset.fastContactAction === 'video') showToast('Відеодзвінок буде підключено на етапі WebRTC.');
       return;
     }
 
