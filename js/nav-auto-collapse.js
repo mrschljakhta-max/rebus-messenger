@@ -2,6 +2,25 @@
   const COLLAPSE_CLASS = 'is-auto-collapsed';
   let collapseTimer = null;
 
+  function loadAsset(tag, id, attrs) {
+    if (document.getElementById(id)) return;
+    const node = document.createElement(tag);
+    node.id = id;
+    Object.entries(attrs).forEach(([key, value]) => node.setAttribute(key, value));
+    (tag === 'script' ? document.body : document.head).appendChild(node);
+  }
+
+  function ensureMfaEnrollmentAssets() {
+    loadAsset('link', 'rebus-mfa-enrollment-style', {
+      rel: 'stylesheet',
+      href: 'css/mfa-enrollment.css?v=1.0.0'
+    });
+    loadAsset('script', 'rebus-mfa-enrollment-script', {
+      src: 'js/mfa-enrollment-fix.js?v=1.0.0',
+      defer: 'defer'
+    });
+  }
+
   function getNav() {
     return document.querySelector('.left-nav');
   }
@@ -45,20 +64,18 @@
   }, true);
 
   function bindNav() {
+    ensureMfaEnrollmentAssets();
     const nav = getNav();
     if (!nav || nav.dataset.autoCollapseReady === '1') return;
     nav.dataset.autoCollapseReady = '1';
 
-    // Головна логіка: наведення розгортає, відведення завжди згортає.
     nav.addEventListener('pointerenter', expandNav);
     nav.addEventListener('pointerleave', () => scheduleCollapse(30));
 
-    // Якщо фокус випадково залишився на кнопці після кліку, не даємо :focus-within тримати меню відкритим.
     nav.addEventListener('focusout', () => {
       if (!nav.matches(':hover')) scheduleCollapse(60);
     });
 
-    // Стартовий стан — згорнутий.
     collapseNav();
   }
 
