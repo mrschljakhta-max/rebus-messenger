@@ -1,4 +1,126 @@
 (() => {
+  const ROUTE_KEY = 'rebus:messenger:last-route';
+  const ROUTE_LABELS = {
+    account: 'Акаунт',
+    chat: 'Чат',
+    contours: 'Контур',
+    library: 'Бібліотека',
+    contacts: 'Контакти',
+    settings: 'Налаштування'
+  };
+
+  const originalSetRoute = typeof setRoute === 'function' ? setRoute : null;
+  const originalSignOut = typeof signOut === 'function' ? signOut : null;
+
+  let activeRouteLock = null;
+  let routeLockUntil = 0;
+  let routeGuardTimer = null;
+
+  function validRoute(route) {
+    return !!route && route !== 'logout' && !!document.querySelector(`[data-page="${CSS.escape(route)}"]`);
+  }
+
+  function getActiveRoute() {
+    return document.querySelector('[data-page].is-active')?.dataset.page || null;
+  }
+
+  function getPreferredRoute() {
+    const saved = sessionStorage.getItem(ROUTE_KEY);
+    if (validRoute(saved)) return saved;
+    const active = getActiveRoute();
+    return validRoute(active) ? active : 'chat';
+  }
+
+  function emitRouteReady(route) {
+    if (route === 'settings') setTimeout(loadProfile, 60);
+    if (route === 'contacts') document.dispatchEvent(new CustomEvent('rebus:contacts-visible'));
+  }
+
+  function activateStaticRoute(route) {
+    if (!validRoute(route)) return;
+
+    document.querySelectorAll('[data-page]').forEach(page => {
+      const active = page.dataset.page === route;
+      page.hidden = !active;
+      page.classList.toggle('is-active', active);
+    });
+
+    document.querySelectorAll('[data-route]').forEach(button => {
+      button.classList.toggle('is-active', button.dataset.route === route);
+    });
+
+    document.title = `${ROUTE_LABELS[route] || 'REBUS'} — REBUS Messenger`;
+    emitRouteReady(route);
+  }
+
+  function setRouteLock(route, duration = 2600) {
+    activeRouteLock = validRoute(route) ? route : null;
+    routeLockUntil = activeRouteLock ? Date.now() + duration : 0;
+    if (!activeRouteLock) return;
+
+    clearInterval(routeGuardTimer);
+    routeGuardTimer = setInterval(() => {
+      if (!activeRouteLock || Date.now() > routeLockUntil) {
+        clearInterval(routeGuardTimer);
+        routeGuardTimer = null;
+        activeRouteLock = null;
+        return;
+      }
+      if (getActiveRoute() !== activeRouteLock) activateStaticRoute(activeRouteLock);
+    }, 80);
+  }
+
+  function navigate(route, options = {}) {
+    if (route === 'logout') {
+      sessionStorage.removeItem(ROUTE_KEY);
+      if (originalSignOut) originalSignOut();
+      return;
+    }
+
+    if (!validRoute(route)) route = 'chat';
+    sessionStorage.setItem(ROUTE_KEY, route);
+
+    if (route === 'chat' && originalSetRoute) originalSetRoute('chat');
+    else activateStaticRoute(route);
+
+    if (!options.noLock) setRouteLock(route, options.lockDuration || 2600);
+  }
+
+  function installRoutePatch() {
+    try {
+      setRoute = function patchedSetRoute(route) {
+        navigate(route, { lockDuration: 1800 });
+      };
+      showApp = function patchedShowApp() {
+        const loginPage = document.getElementById('loginPage');
+        const mfaPage = document.getElementById('mfaPage');
+        const appShell = document.getElementById('appShell');
+        if (loginPage) loginPage.hidden = true;
+        if (mfaPage) mfaPage.hidden = true;
+        if (appShell) appShell.hidden = false;
+        navigate(getPreferredRoute(), { lockDuration: 1800 });
+      };
+    } catch (error) {
+      console.warn('[REBUS] Route patch failed:', error);
+    }
+  }
+
+  document.addEventListener('click', event => {
+    const button = event.target.closest('[data-route]');
+    const route = button?.dataset?.route;
+    if (!route) return;
+
+    event.preventDefault();
+    event.stopPropagation();
+    event.stopImmediatePropagation?.();
+    navigate(route, { lockDuration: 2800 });
+  }, true);
+
+  window.addEventListener('pageshow', () => {
+    const saved = sessionStorage.getItem(ROUTE_KEY);
+    if (validRoute(saved)) setTimeout(() => navigate(saved, { lockDuration: 900 }), 250);
+  });
+
   const SUPABASE_URL = 'https://aehedmvxpqxsmzxemkix.supabase.co';
   const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_8cJ1jnSyGOoAG8MOEXZtCA_cY72YAnh';
   const SETTINGS_KEY = 'rebus:messenger:settings';
@@ -127,13 +249,16 @@
   }
 
   function init() {
+    installRoutePatch();
     bindSettings();
     if (qs('#page-settings.is-active')) loadProfile();
   }
 
-  document.addEventListener('click', event => {
-    if (event.target.closest('[data-route="settings"]')) setTimeout(() => { bindSettings(); loadProfile(); }, 140);
-  }, true);
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState !== 'visible') return;
+    const saved = sessionStorage.getItem(ROUTE_KEY);
+    if (validRoute(saved)) setTimeout(() => navigate(saved, { lockDuration: 900 }), 120);
+  });
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init, { once: true });
   else init();
