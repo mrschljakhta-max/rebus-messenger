@@ -34,8 +34,9 @@
 
   function ensureFeatureAssets() {
     loadAsset('link', 'rebus-nav-auto-collapse-style', { rel: 'stylesheet', href: 'css/nav-auto-collapse.css?v=0.9.5' });
-    loadAsset('link', 'rebus-nav-active-icon-style', { rel: 'stylesheet', href: 'css/nav-active-icon.css?v=0.9.6' });
+    loadAsset('link', 'rebus-nav-active-icon-style', { rel: 'stylesheet', href: 'css/nav-active-icon.css?v=0.9.7' });
     loadAsset('script', 'rebus-nav-auto-collapse-script', { src: 'js/nav-auto-collapse.js?v=0.9.5', defer: 'defer' });
+    loadAsset('script', 'rebus-nav-icon-swap-script', { src: 'js/nav-icon-swap.js?v=0.9.7', defer: 'defer' });
     loadAsset('link', 'rebus-chat-calendar-style', { rel: 'stylesheet', href: 'css/chat-calendar.css?v=0.8.4' });
     loadAsset('script', 'rebus-chat-calendar-script', { src: 'js/chat-calendar.js?v=0.8.4', defer: 'defer' });
     loadAsset('link', 'rebus-peer-sidebar-style', { rel: 'stylesheet', href: 'css/chat-peer-sidebar.css?v=0.8.5' });
