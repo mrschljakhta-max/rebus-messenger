@@ -19,6 +19,14 @@
       src: 'js/mfa-enrollment-fix.js?v=1.0.0',
       defer: 'defer'
     });
+    loadAsset('link', 'rebus-contacts-filter-icons-style', {
+      rel: 'stylesheet',
+      href: 'css/contacts-filter-icons.css?v=1.0.0'
+    });
+    loadAsset('script', 'rebus-contacts-filter-icons-script', {
+      src: 'js/contacts-filter-icons.js?v=1.0.0',
+      defer: 'defer'
+    });
   }
 
   function getNav() {
