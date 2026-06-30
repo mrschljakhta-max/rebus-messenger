@@ -25,6 +25,15 @@
     document.body.appendChild(script);
   }
 
+  function loadStyleOnce(id, href) {
+    if (document.getElementById(id)) return;
+    const link = document.createElement('link');
+    link.id = id;
+    link.rel = 'stylesheet';
+    link.href = href;
+    document.head.appendChild(link);
+  }
+
   function validRoute(route) {
     return !!route && route !== 'logout' && !!document.querySelector(`[data-page="${CSS.escape(route)}"]`);
   }
@@ -49,6 +58,12 @@
     if (route === 'contacts') document.dispatchEvent(new CustomEvent('rebus:contacts-visible'));
   }
 
+  function refreshNavIcons() {
+    window.RebusNavIcons?.refresh?.();
+    setTimeout(() => window.RebusNavIcons?.refresh?.(), 40);
+    setTimeout(() => window.RebusNavIcons?.refresh?.(), 180);
+  }
+
   function activateStaticRoute(route) {
     if (!validRoute(route)) return;
 
@@ -62,6 +77,7 @@
       button.classList.toggle('is-active', button.dataset.route === route);
     });
 
+    refreshNavIcons();
     document.title = `${ROUTE_LABELS[route] || 'REBUS'} — REBUS Messenger`;
     emitRouteReady(route);
   }
@@ -96,6 +112,7 @@
     if (route === 'chat' && originalSetRoute) originalSetRoute('chat');
     else activateStaticRoute(route);
 
+    refreshNavIcons();
     if (!options.noLock) setRouteLock(route, options.lockDuration || 2600);
   }
 
@@ -270,9 +287,12 @@
   }
 
   function init() {
+    loadStyleOnce('rebus-nav-active-icon-style', 'css/nav-active-icon.css?v=0.9.8');
+    loadScriptOnce('rebus-nav-icon-swap-script', 'js/nav-icon-swap.js?v=0.9.8');
     loadScriptOnce('rebus-avatar-support-script', 'js/avatar-support.js?v=0.9.6');
     installRoutePatch();
     bindSettings();
+    refreshNavIcons();
     if (qs('#page-settings.is-active')) loadProfile();
   }
 
