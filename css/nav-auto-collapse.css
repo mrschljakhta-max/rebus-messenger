@@ -1,0 +1,59 @@
+/* REBUS Messenger — force navbar to collapse after route selection */
+
+.left-nav.is-auto-collapsed,
+.left-nav.is-auto-collapsed:hover,
+.left-nav.is-auto-collapsed:focus-within {
+  width: var(--nav-collapsed) !important;
+  padding: 22px 14px !important;
+  box-shadow: 20px 0 60px rgba(0,0,0,.30) !important;
+}
+
+.left-nav.is-auto-collapsed .account-info,
+.left-nav.is-auto-collapsed:hover .account-info,
+.left-nav.is-auto-collapsed:focus-within .account-info,
+.left-nav.is-auto-collapsed .nav-label,
+.left-nav.is-auto-collapsed:hover .nav-label,
+.left-nav.is-auto-collapsed:focus-within .nav-label,
+.left-nav.is-auto-collapsed .version-note,
+.left-nav.is-auto-collapsed:hover .version-note,
+.left-nav.is-auto-collapsed:focus-within .version-note {
+  opacity: 0 !important;
+  transform: translateX(-8px) !important;
+  pointer-events: none !important;
+}
+
+.left-nav.is-auto-collapsed .account-card,
+.left-nav.is-auto-collapsed:hover .account-card,
+.left-nav.is-auto-collapsed:focus-within .account-card {
+  min-width: 46px !important;
+  width: 46px !important;
+  height: 54px !important;
+  padding: 0 !important;
+  justify-content: center !important;
+  border-radius: 18px !important;
+}
+
+.left-nav.is-auto-collapsed .account-logo,
+.left-nav.is-auto-collapsed:hover .account-logo,
+.left-nav.is-auto-collapsed:focus-within .account-logo {
+  width: 44px !important;
+  height: 44px !important;
+  border-radius: 16px !important;
+}
+
+.left-nav.is-auto-collapsed .nav-item,
+.left-nav.is-auto-collapsed:hover .nav-item,
+.left-nav.is-auto-collapsed:focus-within .nav-item {
+  min-width: 46px !important;
+  width: 46px !important;
+  padding: 0 !important;
+  justify-content: center !important;
+  gap: 0 !important;
+}
+
+.left-nav.is-auto-collapsed .logout-item,
+.left-nav.is-auto-collapsed:hover .logout-item,
+.left-nav.is-auto-collapsed:focus-within .logout-item {
+  min-width: 46px !important;
+  width: 46px !important;
+}
