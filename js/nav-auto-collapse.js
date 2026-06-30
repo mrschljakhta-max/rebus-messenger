@@ -27,6 +27,14 @@
       src: 'js/contacts-filter-icons.js?v=1.0.0',
       defer: 'defer'
     });
+    loadAsset('link', 'rebus-contact-status-avatar-style', {
+      rel: 'stylesheet',
+      href: 'css/contact-status-avatar.css?v=1.0.0'
+    });
+    loadAsset('script', 'rebus-contact-status-avatar-script', {
+      src: 'js/contact-status-avatar.js?v=1.0.0',
+      defer: 'defer'
+    });
   }
 
   function getNav() {
