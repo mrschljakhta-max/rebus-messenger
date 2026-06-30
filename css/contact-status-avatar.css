@@ -1,0 +1,116 @@
+/* REBUS Messenger — contact status indicator on avatar arc */
+
+#page-contacts .contact-row-card {
+  overflow: visible !important;
+}
+
+#page-contacts .contact-avatar {
+  overflow: visible !important;
+  border: 1px solid rgba(244, 251, 255, .16);
+}
+
+#page-contacts .contact-avatar.has-avatar {
+  background-size: cover !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+}
+
+/* Hide status text in the contact card. Status is now shown only as avatar dot + tooltip. */
+#page-contacts .contact-main > span {
+  display: none !important;
+}
+
+#page-contacts .contact-presence-dot {
+  position: absolute !important;
+  /* Azimuth ≈ 120°: indicator center sits on avatar circle arc. */
+  left: 4px !important;
+  top: -2px !important;
+  right: auto !important;
+  bottom: auto !important;
+  z-index: 8 !important;
+  width: 16px !important;
+  height: 16px !important;
+  border: 3px solid rgba(6, 12, 24, .98) !important;
+  border-radius: 999px !important;
+  cursor: help !important;
+  transform: none !important;
+}
+
+#page-contacts .contact-presence-dot.online {
+  background: #25f2b3 !important;
+  box-shadow: 0 0 14px rgba(37, 242, 179, .7), 0 0 26px rgba(37, 242, 179, .24) !important;
+}
+
+#page-contacts .contact-presence-dot.dnd {
+  background: #ffbd2e !important;
+  box-shadow: 0 0 14px rgba(255, 189, 46, .66), 0 0 26px rgba(255, 189, 46, .24) !important;
+}
+
+#page-contacts .contact-presence-dot.busy,
+#page-contacts .contact-presence-dot.offline {
+  background: #ff314e !important;
+  box-shadow: 0 0 14px rgba(255, 49, 78, .62), 0 0 26px rgba(255, 49, 78, .22) !important;
+}
+
+#page-contacts .contact-avatar:has(.contact-presence-dot.online) {
+  box-shadow: 0 12px 28px rgba(37, 242, 179, .12), 0 0 0 1px rgba(37, 242, 179, .42) !important;
+}
+
+#page-contacts .contact-avatar:has(.contact-presence-dot.dnd) {
+  box-shadow: 0 12px 28px rgba(255, 189, 46, .12), 0 0 0 1px rgba(255, 189, 46, .42) !important;
+}
+
+#page-contacts .contact-avatar:has(.contact-presence-dot.busy),
+#page-contacts .contact-avatar:has(.contact-presence-dot.offline) {
+  box-shadow: 0 12px 28px rgba(255, 49, 78, .12), 0 0 0 1px rgba(255, 49, 78, .38) !important;
+}
+
+#page-contacts .contact-presence-dot::after {
+  content: attr(data-status-label);
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 10px);
+  z-index: 30;
+  min-width: max-content;
+  padding: 7px 10px;
+  border: 1px solid rgba(255, 255, 255, .10);
+  border-radius: 12px;
+  color: #f4fbff;
+  background: rgba(5, 12, 22, .96);
+  box-shadow: 0 14px 34px rgba(0,0,0,.36), 0 0 18px rgba(255,49,78,.12);
+  font-size: 12px;
+  font-weight: 900;
+  line-height: 1;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(-50%, 4px);
+  transition: opacity .14s ease, transform .14s ease;
+}
+
+#page-contacts .contact-presence-dot::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 4px);
+  z-index: 31;
+  width: 8px;
+  height: 8px;
+  background: rgba(5, 12, 22, .96);
+  border-right: 1px solid rgba(255,255,255,.10);
+  border-bottom: 1px solid rgba(255,255,255,.10);
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(-50%) rotate(45deg);
+  transition: opacity .14s ease;
+}
+
+#page-contacts .contact-presence-dot:hover::after,
+#page-contacts .contact-presence-dot:hover::before {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+#page-contacts .contact-presence-dot:hover::before {
+  transform: translateX(-50%) rotate(45deg);
+}
