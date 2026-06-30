@@ -22,7 +22,7 @@
       if (!img?.dataset?.defaultIcon) return;
       const active = button.classList.contains('is-active');
       const next = active ? img.dataset.activeIcon : img.dataset.defaultIcon;
-      if (!img.src.endsWith(next)) img.src = next;
+      if (!img.getAttribute('src')?.includes(next)) img.setAttribute('src', next);
       img.classList.toggle('is-active-icon', active);
     });
   }
@@ -36,11 +36,13 @@
     }
   }
 
+  window.RebusNavIcons = { refresh: refreshIcons };
   document.addEventListener('rebus:route-change', refreshIcons);
   document.addEventListener('click', event => {
     if (event.target.closest('[data-route]')) setTimeout(refreshIcons, 0);
   }, true);
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init, { once: true });
   else init();
-  window.setTimeout(init, 500);
+  window.setTimeout(init, 250);
+  window.setTimeout(init, 900);
 })();
