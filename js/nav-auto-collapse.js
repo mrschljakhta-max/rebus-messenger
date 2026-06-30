@@ -10,13 +10,21 @@
     (tag === 'script' ? document.body : document.head).appendChild(node);
   }
 
-  function ensureMfaEnrollmentAssets() {
+  function ensureExtraAssets() {
     loadAsset('link', 'rebus-mfa-enrollment-style', {
       rel: 'stylesheet',
       href: 'css/mfa-enrollment.css?v=1.0.0'
     });
     loadAsset('script', 'rebus-mfa-enrollment-script', {
       src: 'js/mfa-enrollment-fix.js?v=1.0.0',
+      defer: 'defer'
+    });
+    loadAsset('link', 'rebus-account-quick-actions-style', {
+      rel: 'stylesheet',
+      href: 'css/account-quick-actions.css?v=1.0.0'
+    });
+    loadAsset('script', 'rebus-account-quick-actions-script', {
+      src: 'js/account-quick-actions.js?v=1.0.0',
       defer: 'defer'
     });
   }
@@ -64,7 +72,7 @@
   }, true);
 
   function bindNav() {
-    ensureMfaEnrollmentAssets();
+    ensureExtraAssets();
     const nav = getNav();
     if (!nav || nav.dataset.autoCollapseReady === '1') return;
     nav.dataset.autoCollapseReady = '1';
