@@ -14,6 +14,14 @@
   }
 
   function ensureFeatureAssets() {
+    loadAsset('link', 'rebus-nav-auto-collapse-style', {
+      rel: 'stylesheet',
+      href: 'css/nav-auto-collapse.css?v=0.9.4'
+    });
+    loadAsset('script', 'rebus-nav-auto-collapse-script', {
+      src: 'js/nav-auto-collapse.js?v=0.9.4',
+      defer: 'defer'
+    });
     loadAsset('link', 'rebus-chat-calendar-style', {
       rel: 'stylesheet',
       href: 'css/chat-calendar.css?v=0.8.4'
