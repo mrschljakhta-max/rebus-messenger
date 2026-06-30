@@ -1,0 +1,41 @@
+/* REBUS Messenger — collapsed navbar active icon style */
+
+.left-nav.is-auto-collapsed .nav-item,
+.left-nav:not(:hover):not(:focus-within) .nav-item {
+  border-color: transparent !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.left-nav.is-auto-collapsed .nav-item:hover,
+.left-nav:not(:hover):not(:focus-within) .nav-item:hover {
+  border-color: transparent !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.left-nav.is-auto-collapsed .nav-item.is-active,
+.left-nav.is-auto-collapsed:hover .nav-item.is-active,
+.left-nav.is-auto-collapsed:focus-within .nav-item.is-active,
+.left-nav:not(:hover):not(:focus-within) .nav-item.is-active {
+  color: #ff355d !important;
+  border-color: transparent !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.left-nav.is-auto-collapsed .nav-item .nav-icon img,
+.left-nav:not(:hover):not(:focus-within) .nav-item .nav-icon img {
+  opacity: .72 !important;
+  transform: none !important;
+  filter: invert(1) drop-shadow(0 0 8px rgba(255,255,255,.08)) !important;
+}
+
+.left-nav.is-auto-collapsed .nav-item.is-active .nav-icon img,
+.left-nav.is-auto-collapsed:hover .nav-item.is-active .nav-icon img,
+.left-nav.is-auto-collapsed:focus-within .nav-item.is-active .nav-icon img,
+.left-nav:not(:hover):not(:focus-within) .nav-item.is-active .nav-icon img {
+  opacity: 1 !important;
+  transform: scale(1.07) !important;
+  filter: sepia(1) saturate(9) hue-rotate(310deg) brightness(1.15) drop-shadow(0 0 8px rgba(255, 53, 93, .52)) !important;
+}
