@@ -31,11 +31,10 @@
   filter: invert(1) drop-shadow(0 0 8px rgba(255,255,255,.08)) !important;
 }
 
+.left-nav .nav-item .nav-icon img.is-active-icon,
 .left-nav.is-auto-collapsed .nav-item.is-active .nav-icon img,
-.left-nav.is-auto-collapsed:hover .nav-item.is-active .nav-icon img,
-.left-nav.is-auto-collapsed:focus-within .nav-item.is-active .nav-icon img,
 .left-nav:not(:hover):not(:focus-within) .nav-item.is-active .nav-icon img {
   opacity: 1 !important;
   transform: scale(1.07) !important;
-  filter: sepia(1) saturate(9) hue-rotate(310deg) brightness(1.15) drop-shadow(0 0 8px rgba(255, 53, 93, .52)) !important;
+  filter: drop-shadow(0 0 8px rgba(255, 53, 93, .58)) drop-shadow(0 0 18px rgba(255, 53, 93, .22)) !important;
 }
