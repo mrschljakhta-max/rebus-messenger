@@ -55,22 +55,38 @@
 }
 
 .contact-fast-actions button {
-  width: 28px;
-  height: 28px;
-  min-width: 28px;
+  width: 30px;
+  height: 30px;
+  min-width: 30px;
   display: grid;
   place-items: center;
   border: 1px solid rgba(255, 255, 255, .09);
-  border-radius: 10px;
+  border-radius: 11px;
   color: #fff;
   background: rgba(5, 12, 22, .84);
   box-shadow: 0 8px 22px rgba(0, 0, 0, .24);
   cursor: pointer;
+  transition: transform .14s ease, border-color .14s ease, background .14s ease, box-shadow .14s ease;
+}
+
+.contact-fast-actions button img {
+  width: 18px;
+  height: 18px;
+  display: block;
+  opacity: .9;
+  filter: invert(1) drop-shadow(0 0 8px rgba(255,255,255,.08));
 }
 
 .contact-fast-actions button:hover {
-  border-color: rgba(0, 216, 255, .38);
-  background: rgba(0, 216, 255, .12);
+  transform: translateY(-1px) scale(1.04);
+  border-color: rgba(255, 53, 93, .42);
+  background: rgba(255, 53, 93, .13);
+  box-shadow: 0 0 18px rgba(255, 53, 93, .18);
+}
+
+.contact-fast-actions button:hover img {
+  opacity: 1;
+  filter: invert(1) drop-shadow(0 0 10px rgba(255,53,93,.55));
 }
 
 .contacts-service-section {
