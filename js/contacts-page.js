@@ -21,7 +21,9 @@
     query: '',
     unitFilter: 'all',
     activeContactId: null,
-    isLoading: false
+    isLoading: false,
+    loadedOnce: false,
+    loadPromise: null
   };
 
   const qs = (selector, root = document) => root.querySelector(selector);
@@ -72,10 +74,14 @@
 
   function ensureClient() {
     if (state.client) return state.client;
+    state.client = window.rebusSupabaseClient || window.supabaseClient || null;
+    if (state.client) return state.client;
     if (!window.supabase?.createClient) return null;
     state.client = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
       auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
     });
+    window.rebusSupabaseClient = window.rebusSupabaseClient || state.client;
+    window.supabaseClient = window.supabaseClient || state.client;
     return state.client;
   }
 
@@ -159,6 +165,8 @@
       renderContactSection('🕒', 'Нещодавні', recentContacts),
       renderAlphabetSection(filtered)
     ].join('');
+    window.RebusPresence?.refresh?.();
+    document.dispatchEvent(new CustomEvent('rebus:contacts-rendered'));
   }
 
   async function loadRecents() {
@@ -179,41 +187,46 @@
     });
   }
 
-  async function loadContacts() {
-    const list = qs('#contactsListScroll');
-    state.isLoading = true;
-    state.favorites = loadSet(FAVORITES_KEY);
-    state.blocked = loadSet(BLOCKED_KEY);
-    render();
+  async function loadContacts(options = {}) {
+    if (state.loadPromise && !options.force) return state.loadPromise;
+    state.loadPromise = (async () => {
+      const list = qs('#contactsListScroll');
+      state.isLoading = true;
+      state.favorites = loadSet(FAVORITES_KEY);
+      state.blocked = loadSet(BLOCKED_KEY);
+      render();
 
-    await ensureUser();
-    if (!state.client) {
-      state.contacts = [];
+      await ensureUser();
+      if (!state.client) {
+        state.contacts = [];
+        state.isLoading = false;
+        if (list) list.innerHTML = '<div class="contacts-empty">Supabase клієнт не завантажився.</div>';
+        return;
+      }
+
+      const { data, error } = await state.client.from('rebus_profiles').select('id,user_id,email,full_name,role');
+      if (error) {
+        state.contacts = [];
+        state.isLoading = false;
+        if (list) list.innerHTML = `<div class="contacts-empty">Не вдалося завантажити контакти: ${esc(error.message)}</div>`;
+        return;
+      }
+
+      const seen = new Set();
+      state.contacts = (data || []).map(normalizeProfile)
+        .filter(contact => contact.id && contact.id !== state.currentUser?.id)
+        .filter(contact => {
+          if (seen.has(contact.id)) return false;
+          seen.add(contact.id);
+          return true;
+        });
+
+      await loadRecents();
       state.isLoading = false;
-      if (list) list.innerHTML = '<div class="contacts-empty">Supabase клієнт не завантажився.</div>';
-      return;
-    }
-
-    const { data, error } = await state.client.from('rebus_profiles').select('id,user_id,email,full_name,role');
-    if (error) {
-      state.contacts = [];
-      state.isLoading = false;
-      if (list) list.innerHTML = `<div class="contacts-empty">Не вдалося завантажити контакти: ${esc(error.message)}</div>`;
-      return;
-    }
-
-    const seen = new Set();
-    state.contacts = (data || []).map(normalizeProfile)
-      .filter(contact => contact.id && contact.id !== state.currentUser?.id)
-      .filter(contact => {
-        if (seen.has(contact.id)) return false;
-        seen.add(contact.id);
-        return true;
-      });
-
-    await loadRecents();
-    state.isLoading = false;
-    render();
+      state.loadedOnce = true;
+      render();
+    })().finally(() => { state.loadPromise = null; });
+    return state.loadPromise;
   }
 
   function openChat(contact) {
@@ -283,7 +296,7 @@
     if (!root || root.dataset.contactsReady === '1') return;
     root.dataset.contactsReady = '1';
     qs('#contactsSearchInput')?.addEventListener('input', event => { state.query = event.target.value || ''; render(); });
-    qs('#contactsRefreshButton')?.addEventListener('click', loadContacts);
+    qs('#contactsRefreshButton')?.addEventListener('click', () => loadContacts({ force: true }));
     qs('#contactsAddButton')?.addEventListener('click', () => toast('Додавання контакту буде підключено до прав адміністратора.'));
     root.addEventListener('click', event => {
       const filter = event.target.closest('[data-unit-filter]');
@@ -313,7 +326,34 @@
     document.addEventListener('keydown', event => { if (event.key === 'Escape') closeMenu(); });
   }
 
-  function init() { bindEvents(); if (qs('#page-contacts.is-active')) loadContacts(); }
-  document.addEventListener('click', event => { if (event.target.closest('[data-route="contacts"]')) setTimeout(loadContacts, 160); }, true);
+  function maybeLoadContacts(options = {}) {
+    bindEvents();
+    const active = qs('#page-contacts.is-active') || qs('[data-page="contacts"].is-active');
+    if (active) loadContacts(options);
+  }
+
+  function init() {
+    bindEvents();
+    maybeLoadContacts();
+    setTimeout(maybeLoadContacts, 250);
+    setTimeout(maybeLoadContacts, 1000);
+  }
+
+  window.RebusContacts = {
+    load: loadContacts,
+    refresh: () => loadContacts({ force: true }),
+    render,
+    state
+  };
+
+  document.addEventListener('rebus:contacts-visible', () => loadContacts({ force: true }));
+  document.addEventListener('rebus:route-change', event => {
+    if (event.detail?.route === 'contacts') loadContacts({ force: true });
+  });
+  document.addEventListener('click', event => {
+    if (event.target.closest('[data-route="contacts"]')) setTimeout(() => loadContacts({ force: true }), 220);
+  }, true);
+  window.addEventListener('pageshow', () => setTimeout(maybeLoadContacts, 250));
+
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init, { once: true }); else init();
 })();
