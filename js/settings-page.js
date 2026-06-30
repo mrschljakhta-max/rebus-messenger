@@ -78,6 +78,7 @@
     });
 
     refreshNavIcons();
+    window.RebusPresence?.refresh?.();
     document.title = `${ROUTE_LABELS[route] || 'REBUS'} — REBUS Messenger`;
     emitRouteReady(route);
   }
@@ -113,6 +114,7 @@
     else activateStaticRoute(route);
 
     refreshNavIcons();
+    window.RebusPresence?.refresh?.();
     if (!options.noLock) setRouteLock(route, options.lockDuration || 2600);
   }
 
@@ -289,10 +291,14 @@
   function init() {
     loadStyleOnce('rebus-nav-active-icon-style', 'css/nav-active-icon.css?v=0.9.8');
     loadScriptOnce('rebus-nav-icon-swap-script', 'js/nav-icon-swap.js?v=0.9.8');
+    loadStyleOnce('rebus-presence-style', 'css/presence-status.css?v=0.9.9');
+    loadScriptOnce('rebus-presence-script', 'js/presence-status.js?v=0.9.9');
     loadScriptOnce('rebus-avatar-support-script', 'js/avatar-support.js?v=0.9.6');
     installRoutePatch();
     bindSettings();
     refreshNavIcons();
+    window.RebusPresence?.start?.();
+    window.RebusPresence?.refresh?.();
     if (qs('#page-settings.is-active')) loadProfile();
   }
 
