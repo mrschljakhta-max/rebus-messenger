@@ -1,9 +1,18 @@
 (() => {
   const ROUTE_KEY = 'rebus:messenger:last-route';
   const ROUTE_LABELS = { account: 'Акаунт', chat: 'Чат', contours: 'Контур', library: 'Бібліотека', contacts: 'Контакти', settings: 'Налаштування' };
+  const originalSetRoute = typeof setRoute === 'function' ? setRoute : null;
+  const originalSignOut = typeof signOut === 'function' ? signOut : null;
 
   function validRoute(route) {
     return !!route && route !== 'logout' && !!document.querySelector(`[data-page="${CSS.escape(route)}"]`);
+  }
+
+  function getPreferredRoute() {
+    const saved = sessionStorage.getItem(ROUTE_KEY);
+    if (validRoute(saved)) return saved;
+    const active = document.querySelector('[data-page].is-active')?.dataset.page;
+    return validRoute(active) ? active : 'chat';
   }
 
   function activateRoute(route) {
@@ -30,6 +39,35 @@
       if (active !== route) activateRoute(route);
       if (Date.now() - start > duration) clearInterval(timer);
     }, 120);
+  }
+
+  function installCoreRoutePatch() {
+    try {
+      setRoute = function patchedSetRoute(route) {
+        if (route === 'logout') {
+          if (originalSignOut) originalSignOut();
+          return;
+        }
+        if (!validRoute(route)) route = 'chat';
+        sessionStorage.setItem(ROUTE_KEY, route);
+        if (route === 'chat' && originalSetRoute) originalSetRoute('chat');
+        else activateRoute(route);
+      };
+
+      showApp = function patchedShowApp() {
+        const loginPage = document.getElementById('loginPage');
+        const mfaPage = document.getElementById('mfaPage');
+        const appShell = document.getElementById('appShell');
+        if (loginPage) loginPage.hidden = true;
+        if (mfaPage) mfaPage.hidden = true;
+        if (appShell) appShell.hidden = false;
+        const route = getPreferredRoute();
+        if (route === 'chat' && originalSetRoute) originalSetRoute('chat');
+        else activateRoute(route);
+      };
+    } catch (error) {
+      console.warn('[REBUS] Route patch was not installed:', error);
+    }
   }
 
   document.addEventListener('click', event => {
@@ -174,6 +212,7 @@
   }
 
   function init() {
+    installCoreRoutePatch();
     bindSettings();
     if (qs('#page-settings.is-active')) loadProfile();
   }
