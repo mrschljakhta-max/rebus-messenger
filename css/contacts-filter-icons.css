@@ -1,0 +1,19 @@
+.contacts-quick-chip img {
+  width: 21px;
+  height: 21px;
+  display: block;
+  opacity: .9;
+  filter: invert(1) drop-shadow(0 0 8px rgba(255,255,255,.08));
+  transition: opacity .16s ease, filter .16s ease, transform .16s ease;
+}
+
+.contacts-quick-chip:hover img,
+.contacts-quick-chip.is-active img {
+  opacity: 1;
+  transform: scale(1.05);
+  filter: invert(1) drop-shadow(0 0 10px rgba(255,53,93,.42));
+}
+
+.contacts-quick-chip span {
+  display: inline-block;
+}
