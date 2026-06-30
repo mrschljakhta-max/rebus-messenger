@@ -35,6 +35,14 @@
       src: 'js/contact-status-avatar.js?v=1.0.0',
       defer: 'defer'
     });
+    loadAsset('link', 'rebus-chat-status-avatar-style', {
+      rel: 'stylesheet',
+      href: 'css/chat-status-avatar.css?v=1.0.0'
+    });
+    loadAsset('script', 'rebus-chat-status-avatar-script', {
+      src: 'js/chat-status-avatar.js?v=1.0.0',
+      defer: 'defer'
+    });
   }
 
   function getNav() {
