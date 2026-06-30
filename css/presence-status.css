@@ -1,0 +1,51 @@
+/* REBUS Messenger — realtime online presence */
+
+.direct-user-presence,
+.peer-online,
+#directSelfCard .direct-self-main em,
+.contact-presence {
+  transition: color .18s ease, opacity .18s ease, text-shadow .18s ease;
+}
+
+.direct-user-presence i,
+.peer-online i,
+.contact-presence i {
+  transition: background .18s ease, box-shadow .18s ease, opacity .18s ease;
+}
+
+.direct-user.is-presence-online .direct-user-presence,
+.direct-user-presence.is-online,
+.peer-online.is-online,
+.contact-presence.is-online,
+#directSelfCard.is-presence-online .direct-self-main em {
+  color: #25f2b3 !important;
+  opacity: 1 !important;
+  text-shadow: 0 0 10px rgba(37, 242, 179, .22);
+}
+
+.direct-user.is-presence-online .direct-user-presence i,
+.direct-user-presence.is-online i,
+.peer-online.is-online i,
+.contact-presence.is-online i {
+  background: #25f2b3 !important;
+  box-shadow: 0 0 12px rgba(37, 242, 179, .55) !important;
+  opacity: 1 !important;
+}
+
+.direct-user:not(.is-presence-online) .direct-user-presence,
+.direct-user-presence.is-offline,
+.peer-online.is-offline,
+.contact-presence.is-offline {
+  color: rgba(244, 251, 255, .48) !important;
+  opacity: .86 !important;
+  text-shadow: none !important;
+}
+
+.direct-user:not(.is-presence-online) .direct-user-presence i,
+.direct-user-presence.is-offline i,
+.peer-online.is-offline i,
+.contact-presence.is-offline i {
+  background: rgba(244, 251, 255, .42) !important;
+  box-shadow: none !important;
+  opacity: .8 !important;
+}
