@@ -16,6 +16,15 @@
   let routeLockUntil = 0;
   let routeGuardTimer = null;
 
+  function loadScriptOnce(id, src) {
+    if (document.getElementById(id)) return;
+    const script = document.createElement('script');
+    script.id = id;
+    script.src = src;
+    script.defer = true;
+    document.body.appendChild(script);
+  }
+
   function validRoute(route) {
     return !!route && route !== 'logout' && !!document.querySelector(`[data-page="${CSS.escape(route)}"]`);
   }
@@ -32,7 +41,11 @@
   }
 
   function emitRouteReady(route) {
-    if (route === 'settings') setTimeout(loadProfile, 60);
+    document.dispatchEvent(new CustomEvent('rebus:route-change', { detail: { route } }));
+    if (route === 'settings') {
+      setTimeout(loadProfile, 60);
+      document.dispatchEvent(new CustomEvent('rebus:settings-visible'));
+    }
     if (route === 'contacts') document.dispatchEvent(new CustomEvent('rebus:contacts-visible'));
   }
 
@@ -182,18 +195,26 @@
 
     let profile = null;
     try {
-      const result = await client.from('rebus_profiles').select('id,user_id,email,full_name,role').eq('user_id', user.id).maybeSingle();
+      const result = await client.from('rebus_profiles').select('id,user_id,email,full_name,role,avatar_url').eq('user_id', user.id).maybeSingle();
       profile = result?.data || null;
     } catch {}
 
     const name = profile?.full_name || user.user_metadata?.full_name || user.email?.split('@')[0] || 'Користувач REBUS';
     const email = profile?.email || user.email || 'account@rebus';
     const role = profile?.role || 'USER';
+    const avatarUrl = profile?.avatar_url || user.user_metadata?.avatar_url || user.user_metadata?.picture || '';
     const avatar = qs('#settingsAvatar');
     const nameNode = qs('#settingsName');
     const emailNode = qs('#settingsEmail');
     const roleNode = qs('#settingsRole');
-    if (avatar) avatar.textContent = initials(name);
+    if (avatar) {
+      avatar.textContent = initials(name);
+      if (avatarUrl) {
+        avatar.classList.add('has-avatar');
+        avatar.textContent = '';
+        avatar.style.backgroundImage = `url("${String(avatarUrl).replaceAll('"', '%22')}")`;
+      }
+    }
     if (nameNode) nameNode.textContent = name;
     if (emailNode) emailNode.textContent = email;
     if (roleNode) roleNode.textContent = role;
@@ -249,6 +270,7 @@
   }
 
   function init() {
+    loadScriptOnce('rebus-avatar-support-script', 'js/avatar-support.js?v=0.9.6');
     installRoutePatch();
     bindSettings();
     if (qs('#page-settings.is-active')) loadProfile();
