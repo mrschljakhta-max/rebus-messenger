@@ -26,7 +26,7 @@
       title: card?.querySelector('.contact-main em')?.textContent?.trim() || 'REBUS',
       status: card?.querySelector('.contact-main span')?.textContent?.trim() || '⚪ Не в мережі',
       isFavorite: !!card?.querySelector('.contact-favorite'),
-      isOnline: card?.querySelector('.contact-presence-dot')?.classList?.contains('online') || false
+      isOnline: card?.classList?.contains('is-presence-online') || card?.querySelector('.contact-presence-dot')?.classList?.contains('online') || false
     };
   }
 
@@ -59,22 +59,8 @@
     list.prepend(panel);
   }
 
-  function ensureServiceContacts() {
-    const list = qs('#contactsListScroll');
-    if (!list || qs('.contacts-service-section', list)) return;
-    const empty = qs('.contacts-empty', list);
-    const service = document.createElement('section');
-    service.className = 'contacts-service-section';
-    service.innerHTML = `
-      <h3 class="contacts-section-title"><em>🛡️</em><span>Службові контакти</span><span>3</span></h3>
-      <div class="contacts-service-grid">
-        <button type="button" class="service-contact-card" data-service-contact="support"><i>?</i><span><strong>Підтримка REBUS</strong><span>Технічна допомога</span></span></button>
-        <button type="button" class="service-contact-card" data-service-contact="admin"><i>A</i><span><strong>Адміністратор</strong><span>Доступи та ролі</span></span></button>
-        <button type="button" class="service-contact-card" data-service-contact="duty"><i>Ч</i><span><strong>Черговий контуру</strong><span>Оперативний контакт</span></span></button>
-      </div>
-    `;
-    if (empty) empty.insertAdjacentElement('afterend', service);
-    else list.prepend(service);
+  function removeServiceContacts() {
+    qsa('#contactsListScroll .contacts-service-section').forEach(section => section.remove());
   }
 
   function ensureFastActions() {
@@ -166,8 +152,8 @@
   function enhance() {
     const list = qs('#contactsListScroll');
     if (!list) return;
+    removeServiceContacts();
     ensureQuickPanel();
-    ensureServiceContacts();
     ensureFastActions();
     ensureAlphabetRail();
     applyQuickFilter();
@@ -183,7 +169,7 @@
 
     const service = event.target.closest('[data-service-contact]');
     if (service) {
-      showToast('Службовий контакт підготуємо після підключення службових профілів.');
+      service.closest('.contacts-service-section')?.remove();
       return;
     }
 
