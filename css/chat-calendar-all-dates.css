@@ -1,0 +1,28 @@
+/* REBUS Messenger — all direct chat dates in calendar */
+
+.has-chat-messages {
+  position: relative !important;
+  border-color: rgba(255, 49, 78, .52) !important;
+  background: rgba(255, 49, 78, .16) !important;
+  color: #fff !important;
+  box-shadow: 0 0 16px rgba(255, 49, 78, .22) !important;
+}
+
+.has-chat-messages::after {
+  content: attr(data-message-count);
+  position: absolute;
+  right: -3px;
+  bottom: -4px;
+  min-width: 14px;
+  height: 14px;
+  padding: 0 3px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  color: #fff;
+  background: #00d8ff;
+  box-shadow: 0 0 10px rgba(0,216,255,.48);
+  font-size: 9px;
+  font-weight: 950;
+  line-height: 1;
+}
