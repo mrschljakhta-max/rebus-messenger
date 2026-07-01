@@ -35,15 +35,15 @@
   function ensureFeatureAssets() {
     loadAsset('link', 'rebus-nav-auto-collapse-style', { rel: 'stylesheet', href: 'css/nav-auto-collapse.css?v=0.9.5' });
     loadAsset('link', 'rebus-nav-active-icon-style', { rel: 'stylesheet', href: 'css/nav-active-icon.css?v=0.9.7' });
-    loadAsset('script', 'rebus-nav-auto-collapse-script', { src: 'js/nav-auto-collapse.js?v=0.9.5', defer: 'defer' });
-    loadAsset('script', 'rebus-nav-icon-swap-script', { src: 'js/nav-icon-swap.js?v=0.9.7', defer: 'defer' });
+    loadAsset('script', 'rebus-nav-auto-collapse-script', { src: 'js/nav-auto-collapse.js?v=0.9.5' });
+    loadAsset('script', 'rebus-nav-icon-swap-script', { src: 'js/nav-icon-swap.js?v=0.9.7' });
     loadAsset('link', 'rebus-chat-calendar-style', { rel: 'stylesheet', href: 'css/chat-calendar.css?v=0.8.8' });
-    loadAsset('script', 'rebus-chat-calendar-script', { src: 'js/chat-calendar.js?v=0.8.8', defer: 'defer' });
-    loadAsset('script', 'rebus-reaction-single-limit-script', { src: 'js/reaction-single-limit.js?v=1.0.0', defer: 'defer' });
-    loadAsset('script', 'rebus-context-menu-rescue-script', { src: 'js/context-menu-rescue.js?v=1.0.0', defer: 'defer' });
-    loadAsset('script', 'rebus-final-message-context-menu-script', { src: 'js/message-context-menu-final.js?v=1.0.0', defer: 'defer' });
+    loadAsset('script', 'rebus-chat-calendar-script', { src: 'js/chat-calendar.js?v=0.8.8' });
+    loadAsset('script', 'rebus-reaction-single-limit-script', { src: 'js/reaction-single-limit.js?v=1.0.0' });
+    loadAsset('script', 'rebus-context-menu-rescue-script', { src: 'js/context-menu-rescue.js?v=1.0.0' });
+    loadAsset('script', 'rebus-final-message-context-menu-script', { src: 'js/message-context-menu-final.js?v=1.0.1' });
     loadAsset('link', 'rebus-peer-sidebar-style', { rel: 'stylesheet', href: 'css/chat-peer-sidebar.css?v=0.8.5' });
-    loadAsset('script', 'rebus-peer-sidebar-script', { src: 'js/chat-peer-sidebar.js?v=0.8.5', defer: 'defer' });
+    loadAsset('script', 'rebus-peer-sidebar-script', { src: 'js/chat-peer-sidebar.js?v=0.8.5' });
   }
 
   function setFavicon(online) {
@@ -132,35 +132,61 @@
     style.textContent = `
       .account-card .account-logo.is-status-logo { overflow: hidden !important; color: transparent !important; background-color: rgba(255,255,255,.05) !important; box-shadow: 0 0 24px rgba(255,36,56,.22) !important; }
       #directSelfCard .direct-self-avatar.has-user-avatar { color: transparent !important; overflow: hidden !important; background-color: rgba(255,255,255,.08) !important; box-shadow: 0 0 24px rgba(0,216,255,.16), 0 0 24px rgba(255,36,56,.16) !important; }
-      #page-chat .message[data-message-id] { position: relative !important; min-width: 84px !important; }
+      #page-chat .message[data-message-id] { position: relative !important; min-width: 84px !important; overflow: visible !important; }
       #page-chat .message[data-message-id].incoming { padding-right: 30px !important; }
       #page-chat .message[data-message-id].outgoing { padding-left: 30px !important; }
-      #page-chat .message-corner-menu { position: absolute !important; top: 8px !important; z-index: 40 !important; width: 16px !important; height: 16px !important; min-width: 16px !important; padding: 0 !important; border: 0 !important; border-radius: 0 !important; background: transparent !important; box-shadow: none !important; outline: 0 !important; opacity: 0 !important; pointer-events: none !important; cursor: pointer !important; font-size: 0 !important; line-height: 0 !important; color: rgba(244,251,255,.76) !important; }
-      #page-chat .message.incoming .message-corner-menu { right: 9px !important; }
-      #page-chat .message.outgoing .message-corner-menu { left: 9px !important; }
-      #page-chat .message-corner-menu::before { content: ""; position: absolute; inset: 1px; background: currentColor; clip-path: polygon(12% 28%, 50% 66%, 88% 28%, 100% 40%, 50% 90%, 0 40%); }
-      #page-chat .message:hover .message-corner-menu, #page-chat .message.has-menu-open .message-corner-menu, #page-chat .message.has-side-hover .message-corner-menu { opacity: .9 !important; pointer-events: auto !important; }
+      #page-chat .message-corner-menu { position: absolute !important; top: 8px !important; z-index: 90 !important; width: 20px !important; height: 20px !important; min-width: 20px !important; padding: 0 !important; border: 0 !important; border-radius: 0 !important; background: transparent !important; box-shadow: none !important; outline: 0 !important; opacity: 0 !important; pointer-events: none !important; cursor: pointer !important; font-size: 0 !important; line-height: 0 !important; color: rgba(244,251,255,.9) !important; }
+      #page-chat .message.incoming .message-corner-menu { right: 8px !important; }
+      #page-chat .message.outgoing .message-corner-menu { left: 8px !important; }
+      #page-chat .message-corner-menu::before { content: "" !important; position: absolute !important; inset: 2px !important; background: currentColor !important; clip-path: polygon(12% 28%, 50% 66%, 88% 28%, 100% 40%, 50% 90%, 0 40%) !important; }
+      #page-chat .message:hover .message-corner-menu, #page-chat .message.has-menu-open .message-corner-menu, #page-chat .message.has-side-hover .message-corner-menu { opacity: 1 !important; pointer-events: auto !important; }
       #page-chat .message-corner-menu:hover { color: #fff !important; }
     `;
     document.head.appendChild(style);
   }
 
-  function openMenu(message) {
+  function openMenu(message, event) {
     if (!message) return;
-    if (window.RebusContextMenuRescue?.open) { window.RebusContextMenuRescue.open(message); return; }
+    if (window.RebusFinalMessageMenu?.open) { window.RebusFinalMessageMenu.open(message, event); return; }
+    if (window.RebusContextMenuRescue?.open) { window.RebusContextMenuRescue.open(message, event); return; }
     if (typeof openMessageContextMenu === 'function') { openMessageContextMenu(message.dataset.messageId, message); return; }
     message.querySelector('.message-menu-toggle')?.click();
   }
 
+  function earlyIntercept(event) {
+    const trigger = event.target.closest?.('.message-corner-menu, .message-menu-toggle');
+    if (!trigger) return;
+    const message = event.target.closest?.(MESSAGE_SELECTOR);
+    if (!message) return;
+    event.preventDefault();
+    event.stopPropagation();
+    event.stopImmediatePropagation?.();
+    openMenu(message, event);
+  }
+
+  document.addEventListener('pointerdown', earlyIntercept, true);
+  document.addEventListener('click', earlyIntercept, true);
+  document.addEventListener('contextmenu', event => {
+    const message = event.target.closest?.(MESSAGE_SELECTOR);
+    if (!message) return;
+    event.preventDefault();
+    event.stopPropagation();
+    event.stopImmediatePropagation?.();
+    openMenu(message, event);
+  }, true);
+
   function ensureButtons(scope = document) {
     scope.querySelectorAll?.(MESSAGE_SELECTOR)?.forEach(message => {
-      if (message.querySelector('.message-corner-menu')) return;
-      const button = document.createElement('button');
-      button.type = 'button';
-      button.className = 'message-corner-menu';
-      button.setAttribute('aria-label', 'Дії повідомлення');
-      button.addEventListener('click', event => { event.preventDefault(); event.stopPropagation(); openMenu(message); }, true);
-      message.appendChild(button);
+      let button = message.querySelector('.message-corner-menu');
+      if (!button) {
+        button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'message-corner-menu';
+        button.setAttribute('aria-label', 'Дії повідомлення');
+        message.appendChild(button);
+      }
+      button.textContent = '';
+      button.dataset.sideHoverReady = '1';
     });
   }
 
