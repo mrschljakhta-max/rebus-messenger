@@ -39,6 +39,7 @@
     loadAsset('script', 'rebus-nav-icon-swap-script', { src: 'js/nav-icon-swap.js?v=0.9.7', defer: 'defer' });
     loadAsset('link', 'rebus-chat-calendar-style', { rel: 'stylesheet', href: 'css/chat-calendar.css?v=0.8.8' });
     loadAsset('script', 'rebus-chat-calendar-script', { src: 'js/chat-calendar.js?v=0.8.8', defer: 'defer' });
+    loadAsset('script', 'rebus-reaction-single-limit-script', { src: 'js/reaction-single-limit.js?v=1.0.0', defer: 'defer' });
     loadAsset('link', 'rebus-peer-sidebar-style', { rel: 'stylesheet', href: 'css/chat-peer-sidebar.css?v=0.8.5' });
     loadAsset('script', 'rebus-peer-sidebar-script', { src: 'js/chat-peer-sidebar.js?v=0.8.5', defer: 'defer' });
   }
