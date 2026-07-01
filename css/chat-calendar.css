@@ -108,16 +108,22 @@
 }
 
 .rebus-chat-calendar-day.has-messages::after {
-  content: "";
+  content: attr(data-message-count);
   position: absolute;
-  left: 50%;
-  bottom: 4px;
-  width: 4px;
-  height: 4px;
-  border-radius: 50%;
-  transform: translateX(-50%);
+  right: -3px;
+  bottom: -4px;
+  min-width: 14px;
+  height: 14px;
+  padding: 0 3px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  color: #fff;
   background: #00d8ff;
-  box-shadow: 0 0 10px rgba(0,216,255,.78);
+  box-shadow: 0 0 10px rgba(0,216,255,.62);
+  font-size: 9px;
+  font-weight: 950;
+  line-height: 1;
 }
 
 .rebus-chat-calendar-day.has-messages:hover {
@@ -135,11 +141,19 @@
   border-color: rgba(255,255,255,.18);
 }
 
-.rebus-chat-calendar-foot {
+.rebus-chat-calendar-foot,
+.rebus-chat-calendar-loading {
   margin-top: 12px;
   color: rgba(244,251,255,.44);
   font-size: 11px;
   line-height: 1.35;
+}
+
+.rebus-chat-calendar-loading {
+  margin: 0;
+  padding: 12px;
+  border-radius: 14px;
+  background: rgba(255,255,255,.045);
 }
 
 .message-day-divider.is-scroll-target span {
