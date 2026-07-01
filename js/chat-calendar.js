@@ -13,6 +13,10 @@
 
   let viewedMonth = null;
   let selectedDateKey = null;
+  let activeAnchor = null;
+  let activePeerId = null;
+  let dateIndex = new Map();
+  let indexLoadingFor = null;
 
   function pad(value) {
     return String(value).padStart(2, '0');
@@ -20,6 +24,12 @@
 
   function toKey(date) {
     return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+  }
+
+  function keyFromIso(value) {
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return null;
+    return toKey(date);
   }
 
   function startOfDay(date) {
@@ -36,6 +46,28 @@
 
   function sameMonth(a, b) {
     return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth();
+  }
+
+  function supa() {
+    try { if (typeof supabaseClient !== 'undefined') return supabaseClient; } catch {}
+    return window.supabaseClient || window.rebusSupabaseClient || null;
+  }
+
+  async function getCurrentUserId() {
+    try {
+      if (typeof currentUser !== 'undefined' && currentUser?.id) return currentUser.id;
+    } catch {}
+    const client = supa();
+    if (!client?.auth?.getUser) return null;
+    const { data } = await client.auth.getUser();
+    return data?.user?.id || null;
+  }
+
+  function getSelectedPeerId() {
+    try {
+      if (typeof selectedPeer !== 'undefined' && selectedPeer?.id) return selectedPeer.id;
+    } catch {}
+    return document.querySelector('#page-chat .direct-user.is-selected[data-user-id], #page-chat .direct-user.is-active[data-user-id]')?.dataset.userId || null;
   }
 
   function parseDividerDate(label) {
@@ -71,7 +103,7 @@
     });
   }
 
-  function getAvailableDates() {
+  function getRenderedDividers() {
     hydrateDividers();
     const map = new Map();
     document.querySelectorAll(DAY_SELECTOR).forEach(divider => {
@@ -80,11 +112,73 @@
     return map;
   }
 
+  function getAvailableDates() {
+    const rendered = getRenderedDividers();
+    const map = new Map(dateIndex);
+    rendered.forEach((divider, key) => {
+      const item = map.get(key) || { count: 0, divider: null };
+      item.divider = divider;
+      map.set(key, item);
+    });
+    return map;
+  }
+
+  async function refreshDateIndex(force = false) {
+    const peerId = getSelectedPeerId();
+    const client = supa();
+    const me = await getCurrentUserId();
+    if (!client || !me || !peerId) return dateIndex;
+    if (!force && activePeerId === peerId && dateIndex.size) return dateIndex;
+    if (indexLoadingFor === peerId) return dateIndex;
+
+    activePeerId = peerId;
+    indexLoadingFor = peerId;
+    const next = new Map();
+    const pairFilter = `and(user_id.eq.${me},recipient_id.eq.${peerId}),and(user_id.eq.${peerId},recipient_id.eq.${me})`;
+    const pageSize = 1000;
+    let from = 0;
+
+    try {
+      while (true) {
+        const { data, error } = await client
+          .from('messenger_messages')
+          .select('created_at')
+          .eq('channel', 'direct')
+          .or(pairFilter)
+          .order('created_at', { ascending: true })
+          .range(from, from + pageSize - 1);
+
+        if (error) throw error;
+        (data || []).forEach(message => {
+          const key = keyFromIso(message.created_at);
+          if (!key) return;
+          const item = next.get(key) || { count: 0, divider: null };
+          item.count += 1;
+          next.set(key, item);
+        });
+        if (!data || data.length < pageSize) break;
+        from += pageSize;
+      }
+      dateIndex = next;
+    } catch (error) {
+      console.warn('[REBUS] Chat calendar full date index failed:', error?.message || error);
+      // Fallback: use currently rendered dividers, so the calendar still opens.
+      const fallback = new Map();
+      getRenderedDividers().forEach((divider, key) => fallback.set(key, { count: 1, divider }));
+      dateIndex = fallback;
+    } finally {
+      indexLoadingFor = null;
+    }
+
+    return dateIndex;
+  }
+
   function getRange(dateMap) {
     const today = startOfDay(new Date());
     const keys = [...dateMap.keys()].sort();
     const min = keys.length ? new Date(`${keys[0]}T00:00:00`) : today;
-    return { min, max: today };
+    const maxDate = keys.length ? new Date(`${keys[keys.length - 1]}T00:00:00`) : today;
+    return { min, max: maxDate > today ? maxDate : today };
   }
 
   function ensurePopover() {
@@ -118,7 +212,19 @@
     popover.style.top = `${top}px`;
   }
 
-  function renderCalendar(anchor) {
+  function renderLoading(anchor) {
+    const popover = ensurePopover();
+    popover.innerHTML = '<div class="rebus-chat-calendar-loading">Завантаження дат листування…</div>';
+    positionPopover(popover, anchor);
+  }
+
+  async function renderCalendar(anchor, forceRefresh = false) {
+    activeAnchor = anchor;
+    if (!dateIndex.size || forceRefresh || activePeerId !== getSelectedPeerId()) {
+      renderLoading(anchor);
+      await refreshDateIndex(forceRefresh);
+    }
+
     const dateMap = getAvailableDates();
     const { min, max } = getRange(dateMap);
     if (!viewedMonth) viewedMonth = monthStart(selectedDateKey ? new Date(`${selectedDateKey}T00:00:00`) : max);
@@ -140,15 +246,18 @@
       const date = new Date(gridStart);
       date.setDate(gridStart.getDate() + index);
       const key = toKey(date);
-      const hasMessages = dateMap.has(key);
+      const info = dateMap.get(key);
+      const count = info?.count || 0;
+      const hasMessages = count > 0;
       const isVisibleMonth = date.getMonth() === month;
-      const disabled = date < min || date > max || !hasMessages;
+      const disabled = !hasMessages;
       return `
         <button type="button"
           class="rebus-chat-calendar-day${isVisibleMonth ? ' is-visible-month' : ''}${hasMessages ? ' has-messages' : ''}${key === selectedDateKey ? ' is-selected' : ''}${key === todayKey ? ' is-today' : ''}"
           data-date-key="${key}"
+          data-message-count="${count}"
           ${disabled ? 'disabled' : ''}
-          title="${hasMessages ? 'Перейти до листування за цю дату' : ''}">
+          title="${hasMessages ? `${count} повідомл. — перейти до листування за цю дату` : ''}">
           ${date.getDate()}
         </button>
       `;
@@ -162,14 +271,14 @@
       </div>
       <div class="rebus-chat-calendar-week">${WEEK.map(day => `<span>${day}</span>`).join('')}</div>
       <div class="rebus-chat-calendar-grid">${days}</div>
-      <div class="rebus-chat-calendar-foot">Підсвічені дні — дні, у які є листування. Натисни день, щоб перейти до нього в чаті.</div>
+      <div class="rebus-chat-calendar-foot">Підсвічені дні — усі дні листування з бази. Число біля дня — кількість повідомлень.</div>
     `;
 
     popover.querySelectorAll('[data-calendar-nav]').forEach(button => {
       button.addEventListener('click', event => {
         event.stopPropagation();
         viewedMonth = addMonths(viewedMonth, button.dataset.calendarNav === 'prev' ? -1 : 1);
-        renderCalendar(anchor);
+        renderCalendar(anchor, false);
       });
     });
 
@@ -190,14 +299,19 @@
     viewedMonth = monthStart(new Date(`${selectedDateKey}T00:00:00`));
     document.querySelectorAll('.message-day-divider.is-calendar-open').forEach(node => node.classList.remove('is-calendar-open'));
     anchor.classList.add('is-calendar-open');
-    renderCalendar(anchor);
+    renderCalendar(anchor, false);
   }
 
   function scrollToDate(key) {
     const dateMap = getAvailableDates();
-    const target = dateMap.get(key);
-    if (!target) return;
+    const target = dateMap.get(key)?.divider || getRenderedDividers().get(key);
     selectedDateKey = key;
+    if (!target) {
+      const popover = ensurePopover();
+      popover.innerHTML = '<div class="rebus-chat-calendar-loading">Ця дата є в історії, але повідомлення цього дня ще не завантажені в стрічку. Потрібно додати підвантаження історії за датою.</div>';
+      if (activeAnchor) positionPopover(popover, activeAnchor);
+      return;
+    }
     target.scrollIntoView({ behavior: 'smooth', block: 'center' });
     target.classList.remove('is-scroll-target');
     void target.offsetWidth;
@@ -237,8 +351,18 @@
   }
 
   document.addEventListener('click', event => {
+    if (event.target.closest?.('.direct-user[data-user-id]')) {
+      dateIndex = new Map();
+      activePeerId = null;
+      viewedMonth = null;
+      setTimeout(() => refreshDateIndex(true), 500);
+    }
     if (!event.target.closest?.(`#${POPOVER_ID}, .message-day-divider`)) closeCalendar();
   }, true);
+
+  document.addEventListener('rebus:route-change', event => {
+    if (!event.detail?.route || event.detail.route === 'chat') setTimeout(() => refreshDateIndex(false), 600);
+  });
 
   document.addEventListener('keydown', event => {
     if (event.key === 'Escape') closeCalendar();
@@ -249,6 +373,8 @@
     if (event.target?.id === 'messagesList') return;
     closeCalendar();
   }, true);
+
+  window.RebusChatCalendar = { refresh: () => refreshDateIndex(true), open: () => activeAnchor && renderCalendar(activeAnchor, true), index: () => dateIndex };
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init, { once: true });
   else init();
