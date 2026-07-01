@@ -1,6 +1,7 @@
 (() => {
-  const ROUTE_KEY = 'rebus:messenger:last-route';
-  const ROUTE_LABELS = {
+  const STORAGE_KEY = 'rebus:messenger:active-route';
+  const VALID_ROUTES = new Set(['account', 'chat', 'contours', 'library', 'contacts', 'settings']);
+  const LABELS = {
     account: 'Акаунт',
     chat: 'Чат',
     contours: 'Контур',
@@ -9,61 +10,109 @@
     settings: 'Налаштування'
   };
 
-  function isValidRoute(route) {
-    return !!route && route !== 'logout' && !!document.querySelector(`[data-page="${CSS.escape(route)}"]`);
+  let activeRoute = normalize(localStorage.getItem(STORAGE_KEY)) || 'chat';
+  let applying = false;
+  let restoreTimer = null;
+
+  function normalize(route) {
+    return VALID_ROUTES.has(route) ? route : null;
   }
 
-  function activateRoute(route) {
-    if (!isValidRoute(route)) return;
+  function appIsVisible() {
+    const shell = document.getElementById('appShell');
+    return Boolean(shell && !shell.hidden);
+  }
 
+  function currentDomRoute() {
+    return document.querySelector('.page-view.is-active[data-page]')?.dataset.page || null;
+  }
+
+  function applyRoute(route) {
+    const next = normalize(route) || 'chat';
+    const previous = currentDomRoute();
+    activeRoute = next;
+    localStorage.setItem(STORAGE_KEY, next);
+
+    applying = true;
     document.querySelectorAll('[data-page]').forEach(page => {
-      const active = page.dataset.page === route;
-      page.hidden = !active;
-      page.classList.toggle('is-active', active);
+      const isTarget = page.dataset.page === next;
+      page.hidden = !isTarget;
+      page.classList.toggle('is-active', isTarget);
     });
 
     document.querySelectorAll('[data-route]').forEach(button => {
-      button.classList.toggle('is-active', button.dataset.route === route);
+      if (button.dataset.route === 'logout') return;
+      button.classList.toggle('is-active', button.dataset.route === next);
     });
 
-    document.title = `${ROUTE_LABELS[route] || 'REBUS'} — REBUS Messenger`;
+    document.title = `${LABELS[next] || 'REBUS'} — REBUS Messenger`;
 
-    if (route === 'settings') {
-      document.dispatchEvent(new CustomEvent('rebus:route-settings'));
+    if (next === 'contacts') {
+      document.dispatchEvent(new CustomEvent('rebus:contacts-visible'));
+      window.RebusContacts?.load?.({ force: true });
     }
-    if (route === 'contacts') {
-      document.dispatchEvent(new CustomEvent('rebus:route-contacts'));
-    }
+
+    document.dispatchEvent(new CustomEvent('rebus:route-change', { detail: { route: next, previous, stable: true } }));
+    requestAnimationFrame(() => { applying = false; });
   }
 
-  function enforceRoute(route, duration = 1800) {
-    if (!isValidRoute(route)) return;
-    const start = Date.now();
-    activateRoute(route);
-    const timer = window.setInterval(() => {
-      const active = document.querySelector('[data-page].is-active')?.dataset.page;
-      if (active !== route) activateRoute(route);
-      if (Date.now() - start > duration) window.clearInterval(timer);
-    }, 120);
+  function scheduleRestore() {
+    if (applying || !appIsVisible()) return;
+    clearTimeout(restoreTimer);
+    restoreTimer = setTimeout(() => {
+      if (!appIsVisible()) return;
+      const domRoute = currentDomRoute();
+      if (domRoute && domRoute !== activeRoute) applyRoute(activeRoute);
+    }, 40);
   }
 
   document.addEventListener('click', event => {
-    const button = event.target.closest('[data-route]');
-    const route = button?.dataset?.route;
-    if (!isValidRoute(route)) return;
-    sessionStorage.setItem(ROUTE_KEY, route);
-    window.setTimeout(() => enforceRoute(route), 0);
-    window.setTimeout(() => enforceRoute(route, 1200), 260);
+    const routeButton = event.target.closest?.('[data-route]');
+    if (!routeButton) return;
+    const route = routeButton.dataset.route;
+    if (route === 'logout') return;
+    if (!normalize(route)) return;
+    event.preventDefault();
+    event.stopPropagation();
+    event.stopImmediatePropagation?.();
+    applyRoute(route);
   }, true);
 
-  window.addEventListener('pageshow', () => {
-    const saved = sessionStorage.getItem(ROUTE_KEY);
-    if (isValidRoute(saved)) window.setTimeout(() => enforceRoute(saved, 900), 260);
-  });
+  document.addEventListener('keydown', event => {
+    const routeButton = event.target.closest?.('[data-route]');
+    if (!routeButton) return;
+    const route = routeButton.dataset.route;
+    if (!normalize(route) || !['Enter', ' '].includes(event.key)) return;
+    event.preventDefault();
+    event.stopPropagation();
+    event.stopImmediatePropagation?.();
+    applyRoute(route);
+  }, true);
 
-  document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState !== 'visible') return;
-    const saved = sessionStorage.getItem(ROUTE_KEY);
-    if (isValidRoute(saved)) window.setTimeout(() => enforceRoute(saved, 900), 120);
-  });
+  function init() {
+    activeRoute = normalize(localStorage.getItem(STORAGE_KEY)) || currentDomRoute() || 'chat';
+    if (appIsVisible()) applyRoute(activeRoute);
+
+    const shell = document.getElementById('appShell');
+    if (shell && shell.dataset.routeStabilityObserved !== '1') {
+      shell.dataset.routeStabilityObserved = '1';
+      new MutationObserver(scheduleRestore).observe(shell, {
+        childList: true,
+        subtree: true,
+        attributes: true,
+        attributeFilter: ['hidden', 'class']
+      });
+    }
+  }
+
+  window.RebusRouter = {
+    set: applyRoute,
+    get: () => activeRoute,
+    restore: () => applyRoute(activeRoute)
+  };
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init, { once: true });
+  else init();
+  window.addEventListener('pageshow', () => setTimeout(init, 80));
+  setTimeout(init, 500);
 })();
