@@ -1,6 +1,8 @@
 (() => {
   const MESSAGE_SELECTOR = '#messagesList .message[data-message-id]';
   const PREVIEW_ID = 'rebusComposerPreview';
+  const MENU_WIDTH = 224;
+  const MENU_GAP = 12;
   let activeReply = null;
   let activeEdit = null;
   let pendingReply = null;
@@ -16,6 +18,68 @@
 
   function msgText(message) { return message?.querySelector?.('.message-body')?.textContent?.trim() || ''; }
   function msgAuthor(message) { return message?.querySelector?.('b')?.textContent?.trim() || 'Користувач'; }
+
+  function ensureMenuStyle() {
+    if (document.getElementById('rebus-message-context-menu-fix-style')) return;
+    const style = document.createElement('style');
+    style.id = 'rebus-message-context-menu-fix-style';
+    style.textContent = `
+      body > .message-context-menu.rebus-fixed-menu {
+        position: fixed !important;
+        z-index: 10080 !important;
+        display: flex !important;
+        flex-direction: column !important;
+        width: ${MENU_WIDTH}px !important;
+        min-width: ${MENU_WIDTH}px !important;
+        max-width: ${MENU_WIDTH}px !important;
+        max-height: calc(100vh - 20px) !important;
+        overflow: hidden auto !important;
+        transform: none !important;
+        inset: auto !important;
+        margin: 0 !important;
+        pointer-events: auto !important;
+        opacity: 1 !important;
+        visibility: visible !important;
+        border: 1px solid rgba(255,255,255,.10) !important;
+        border-radius: 16px !important;
+        background: rgba(5, 12, 22, .97) !important;
+        box-shadow: 0 24px 70px rgba(0,0,0,.48), 0 0 24px rgba(0,216,255,.08) !important;
+        backdrop-filter: blur(16px) saturate(1.08) !important;
+      }
+      body > .message-context-menu.rebus-fixed-menu .message-menu-item {
+        min-height: 42px !important;
+        display: flex !important;
+        align-items: center !important;
+        gap: 12px !important;
+        width: 100% !important;
+        padding: 0 14px !important;
+        border: 0 !important;
+        background: transparent !important;
+        color: rgba(244,251,255,.92) !important;
+        cursor: pointer !important;
+        text-align: left !important;
+      }
+      body > .message-context-menu.rebus-fixed-menu .message-menu-item:hover:not(:disabled) {
+        background: rgba(0,216,255,.08) !important;
+        color: #fff !important;
+      }
+      body > .message-context-menu.rebus-fixed-menu .message-menu-item:disabled {
+        opacity: .38 !important;
+        cursor: default !important;
+      }
+      body > .message-context-menu.rebus-fixed-menu .message-menu-item span {
+        width: 18px !important;
+        min-width: 18px !important;
+        text-align: center !important;
+      }
+      body > .message-context-menu.rebus-fixed-menu .message-menu-item em {
+        font-style: normal !important;
+        font-weight: 850 !important;
+        white-space: nowrap !important;
+      }
+    `;
+    document.head.appendChild(style);
+  }
 
   function stripNativeReceiptTooltips(scope = document) {
     scope.querySelectorAll?.('.message-status[title]').forEach(status => {
@@ -103,7 +167,12 @@
       menu.classList.remove('is-open', 'rebus-fixed-menu', 'opens-up');
       menu.style.left = '';
       menu.style.top = '';
+      menu.style.right = '';
+      menu.style.bottom = '';
       menu.style.width = '';
+      menu.style.minWidth = '';
+      menu.style.maxWidth = '';
+      menu.style.position = '';
     });
     document.querySelectorAll('.message-tools.is-pinned').forEach(tool => tool.classList.remove('is-pinned'));
     document.querySelectorAll('.message.has-menu-open').forEach(message => message.classList.remove('has-menu-open'));
@@ -117,6 +186,7 @@
     const isOutgoing = message.classList.contains('outgoing');
     menu.querySelectorAll('.message-menu-item').forEach(button => {
       const action = button.dataset.action;
+      button.dataset.messageId = message.dataset.messageId;
       if (action === 'reply' || action === 'copy') button.disabled = false;
       if (action === 'edit' || action === 'delete') button.disabled = !isOutgoing;
     });
@@ -125,38 +195,56 @@
   function clamp(value, min, max) { return Math.max(min, Math.min(value, max)); }
 
   function openFixedMenu(messageId) {
+    ensureMenuStyle();
     const message = messageById(messageId);
     const menu = document.querySelector(`.message-context-menu[data-menu-for="${CSS.escape(messageId)}"]`);
     if (!message || !menu) return;
 
     closeMenus();
     prepareMenuForBody(menu, message);
+
+    menu.style.position = 'fixed';
+    menu.style.width = `${MENU_WIDTH}px`;
+    menu.style.minWidth = `${MENU_WIDTH}px`;
+    menu.style.maxWidth = `${MENU_WIDTH}px`;
+    menu.style.left = '-9999px';
+    menu.style.top = '-9999px';
+    menu.style.right = 'auto';
+    menu.style.bottom = 'auto';
     menu.classList.add('is-open', 'rebus-fixed-menu');
     message.classList.add('has-menu-open');
 
-    menu.style.left = '0px';
-    menu.style.top = '0px';
-    menu.style.width = '224px';
-
     const messageRect = message.getBoundingClientRect();
-    const menuRect = menu.getBoundingClientRect();
+    const viewportW = document.documentElement.clientWidth || window.innerWidth;
+    const viewportH = document.documentElement.clientHeight || window.innerHeight;
     const gap = 10;
+    const menuHeight = Math.min(menu.scrollHeight || menu.getBoundingClientRect().height || 320, viewportH - gap * 2);
     const isOutgoing = message.classList.contains('outgoing');
 
-    let left = isOutgoing ? messageRect.left - menuRect.width - 12 : messageRect.right + 12;
-    if (left < gap) left = isOutgoing ? messageRect.left : messageRect.right + 12;
-    left = clamp(left, gap, window.innerWidth - menuRect.width - gap);
+    const spaceLeft = messageRect.left - gap;
+    const spaceRight = viewportW - messageRect.right - gap;
+    let left;
 
-    let top = messageRect.top - 2;
-    const maxTop = window.innerHeight - menuRect.height - gap;
+    if (isOutgoing) {
+      left = spaceLeft >= MENU_WIDTH + MENU_GAP ? messageRect.left - MENU_WIDTH - MENU_GAP : messageRect.right + MENU_GAP;
+    } else {
+      left = spaceRight >= MENU_WIDTH + MENU_GAP ? messageRect.right + MENU_GAP : messageRect.left - MENU_WIDTH - MENU_GAP;
+    }
+
+    if (left + MENU_WIDTH > viewportW - gap) left = viewportW - MENU_WIDTH - gap;
+    if (left < gap) left = gap;
+
+    let top = messageRect.top;
+    const maxTop = viewportH - menuHeight - gap;
     if (top > maxTop) {
-      top = messageRect.bottom - menuRect.height + 2;
+      top = messageRect.bottom - menuHeight;
       menu.classList.add('opens-up');
     }
-    top = clamp(top, gap, maxTop);
+    top = clamp(top, gap, Math.max(gap, maxTop));
 
-    menu.style.left = `${left}px`;
-    menu.style.top = `${top}px`;
+    menu.style.left = `${Math.round(left)}px`;
+    menu.style.top = `${Math.round(top)}px`;
+    menu.style.maxHeight = `${Math.max(160, viewportH - gap * 2)}px`;
     try { openMessageMenuId = messageId; } catch {}
   }
 
@@ -228,6 +316,7 @@
   }
 
   function bind(scope = document) {
+    ensureMenuStyle();
     patchAppendMessage();
     patchMenu();
     stripNativeReceiptTooltips(scope);
@@ -261,8 +350,14 @@
   }, true);
 
   document.addEventListener('keydown', event => {
-    if (event.key === 'Escape') clearModes();
+    if (event.key === 'Escape') { clearModes(); closeMenus(); }
     if (activeEdit && event.key === 'Enter' && !event.shiftKey && event.target?.id === 'messageInput') { event.preventDefault(); event.stopPropagation(); event.stopImmediatePropagation?.(); saveEdit(); }
+  }, true);
+
+  window.addEventListener('resize', closeMenus);
+  document.addEventListener('scroll', event => {
+    if (event.target?.closest?.('.message-context-menu')) return;
+    closeMenus();
   }, true);
 
   function init() {
