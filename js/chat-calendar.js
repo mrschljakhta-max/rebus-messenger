@@ -162,7 +162,6 @@
       dateIndex = next;
     } catch (error) {
       console.warn('[REBUS] Chat calendar full date index failed:', error?.message || error);
-      // Fallback: use currently rendered dividers, so the calendar still opens.
       const fallback = new Map();
       getRenderedDividers().forEach((divider, key) => fallback.set(key, { count: 1, divider }));
       dateIndex = fallback;
@@ -247,17 +246,15 @@
       date.setDate(gridStart.getDate() + index);
       const key = toKey(date);
       const info = dateMap.get(key);
-      const count = info?.count || 0;
-      const hasMessages = count > 0;
+      const hasMessages = Boolean(info?.count);
       const isVisibleMonth = date.getMonth() === month;
       const disabled = !hasMessages;
       return `
         <button type="button"
           class="rebus-chat-calendar-day${isVisibleMonth ? ' is-visible-month' : ''}${hasMessages ? ' has-messages' : ''}${key === selectedDateKey ? ' is-selected' : ''}${key === todayKey ? ' is-today' : ''}"
           data-date-key="${key}"
-          data-message-count="${count}"
           ${disabled ? 'disabled' : ''}
-          title="${hasMessages ? `${count} повідомл. — перейти до листування за цю дату` : ''}">
+          title="${hasMessages ? 'Перейти до листування за цю дату' : ''}">
           ${date.getDate()}
         </button>
       `;
@@ -271,7 +268,7 @@
       </div>
       <div class="rebus-chat-calendar-week">${WEEK.map(day => `<span>${day}</span>`).join('')}</div>
       <div class="rebus-chat-calendar-grid">${days}</div>
-      <div class="rebus-chat-calendar-foot">Підсвічені дні — усі дні листування з бази. Число біля дня — кількість повідомлень.</div>
+      <div class="rebus-chat-calendar-foot">Підсвічені дні — дні, у які є листування. Натисни день, щоб перейти до нього в чаті.</div>
     `;
 
     popover.querySelectorAll('[data-calendar-nav]').forEach(button => {
