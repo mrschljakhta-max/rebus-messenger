@@ -41,6 +41,7 @@
     loadAsset('script', 'rebus-chat-calendar-script', { src: 'js/chat-calendar.js?v=0.8.8', defer: 'defer' });
     loadAsset('script', 'rebus-reaction-single-limit-script', { src: 'js/reaction-single-limit.js?v=1.0.0', defer: 'defer' });
     loadAsset('script', 'rebus-context-menu-rescue-script', { src: 'js/context-menu-rescue.js?v=1.0.0', defer: 'defer' });
+    loadAsset('script', 'rebus-final-message-context-menu-script', { src: 'js/message-context-menu-final.js?v=1.0.0', defer: 'defer' });
     loadAsset('link', 'rebus-peer-sidebar-style', { rel: 'stylesheet', href: 'css/chat-peer-sidebar.css?v=0.8.5' });
     loadAsset('script', 'rebus-peer-sidebar-script', { src: 'js/chat-peer-sidebar.js?v=0.8.5', defer: 'defer' });
   }
@@ -146,6 +147,7 @@
 
   function openMenu(message) {
     if (!message) return;
+    if (window.RebusFinalMessageMenu?.open) { window.RebusFinalMessageMenu.open(message); return; }
     if (window.RebusContextMenuRescue?.open) { window.RebusContextMenuRescue.open(message); return; }
     if (typeof openMessageContextMenu === 'function') { openMessageContextMenu(message.dataset.messageId, message); return; }
     message.querySelector('.message-menu-toggle')?.click();
