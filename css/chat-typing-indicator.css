@@ -1,5 +1,9 @@
 /* REBUS Messenger — direct chat typing indicator */
 
+#page-chat .direct-user {
+  position: relative !important;
+}
+
 #page-chat .direct-user.is-typing {
   border-color: rgba(0, 216, 255, .34) !important;
   box-shadow: 0 14px 34px rgba(0, 216, 255, .07), inset 0 1px rgba(255,255,255,.06) !important;
