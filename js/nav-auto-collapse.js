@@ -51,14 +51,6 @@
       src: 'js/chat-typing-indicator.js?v=1.0.2',
       defer: 'defer'
     });
-    loadAsset('link', 'rebus-chat-calendar-all-dates-style', {
-      rel: 'stylesheet',
-      href: 'css/chat-calendar-all-dates.css?v=1.0.0'
-    });
-    loadAsset('script', 'rebus-chat-calendar-all-dates-script', {
-      src: 'js/chat-calendar-all-dates.js?v=1.0.0',
-      defer: 'defer'
-    });
   }
 
   function getNav() {

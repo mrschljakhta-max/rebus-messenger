@@ -283,9 +283,9 @@
     });
 
     popover.querySelectorAll('.rebus-chat-calendar-day.has-messages').forEach(button => {
-      button.addEventListener('click', event => {
+      button.addEventListener('click', async event => {
         event.stopPropagation();
-        scrollToDate(button.dataset.dateKey);
+        await scrollToDate(button.dataset.dateKey);
         closeCalendar();
       });
     });
@@ -302,21 +302,37 @@
     renderCalendar(anchor, false);
   }
 
-  function scrollToDate(key) {
-    const dateMap = getAvailableDates();
-    const target = dateMap.get(key)?.divider || getRenderedDividers().get(key);
+  async function scrollToDate(key) {
     selectedDateKey = key;
+
+    let target = getAvailableDates().get(key)?.divider || getRenderedDividers().get(key);
+
+    if (!target && window.RebusDirectChatApi?.loadMessagesForDate) {
+      const popover = ensurePopover();
+      popover.innerHTML = '<div class="rebus-chat-calendar-loading">Підвантаження повідомлень за обрану дату…</div>';
+      if (activeAnchor) positionPopover(popover, activeAnchor);
+
+      const loaded = await window.RebusDirectChatApi.loadMessagesForDate(key);
+      if (loaded) {
+        bindDividers(document);
+        hydrateDividers();
+        target = getRenderedDividers().get(key);
+      }
+    }
+
     if (!target) {
       const popover = ensurePopover();
-      popover.innerHTML = '<div class="rebus-chat-calendar-loading">Ця дата є в історії, але повідомлення цього дня ще не завантажені в стрічку. Потрібно додати підвантаження історії за датою.</div>';
+      popover.innerHTML = '<div class="rebus-chat-calendar-loading">Не вдалося знайти повідомлення за цю дату в стрічці.</div>';
       if (activeAnchor) positionPopover(popover, activeAnchor);
-      return;
+      return false;
     }
+
     target.scrollIntoView({ behavior: 'smooth', block: 'center' });
     target.classList.remove('is-scroll-target');
     void target.offsetWidth;
     target.classList.add('is-scroll-target');
     window.setTimeout(() => target.classList.remove('is-scroll-target'), 1400);
+    return true;
   }
 
   function bindDividers(scope = document) {

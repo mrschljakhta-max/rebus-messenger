@@ -54,6 +54,7 @@ let selectedPeer = null;
 let directUsers = [];
 let realtimeChannel = null;
 let renderedMessageIds = new Set();
+let directMessageCache = new Map();
 let reactionSummary = new Map();
 let openMessageMenuId = null;
 let openReactionPaletteId = null;
@@ -313,6 +314,7 @@ async function signOut() {
   await supabaseClient?.auth.signOut();
   currentUser = null;
   renderedMessageIds.clear();
+  directMessageCache.clear();
   if (messagesList) messagesList.innerHTML = '';
   showLogin();
 }
@@ -698,11 +700,13 @@ function bindMessageReactionEvents(scope) {
 function appendMessage(message, options = {}) {
   if (!messagesList || !message) return null;
   if (!options.replace && message.id && renderedMessageIds.has(message.id)) return null;
+  if (message.id) directMessageCache.set(message.id, { ...message });
 
   if (options.replace && options.replaceId) {
     const oldNode = messagesList.querySelector(`[data-message-id="${CSS.escape(options.replaceId)}"]`);
     if (oldNode) oldNode.remove();
     renderedMessageIds.delete(options.replaceId);
+    directMessageCache.delete(options.replaceId);
   }
 
   if (message.id) renderedMessageIds.add(message.id);
@@ -942,6 +946,7 @@ async function loadMessages() {
 
   messagesList.innerHTML = '';
   renderedMessageIds.clear();
+  directMessageCache.clear();
   reactionSummary.clear();
   lastRenderedDay = null;
 
@@ -984,6 +989,69 @@ async function loadMessages() {
   messagesWithReactions.forEach(appendMessage);
   await markIncomingMessagesRead(data);
 }
+
+
+function mergeDirectMessages(...groups) {
+  const map = new Map();
+  groups.flat().filter(Boolean).forEach(message => {
+    if (!message?.id) return;
+    map.set(message.id, { ...message });
+  });
+  return [...map.values()].sort((a, b) => new Date(a.created_at || 0) - new Date(b.created_at || 0));
+}
+
+function rerenderDirectMessages(messages = []) {
+  if (!messagesList) return;
+  messagesList.innerHTML = '';
+  renderedMessageIds.clear();
+  reactionSummary.clear();
+  lastRenderedDay = null;
+  messages.forEach(message => directMessageCache.set(message.id, { ...message }));
+  messages.forEach(appendMessage);
+}
+
+async function loadMessagesForDate(dateKey) {
+  if (!supabaseClient || !currentUser || !selectedPeer || !messagesList || !/^\d{4}-\d{2}-\d{2}$/.test(String(dateKey || ''))) return false;
+
+  const start = new Date(`${dateKey}T00:00:00`);
+  const end = new Date(start);
+  end.setDate(start.getDate() + 1);
+
+  const me = currentUser.id;
+  const peer = selectedPeer.id;
+  const pairFilter = `and(user_id.eq.${me},recipient_id.eq.${peer}),and(user_id.eq.${peer},recipient_id.eq.${me})`;
+
+  const { data, error } = await supabaseClient
+    .from('messenger_messages')
+    .select('id, contour_id, recipient_id, conversation_key, channel, user_id, user_email, user_name, body, created_at')
+    .eq('channel', 'direct')
+    .or(pairFilter)
+    .gte('created_at', start.toISOString())
+    .lt('created_at', end.toISOString())
+    .order('created_at', { ascending: true });
+
+  if (error) {
+    console.error('[REBUS] Load messages for date error:', error);
+    renderSystemMessage(`Не вдалося завантажити повідомлення за дату: ${error.message}`);
+    return false;
+  }
+
+  if (!data?.length) return false;
+
+  const merged = mergeDirectMessages([...directMessageCache.values()], data);
+  const withReceipts = await loadReceiptsForOwnMessages(merged);
+  const withReactions = await loadReactionsForMessages(withReceipts);
+  directMessageCache.clear();
+  rerenderDirectMessages(withReactions);
+  await markIncomingMessagesRead(data);
+  return true;
+}
+
+window.RebusDirectChatApi = {
+  loadMessagesForDate,
+  getRenderedDateKeys: () => [...document.querySelectorAll('#messagesList .message-day-divider')].map(item => item.dataset.dateKey).filter(Boolean),
+  getCachedMessages: () => [...directMessageCache.values()]
+};
 
 async function sendMessage() {
   if (!supabaseClient || !currentUser) {
