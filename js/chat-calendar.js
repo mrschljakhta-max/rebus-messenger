@@ -81,7 +81,7 @@
       return date;
     }
 
-    const match = text.match(/^(\d{1,2})\s+([а-яіїєґ]+)\s+(\d{4})$/i);
+    const match = text.replace(/\s*р\.$/, '').match(/^(\d{1,2})\s+([а-яіїєґ]+)\s+(\d{4})$/i);
     if (!match) return null;
     const day = Number(match[1]);
     const month = UK_MONTHS.indexOf(match[2]);
@@ -302,10 +302,20 @@
     renderCalendar(anchor, false);
   }
 
+  function waitForRender() {
+    return new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+  }
+
+  function findRenderedDateTarget(key) {
+    const firstMessage = document.querySelector(`#messagesList .message[data-message-date="${CSS.escape(key)}"]`);
+    if (firstMessage) return firstMessage;
+    return getAvailableDates().get(key)?.divider || getRenderedDividers().get(key) || null;
+  }
+
   async function scrollToDate(key) {
     selectedDateKey = key;
 
-    let target = getAvailableDates().get(key)?.divider || getRenderedDividers().get(key);
+    let target = findRenderedDateTarget(key);
 
     if (!target && window.RebusDirectChatApi?.loadMessagesForDate) {
       const popover = ensurePopover();
@@ -314,9 +324,10 @@
 
       const loaded = await window.RebusDirectChatApi.loadMessagesForDate(key);
       if (loaded) {
+        await waitForRender();
         bindDividers(document);
         hydrateDividers();
-        target = getRenderedDividers().get(key);
+        target = findRenderedDateTarget(key);
       }
     }
 
@@ -328,10 +339,12 @@
     }
 
     target.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    target.classList.remove('is-scroll-target');
-    void target.offsetWidth;
-    target.classList.add('is-scroll-target');
-    window.setTimeout(() => target.classList.remove('is-scroll-target'), 1400);
+    const divider = getRenderedDividers().get(key) || target.closest?.('.message-day-divider');
+    const pulse = divider || target;
+    pulse.classList.remove('is-scroll-target');
+    void pulse.offsetWidth;
+    pulse.classList.add('is-scroll-target');
+    window.setTimeout(() => pulse.classList.remove('is-scroll-target'), 1400);
     return true;
   }
 

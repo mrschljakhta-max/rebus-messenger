@@ -112,6 +112,13 @@ function formatDateTime(value) {
   });
 }
 
+function formatMessageDateKey(value) {
+  const date = value ? new Date(value) : new Date();
+  if (Number.isNaN(date.getTime())) return '';
+  const pad = number => String(number).padStart(2, '0');
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+}
+
 function formatMessageDay(value) {
   const date = value ? new Date(value) : new Date();
   const now = new Date();
@@ -119,7 +126,7 @@ function formatMessageDay(value) {
   const diff = Math.round((start(now) - start(date)) / 86400000);
   if (diff === 0) return 'Сьогодні';
   if (diff === 1) return 'Вчора';
-  return date.toLocaleDateString('uk-UA', { day: '2-digit', month: 'long', year: 'numeric' });
+  return date.toLocaleDateString('uk-UA', { day: '2-digit', month: 'long', year: 'numeric' }).replace(/\s*р\.$/, '');
 }
 
 function makeConversationKey(userA, userB) {
@@ -712,9 +719,12 @@ function appendMessage(message, options = {}) {
   if (message.id) renderedMessageIds.add(message.id);
 
   const messageDay = formatMessageDay(message.created_at);
+  const messageDateKey = formatMessageDateKey(message.created_at);
   if (!options.replace && messageDay && messageDay !== lastRenderedDay) {
     const divider = document.createElement('div');
     divider.className = 'message-day-divider';
+    divider.dataset.dateKey = messageDateKey;
+    divider.dataset.dateLabel = messageDay;
     divider.innerHTML = `<span>${escapeHtml(messageDay)}</span>`;
     messagesList.appendChild(divider);
     lastRenderedDay = messageDay;
@@ -727,6 +737,7 @@ function appendMessage(message, options = {}) {
   const el = document.createElement('div');
   el.className = `message ${isOwn ? 'outgoing' : 'incoming'} ${statusClass}`.trim();
   if (message.id) el.dataset.messageId = message.id;
+  if (messageDateKey) el.dataset.messageDate = messageDateKey;
   el.innerHTML = `
     <span class="message-hover-zone" aria-hidden="true"></span>
     ${renderMessageTools(message, isOwn)}
@@ -1013,9 +1024,11 @@ function rerenderDirectMessages(messages = []) {
 async function loadMessagesForDate(dateKey) {
   if (!supabaseClient || !currentUser || !selectedPeer || !messagesList || !/^\d{4}-\d{2}-\d{2}$/.test(String(dateKey || ''))) return false;
 
-  const start = new Date(`${dateKey}T00:00:00`);
-  const end = new Date(start);
-  end.setDate(start.getDate() + 1);
+  const selectedDay = new Date(`${dateKey}T00:00:00`);
+  const start = new Date(selectedDay);
+  start.setDate(selectedDay.getDate() - 1);
+  const end = new Date(selectedDay);
+  end.setDate(selectedDay.getDate() + 2);
 
   const me = currentUser.id;
   const peer = selectedPeer.id;
