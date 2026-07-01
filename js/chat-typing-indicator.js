@@ -97,6 +97,16 @@
     }
   }
 
+  function restoreHeaderMeta() {
+    const headStatus = document.querySelector('#directChatHead > div:last-child > span');
+    if (!headStatus) return;
+    if (headStatus.dataset.defaultText) {
+      headStatus.textContent = headStatus.dataset.defaultText;
+      delete headStatus.dataset.defaultText;
+    }
+    headStatus.classList.remove('direct-typing-head-text');
+  }
+
   function updateUi() {
     ensureCardPills();
     const now = Date.now();
@@ -128,16 +138,7 @@
     }
 
     head?.classList.toggle('is-typing', Boolean(activePeer && activeTyping));
-    const headStatus = head?.querySelector('span');
-    if (headStatus) {
-      if (activePeer && activeTyping) {
-        if (!headStatus.dataset.defaultText) headStatus.dataset.defaultText = headStatus.textContent || '';
-        headStatus.innerHTML = `<span class="direct-typing-head-text">друкує</span>${dots()}`;
-      } else if (headStatus.dataset.defaultText) {
-        headStatus.textContent = headStatus.dataset.defaultText;
-        delete headStatus.dataset.defaultText;
-      }
-    }
+    restoreHeaderMeta();
   }
 
   async function flushPending() {
