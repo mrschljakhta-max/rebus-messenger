@@ -37,7 +37,7 @@
     });
     loadAsset('link', 'rebus-chat-status-avatar-style', {
       rel: 'stylesheet',
-      href: 'css/chat-status-avatar.css?v=1.0.0'
+      href: 'css/chat-status-avatar.css?v=1.0.2'
     });
     loadAsset('script', 'rebus-chat-status-avatar-script', {
       src: 'js/chat-status-avatar.js?v=1.0.0',
@@ -45,10 +45,10 @@
     });
     loadAsset('link', 'rebus-chat-typing-indicator-style', {
       rel: 'stylesheet',
-      href: 'css/chat-typing-indicator.css?v=1.0.0'
+      href: 'css/chat-typing-indicator.css?v=1.0.2'
     });
     loadAsset('script', 'rebus-chat-typing-indicator-script', {
-      src: 'js/chat-typing-indicator.js?v=1.0.0',
+      src: 'js/chat-typing-indicator.js?v=1.0.2',
       defer: 'defer'
     });
   }
