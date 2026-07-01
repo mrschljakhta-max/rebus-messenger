@@ -31,13 +31,19 @@
   display: none !important;
 }
 
-/* Header already has the status dot on the avatar, so the text "Онлайн" is hidden. */
-#page-chat #directChatHead > div:last-child > span:not(.direct-typing-head-text) {
+/* Header already has the status dot on the avatar, so no text status/typing line is shown there. */
+#page-chat #directChatHead span,
+#page-chat .direct-chat-head span,
+#directChatHead > div:last-child > span,
+#directChatHead.is-typing > div:last-child > span,
+#directChatHead .direct-typing-head-text,
+#directChatHead .typing-dots {
   display: none !important;
-}
-
-#page-chat #directChatHead.is-typing > div:last-child > span {
-  display: inline-flex !important;
+  visibility: hidden !important;
+  width: 0 !important;
+  height: 0 !important;
+  overflow: hidden !important;
+  opacity: 0 !important;
 }
 
 #page-chat .direct-avatar-status-dot,
