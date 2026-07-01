@@ -31,6 +31,15 @@
   display: none !important;
 }
 
+/* Header already has the status dot on the avatar, so the text "Онлайн" is hidden. */
+#page-chat #directChatHead > div:last-child > span:not(.direct-typing-head-text) {
+  display: none !important;
+}
+
+#page-chat #directChatHead.is-typing > div:last-child > span {
+  display: inline-flex !important;
+}
+
 #page-chat .direct-avatar-status-dot,
 #page-chat .direct-chat-avatar .direct-avatar-status-dot,
 #directSelfCard .direct-avatar-status-dot {
