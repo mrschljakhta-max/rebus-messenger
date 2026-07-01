@@ -9,10 +9,28 @@
   box-shadow: 0 14px 34px rgba(0, 216, 255, .07), inset 0 1px rgba(255,255,255,.06) !important;
 }
 
-/* The list card uses only the normal text row: "друкує повідомлення…".
+/* The list card uses only the normal text row: "друкує повідомлення" + animated dots.
    The extra capsule on the right is intentionally hidden. */
 #page-chat .direct-typing-pill,
 #page-chat .direct-user.is-typing .direct-typing-pill {
+  display: none !important;
+}
+
+#page-chat .direct-typing-line,
+#page-chat .direct-typing-head-text {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #00d8ff !important;
+  font-style: normal !important;
+  font-weight: 900 !important;
+  text-shadow: 0 0 10px rgba(0,216,255,.28);
+  white-space: nowrap;
+}
+
+#page-chat .direct-typing-line::after,
+#page-chat .direct-typing-head-text::after {
+  content: none !important;
   display: none !important;
 }
 
@@ -20,11 +38,13 @@
   display: inline-flex;
   align-items: center;
   gap: 3px;
+  margin-left: 2px;
+  vertical-align: middle;
 }
 
 #page-chat .typing-dots i {
-  width: 4px;
-  height: 4px;
+  width: 5px;
+  height: 5px;
   display: block;
   border-radius: 999px;
   background: #00d8ff;
