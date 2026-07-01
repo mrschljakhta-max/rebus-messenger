@@ -147,7 +147,6 @@
 
   function openMenu(message) {
     if (!message) return;
-    if (window.RebusFinalMessageMenu?.open) { window.RebusFinalMessageMenu.open(message); return; }
     if (window.RebusContextMenuRescue?.open) { window.RebusContextMenuRescue.open(message); return; }
     if (typeof openMessageContextMenu === 'function') { openMessageContextMenu(message.dataset.messageId, message); return; }
     message.querySelector('.message-menu-toggle')?.click();
