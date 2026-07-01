@@ -1,15 +1,13 @@
 (() => {
   const CHANNEL_NAME = 'rebus-direct-typing';
-  const TYPING_TTL = 5200;
+  const TYPING_TTL = 9000;
   const SEND_THROTTLE = 650;
-  const STOP_DELAY = 2800;
-  const HEARTBEAT_INTERVAL = 1100;
+  const HEARTBEAT_INTERVAL = 1200;
 
   let channel = null;
   let channelReady = false;
   let currentUser = null;
   let lastSentAt = 0;
-  let stopTimer = null;
   let heartbeatTimer = null;
   let pendingPayload = null;
   let localTypingActive = false;
@@ -17,6 +15,11 @@
 
   function client() {
     return window.rebusSupabaseClient || window.supabaseClient || (typeof supabaseClient !== 'undefined' ? supabaseClient : null);
+  }
+
+  function inputHasAnySymbol() {
+    const input = document.getElementById('messageInput');
+    return Boolean(input && !input.disabled && input.value.length > 0);
   }
 
   function selectedPeerObject() {
@@ -215,8 +218,7 @@
   function startHeartbeat() {
     if (heartbeatTimer) return;
     heartbeatTimer = setInterval(() => {
-      const input = document.getElementById('messageInput');
-      if (!input || input.disabled || !selectedPeerId() || !input.value.trim() || document.visibilityState === 'hidden') {
+      if (!inputHasAnySymbol() || !selectedPeerId()) {
         stopLocalTyping();
         return;
       }
@@ -225,21 +227,12 @@
   }
 
   function stopLocalTyping() {
-    clearTimeout(stopTimer);
     stopHeartbeat();
     sendTyping(false);
   }
 
-  function scheduleStop() {
-    clearTimeout(stopTimer);
-    stopTimer = setTimeout(stopLocalTyping, STOP_DELAY);
-  }
-
-  function handleInput() {
-    const input = document.getElementById('messageInput');
-    if (!input || input.disabled || !selectedPeerId()) return;
-    const hasText = Boolean(input.value.trim());
-    if (!hasText) {
+  function startLocalTyping() {
+    if (!inputHasAnySymbol() || !selectedPeerId()) {
       stopLocalTyping();
       return;
     }
@@ -250,7 +243,19 @@
       sendTyping(true);
     }
     startHeartbeat();
-    scheduleStop();
+  }
+
+  function handleInput() {
+    if (inputHasAnySymbol()) startLocalTyping();
+    else stopLocalTyping();
+  }
+
+  function markSentAndStop() {
+    stopLocalTyping();
+    setTimeout(() => {
+      const input = document.getElementById('messageInput');
+      if (input && input.value.length === 0) stopLocalTyping();
+    }, 120);
   }
 
   function bindInput() {
@@ -262,10 +267,16 @@
       input.addEventListener('keyup', handleInput);
       input.addEventListener('paste', () => setTimeout(handleInput, 0));
       input.addEventListener('focus', handleInput);
-      input.addEventListener('blur', stopLocalTyping);
+      input.addEventListener('blur', handleInput);
       input.addEventListener('keydown', event => {
-        if (event.key === 'Enter') setTimeout(stopLocalTyping, 80);
+        if (event.key === 'Enter' && !event.shiftKey) setTimeout(markSentAndStop, 80);
       });
+    }
+
+    const sendButton = document.getElementById('sendMessageButton');
+    if (sendButton && sendButton.dataset.typingSendBound !== '1') {
+      sendButton.dataset.typingSendBound = '1';
+      sendButton.addEventListener('click', () => setTimeout(markSentAndStop, 40), true);
     }
   }
 
@@ -274,6 +285,7 @@
     ensureChannel();
     ensureCardPills();
     updateUi();
+    handleInput();
   }
 
   window.RebusTyping = {
@@ -293,16 +305,23 @@
     else stopLocalTyping();
   });
   document.addEventListener('click', event => {
-    if (event.target.closest('[data-route="chat"], .direct-user[data-user-id]')) {
+    if (event.target.closest('[data-route="chat"]')) {
+      setTimeout(init, 120);
+      return;
+    }
+    if (event.target.closest('.direct-user[data-user-id]')) {
       setTimeout(() => { stopLocalTyping(); init(); }, 120);
     }
   }, true);
   document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'hidden') stopLocalTyping();
-    else init();
+    if (document.visibilityState === 'hidden') return;
+    init();
   });
   window.addEventListener('beforeunload', stopLocalTyping);
-  setInterval(updateUi, 700);
+  setInterval(() => {
+    updateUi();
+    if (inputHasAnySymbol()) startLocalTyping();
+  }, 700);
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init, { once: true });
   else init();
