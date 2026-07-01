@@ -1,15 +1,18 @@
 (() => {
   const CHANNEL_NAME = 'rebus-direct-typing';
-  const TYPING_TTL = 3200;
+  const TYPING_TTL = 5200;
   const SEND_THROTTLE = 650;
-  const STOP_DELAY = 1400;
+  const STOP_DELAY = 2800;
+  const HEARTBEAT_INTERVAL = 1100;
 
   let channel = null;
   let channelReady = false;
   let currentUser = null;
   let lastSentAt = 0;
   let stopTimer = null;
+  let heartbeatTimer = null;
   let pendingPayload = null;
+  let localTypingActive = false;
   const typingUsers = new Map();
 
   function client() {
@@ -178,9 +181,33 @@
     }
   }
 
+  function stopHeartbeat() {
+    clearInterval(heartbeatTimer);
+    heartbeatTimer = null;
+    localTypingActive = false;
+  }
+
+  function startHeartbeat() {
+    if (heartbeatTimer) return;
+    heartbeatTimer = setInterval(() => {
+      const input = document.getElementById('messageInput');
+      if (!input || input.disabled || !selectedPeerId() || !input.value.trim() || document.visibilityState === 'hidden') {
+        stopLocalTyping();
+        return;
+      }
+      sendTyping(true);
+    }, HEARTBEAT_INTERVAL);
+  }
+
+  function stopLocalTyping() {
+    clearTimeout(stopTimer);
+    stopHeartbeat();
+    sendTyping(false);
+  }
+
   function scheduleStop() {
     clearTimeout(stopTimer);
-    stopTimer = setTimeout(() => sendTyping(false), STOP_DELAY);
+    stopTimer = setTimeout(stopLocalTyping, STOP_DELAY);
   }
 
   function handleInput() {
@@ -188,14 +215,16 @@
     if (!input || input.disabled || !selectedPeerId()) return;
     const hasText = Boolean(input.value.trim());
     if (!hasText) {
-      sendTyping(false);
+      stopLocalTyping();
       return;
     }
     const now = Date.now();
-    if (now - lastSentAt > SEND_THROTTLE) {
+    if (!localTypingActive || now - lastSentAt > SEND_THROTTLE) {
+      localTypingActive = true;
       lastSentAt = now;
       sendTyping(true);
     }
+    startHeartbeat();
     scheduleStop();
   }
 
@@ -207,9 +236,10 @@
       input.addEventListener('input', handleInput);
       input.addEventListener('keyup', handleInput);
       input.addEventListener('paste', () => setTimeout(handleInput, 0));
-      input.addEventListener('blur', () => sendTyping(false));
+      input.addEventListener('focus', handleInput);
+      input.addEventListener('blur', stopLocalTyping);
       input.addEventListener('keydown', event => {
-        if (event.key === 'Enter') setTimeout(() => sendTyping(false), 80);
+        if (event.key === 'Enter') setTimeout(stopLocalTyping, 80);
       });
     }
   }
@@ -224,7 +254,7 @@
   window.RebusTyping = {
     refresh: updateUi,
     start: ensureChannel,
-    stop: () => sendTyping(false),
+    stop: stopLocalTyping,
     testIncoming: id => {
       const peer = id || selectedPeerId() || document.querySelector('#page-chat .direct-user[data-user-id]')?.dataset.userId;
       if (!peer) return;
@@ -235,17 +265,18 @@
 
   document.addEventListener('rebus:route-change', event => {
     if (!event.detail?.route || event.detail.route === 'chat') setTimeout(init, 80);
+    else stopLocalTyping();
   });
   document.addEventListener('click', event => {
     if (event.target.closest('[data-route="chat"], .direct-user[data-user-id]')) {
-      setTimeout(() => { sendTyping(false); init(); }, 120);
+      setTimeout(() => { stopLocalTyping(); init(); }, 120);
     }
   }, true);
   document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'hidden') sendTyping(false);
+    if (document.visibilityState === 'hidden') stopLocalTyping();
     else init();
   });
-  window.addEventListener('beforeunload', () => sendTyping(false));
+  window.addEventListener('beforeunload', stopLocalTyping);
   setInterval(updateUi, 700);
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init, { once: true });
