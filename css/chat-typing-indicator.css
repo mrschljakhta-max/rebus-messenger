@@ -58,6 +58,8 @@
   line-height: 1;
   vertical-align: middle;
   overflow: visible;
+  contain: layout paint;
+  transform: translateZ(0);
 }
 
 #page-chat .typing-dots::before,
@@ -73,19 +75,24 @@
   flex: 0 0 5px;
   border-radius: 999px;
   background: #00d8ff;
-  box-shadow: 0 0 10px rgba(0, 216, 255, .65);
-  opacity: .35;
-  transform: translateY(0);
-  animation: rebusTypingDot 1.15s infinite ease-in-out;
+  box-shadow: 0 0 8px rgba(0, 216, 255, .45);
+  opacity: .72;
+  transform: translate3d(0, 0, 0) scale(.96);
+  will-change: transform;
+  animation: rebusTypingDot 1.25s infinite cubic-bezier(.45, 0, .25, 1);
 }
 
 #page-chat .typing-dots i:nth-child(1) { animation-delay: 0s; }
-#page-chat .typing-dots i:nth-child(2) { animation-delay: .16s; }
-#page-chat .typing-dots i:nth-child(3) { animation-delay: .32s; }
+#page-chat .typing-dots i:nth-child(2) { animation-delay: .18s; }
+#page-chat .typing-dots i:nth-child(3) { animation-delay: .36s; }
 
 @keyframes rebusTypingDot {
-  0%, 70%, 100% { opacity: .35; transform: translateY(0) scale(.92); }
-  35% { opacity: 1; transform: translateY(-3px) scale(1); }
+  0%, 72%, 100% {
+    transform: translate3d(0, 0, 0) scale(.96);
+  }
+  36% {
+    transform: translate3d(0, -3px, 0) scale(1.08);
+  }
 }
 
 #page-chat .direct-typing-bubble {
