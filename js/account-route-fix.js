@@ -57,6 +57,30 @@
     }, 40);
   }
 
+  function patchLegacyRouter() {
+    try {
+      window.setRoute = function stableSetRoute(route) {
+        if (route === 'logout') {
+          if (typeof window.signOut === 'function') window.signOut();
+          return;
+        }
+        applyRoute(route);
+      };
+    } catch {}
+
+    try {
+      window.showApp = function stableShowApp() {
+        const loginPage = document.getElementById('loginPage');
+        const mfaPage = document.getElementById('mfaPage');
+        const appShell = document.getElementById('appShell');
+        if (loginPage) loginPage.hidden = true;
+        if (mfaPage) mfaPage.hidden = true;
+        if (appShell) appShell.hidden = false;
+        applyRoute(activeRoute || normalize(localStorage.getItem(STORAGE_KEY)) || 'chat');
+      };
+    } catch {}
+  }
+
   document.addEventListener('click', event => {
     const routeButton = event.target.closest?.('[data-route]');
     if (!routeButton) return;
@@ -81,6 +105,7 @@
   }, true);
 
   function init() {
+    patchLegacyRouter();
     activeRoute = normalize(localStorage.getItem(STORAGE_KEY)) || currentDomRoute() || 'chat';
     if (appIsVisible()) applyRoute(activeRoute);
     const shell = document.getElementById('appShell');
