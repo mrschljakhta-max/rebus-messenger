@@ -43,6 +43,14 @@
       src: 'js/chat-status-avatar.js?v=1.0.0',
       defer: 'defer'
     });
+    loadAsset('link', 'rebus-chat-typing-indicator-style', {
+      rel: 'stylesheet',
+      href: 'css/chat-typing-indicator.css?v=1.0.0'
+    });
+    loadAsset('script', 'rebus-chat-typing-indicator-script', {
+      src: 'js/chat-typing-indicator.js?v=1.0.0',
+      defer: 'defer'
+    });
   }
 
   function getNav() {
