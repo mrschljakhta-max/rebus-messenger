@@ -46,6 +46,10 @@
     return '<span class="typing-dots" aria-hidden="true"><i></i><i></i><i></i></span>';
   }
 
+  function typingLine() {
+    return `<span class="direct-typing-line"><span>друкує повідомлення</span>${dots()}</span>`;
+  }
+
   function ensureBubble() {
     const list = document.getElementById('messagesList');
     if (!list) return null;
@@ -70,6 +74,26 @@
     });
   }
 
+  function setCardTypingRow(card, isTyping) {
+    const line = card?.querySelector?.('.direct-user-main em');
+    if (!line) return;
+
+    if (isTyping) {
+      if (!line.dataset.defaultText) line.dataset.defaultText = line.textContent || '';
+      if (line.dataset.typingDotsReady !== '1') {
+        line.dataset.typingDotsReady = '1';
+        line.innerHTML = typingLine();
+      }
+      return;
+    }
+
+    if (line.dataset.defaultText) {
+      line.textContent = line.dataset.defaultText;
+      delete line.dataset.defaultText;
+      delete line.dataset.typingDotsReady;
+    }
+  }
+
   function updateUi() {
     ensureCardPills();
     const now = Date.now();
@@ -84,6 +108,7 @@
       const id = card.dataset.userId;
       const isTyping = typingUsers.has(id);
       card.classList.toggle('is-typing', isTyping);
+      setCardTypingRow(card, isTyping);
       if (id === activePeer && isTyping) activeTyping = true;
     });
 
@@ -104,7 +129,7 @@
     if (headStatus) {
       if (activePeer && activeTyping) {
         if (!headStatus.dataset.defaultText) headStatus.dataset.defaultText = headStatus.textContent || '';
-        headStatus.textContent = 'друкує…';
+        headStatus.innerHTML = `<span class="direct-typing-head-text">друкує</span>${dots()}`;
       } else if (headStatus.dataset.defaultText) {
         headStatus.textContent = headStatus.dataset.defaultText;
         delete headStatus.dataset.defaultText;
